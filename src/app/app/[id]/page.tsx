@@ -1,13 +1,13 @@
  'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useEffect, useState, use } from 'react';
 import { databases, storage, DB_ID, TABLE_ID, BUCKET_ID } from '@/app/lib/appwrite';
 import { Download, ExternalLink, Loader2, Share2, Smartphone } from 'lucide-react';
 
-export default function MobileAppViewer() {
-  const params = useParams();
-  const id = params?.id as string;
+
+export default function MobileAppViewer({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
 
   const [appData, setAppData] = useState<any>(null);
   const [iconUrl, setIconUrl] = useState<string>('');
