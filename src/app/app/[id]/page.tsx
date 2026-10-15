@@ -1,13 +1,13 @@
  'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { databases, storage, DB_ID, TABLE_ID, BUCKET_ID } from '@/app/lib/appwrite';
 import { Download, ExternalLink, Loader2, Share2, Smartphone } from 'lucide-react';
 
-
-export default function MobileAppViewer({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
-  const id = resolvedParams.id;
+function AppViewerContent() {
+  const params = useParams();
+  const id = params?.id as string;
 
   const [appData, setAppData] = useState<any>(null);
   const [iconUrl, setIconUrl] = useState<string>('');
@@ -217,5 +217,20 @@ export default function MobileAppViewer({ params }: { params: Promise<{ id: stri
         مشغّل بواسطة منصة AppForge PWA
       </footer>
     </div>
+  );
+}
+
+export default function MobileAppViewerPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
+          <p className="text-sm text-slate-400">جاري تحميل التطبيق...</p>
+        </div>
+      }
+    >
+      <AppViewerContent />
+    </Suspense>
   );
 }
