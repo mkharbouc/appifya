@@ -1,0 +1,132 @@
+﻿'use client';
+
+import React, { createContext, useContext, useEffect, useState } from 'react';
+
+type Language = 'ar' | 'en' | 'fr';
+
+interface Translations {
+  [key: string]: {
+    [key: string]: string;
+  };
+}
+
+export const translations: Translations = {
+  ar: {
+    heroTitle: "حوّل متجرك أو صفحة هبوطك إلى",
+    heroTitleHighlight: "تطبيق جوال فوري (PWA)",
+    heroSub: "أنشئ تطبيق ويب تقدمي سريع لمتجرك مع دعم دمج الإعلانات والربح الفوري واختيار النظام المناسب.",
+    storeUrlLabel: "رابط المتجر أو صفحة الهبوط",
+    appNameLabel: "اسم التطبيق",
+    themeColorLabel: "اللون الرئيسي",
+    iconLabel: "أيقونة التطبيق",
+    platformLabel: "النظام المستهدف للتطبيق",
+    platformBoth: "كلاهما (مستحسن)",
+    platformAndroid: "Android فقط",
+    platformIos: "iOS فقط",
+    monetizationTitle: "إعدادات تحقيق الدخل والإعلانات",
+    noAds: "بدون إعلانات",
+    customCode: "شفرة مخصصة",
+    generateBtn: "توليد ونشر التطبيق الآن",
+    navAbout: "من نحن",
+    navContact: "اتصل بنا",
+    navPricing: "الأسعار",
+    installBtn: "تثبيت التطبيق على جهازك",
+    exportBtn: "تصدير الكود النظيف ($19)",
+  },
+  en: {
+    heroTitle: "Convert Your Store or Landing Page into a",
+    heroTitleHighlight: "Fast Mobile PWA",
+    heroSub: "Build a blazing-fast Progressive Web App with ad monetization, platform customization, and instant Appwrite sync.",
+    storeUrlLabel: "Store or Landing Page URL",
+    appNameLabel: "App Name",
+    themeColorLabel: "Theme Color",
+    iconLabel: "App Icon",
+    platformLabel: "Target Mobile Platform",
+    platformBoth: "Both (Recommended)",
+    platformAndroid: "Android Only",
+    platformIos: "iOS Only",
+    monetizationTitle: "Monetization & Ad Settings",
+    noAds: "No Ads",
+    customCode: "Custom Code",
+    generateBtn: "Generate & Launch PWA Now",
+    navAbout: "About Us",
+    navContact: "Contact",
+    navPricing: "Pricing",
+    installBtn: "Install App on Device",
+    exportBtn: "Export Clean Package ($19)",
+  },
+  fr: {
+    heroTitle: "Convertissez votre boutique ou page en",
+    heroTitleHighlight: "Application Mobile PWA",
+    heroSub: "Créez une Progressive Web App ultra-rapide avec monétisation, choix du système et backend Appwrite sécurisé.",
+    storeUrlLabel: "URL de la boutique ou page",
+    appNameLabel: "Nom de l'application",
+    themeColorLabel: "Couleur principale",
+    iconLabel: "Icône de l'application",
+    platformLabel: "Plateforme Cible",
+    platformBoth: "Les deux (Recommandé)",
+    platformAndroid: "Android Uniquement",
+    platformIos: "iOS Uniquement",
+    monetizationTitle: "Paramètres de Monétisation & Publicité",
+    noAds: "Sans Publicité",
+    customCode: "Code Personnalisé",
+    generateBtn: "Générer la PWA Maintenant",
+    navAbout: "À propos",
+    navContact: "Contact",
+    navPricing: "Tarifs",
+    installBtn: "Installer l'application",
+    exportBtn: "Exporter le pack propre (19$)",
+  }
+};
+
+const LanguageContext = createContext<{
+  lang: Language;
+  setLang: (l: Language) => void;
+  t: (key: string) => string;
+}>({
+  lang: 'ar',
+  setLang: () => {},
+  t: (key: string) => key,
+});
+
+export function LanguageProvider({ children }: { children: React.ReactNode }) {
+  const [lang, setLangState] = useState<Language>('ar');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('app_lang') as Language;
+    if (saved && ['ar', 'en', 'fr'].includes(saved)) {
+      setLangState(saved);
+      document.documentElement.dir = saved === 'ar' ? 'rtl' : 'ltr';
+      document.documentElement.lang = saved;
+      return;
+    }
+
+    const browserLang = navigator.language.toLowerCase();
+    let detected: Language = 'en';
+
+    if (browserLang.startsWith('ar')) detected = 'ar';
+    else if (browserLang.startsWith('fr')) detected = 'fr';
+    else detected = 'en';
+
+    setLangState(detected);
+    document.documentElement.dir = detected === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = detected;
+  }, []);
+
+  const setLang = (newLang: Language) => {
+    setLangState(newLang);
+    localStorage.setItem('app_lang', newLang);
+    document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = newLang;
+  };
+
+  const t = (key: string) => translations[lang]?.[key] || key;
+
+  return (
+    <LanguageContext.Provider value={{ lang, setLang, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+}
+
+export const useLanguage = () => useContext(LanguageContext);
