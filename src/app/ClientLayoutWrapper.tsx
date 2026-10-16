@@ -3,7 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { LanguageProvider, useLanguage } from "./lib/i18n";
-import { Globe, Sparkles } from "lucide-react";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { Globe, Sparkles, LayoutDashboard, LogOut, User } from "lucide-react";
 
 function AppifyaLogoIcon() {
   return (
@@ -47,6 +48,7 @@ function AppifyaLogoIcon() {
 
 function NavigationBar() {
   const { lang, setLang, t } = useLanguage();
+  const { user, openAuthModal, logout } = useAuth();
 
   return (
     <header className="border-b border-slate-800/80 px-6 py-3.5 flex items-center justify-between backdrop-blur-md sticky top-0 z-50 bg-slate-950/80">
@@ -68,6 +70,12 @@ function NavigationBar() {
           <Link href="/contact" className="hover:text-white transition-colors">
             {t('navContact')}
           </Link>
+          {user && (
+            <Link href="/dashboard" className="text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1.5">
+              <LayoutDashboard className="h-4 w-4" />
+              <span>{lang === 'ar' ? 'تطبيقاتي' : 'Dashboard'}</span>
+            </Link>
+          )}
         </nav>
       </div>
 
@@ -85,13 +93,32 @@ function NavigationBar() {
           </select>
         </div>
 
-        <Link
-          href="/"
-          className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
-        >
-          <Sparkles className="h-3.5 w-3.5" />
-          <span>{lang === 'ar' ? 'أنشئ تطبيقك' : lang === 'fr' ? 'Créer une App' : 'Build App'}</span>
-        </Link>
+        {user ? (
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-200 rounded-xl"
+            >
+              <User className="h-3.5 w-3.5 text-indigo-400" />
+              <span className="hidden sm:inline font-medium">{user.name || user.email.split('@')[0]}</span>
+            </Link>
+            <button
+              onClick={() => logout()}
+              title="تسجيل الخروج"
+              className="p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-900 transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => openAuthModal()}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>{lang === 'ar' ? 'تسجيل الدخول' : 'Sign In'}</span>
+          </button>
+        )}
       </div>
     </header>
   );
@@ -116,10 +143,12 @@ function SiteFooter() {
 
 export default function ClientLayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <LanguageProvider>
-      <NavigationBar />
-      <div className="flex-1 flex flex-col">{children}</div>
-      <SiteFooter />
-    </LanguageProvider>
+    <AuthProvider>
+      <LanguageProvider>
+        <NavigationBar />
+        <div className="flex-1 flex flex-col">{children}</div>
+        <SiteFooter />
+      </LanguageProvider>
+    </AuthProvider>
   );
 }
