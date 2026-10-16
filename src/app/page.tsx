@@ -31,8 +31,9 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const databaseId = '6ace935d0015975c804b';
-  const collectionId = '6ace931c00205a66e468';
+  // Exact Appwrite Identifiers
+  const databaseId = '6ace931c00205a66e468';
+  const collectionId = '6ace935d0015975c804b';
 
   const isRtl = lang === 'ar';
 
@@ -61,7 +62,7 @@ export default function HomePage() {
     if (!storeUrl) {
       setStatusMsg({
         type: 'error',
-        text: lang === 'ar' ? 'يرجى إدخال رابط المتجر أولاً.' : 'Please enter your store URL first.',
+        text: lang === 'ar' ? 'يرجى إدخال رابط المتجر أولاً.' : 'Veuillez saisir l\'URL de la boutique.',
       });
       return;
     }
@@ -82,7 +83,7 @@ export default function HomePage() {
 
       setStatusMsg({
         type: 'success',
-        text: lang === 'ar' ? 'تم حفظ التطبيق وتصديره بنجاح! جاري تحويلك إلى لوحة التحكم...' : 'App saved and exported successfully! Redirecting...',
+        text: lang === 'ar' ? 'تم حفظ التطبيق وتصديره بنجاح! جاري تحويلك إلى لوحة التحكم...' : 'Application enregistrée avec succès ! Redirection...',
       });
 
       setTimeout(() => {
@@ -92,7 +93,7 @@ export default function HomePage() {
       console.error(err);
       setStatusMsg({
         type: 'error',
-        text: err.message || (lang === 'ar' ? 'فشل حفظ التطبيق، يرجى المحاولة ثانية.' : 'Failed to save app.'),
+        text: err.message || (lang === 'ar' ? 'فشل حفظ التطبيق، يرجى المحاولة ثانية.' : 'Échec de l\'enregistrement.'),
       });
     } finally {
       setLoading(false);
@@ -103,7 +104,7 @@ export default function HomePage() {
     if (!storeUrl) {
       setStatusMsg({
         type: 'error',
-        text: lang === 'ar' ? 'يرجى إدخال رابط المتجر أولاً.' : 'Please enter your store URL first.',
+        text: lang === 'ar' ? 'يرجى إدخال رابط المتجر أولاً.' : 'Veuillez saisir l\'URL de la boutique.',
       });
       return;
     }
@@ -126,6 +127,8 @@ export default function HomePage() {
         <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-4">
           {lang === 'ar' ? (
             <>حوّل متجرك أو صفحة الهبوط إلى <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">تطبيق PWA فائق السرعة</span></>
+          ) : lang === 'fr' ? (
+            <>Transformez votre boutique en une <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">PWA Mobile Ultra-Rapide</span></>
           ) : (
             <>Convert Your Store or Landing Page into a <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">Fast Mobile PWA</span></>
           )}
@@ -133,7 +136,7 @@ export default function HomePage() {
         <p className="text-sm sm:text-base text-slate-400 leading-relaxed max-w-2xl mx-auto">
           {lang === 'ar'
             ? 'أنشئ تطبيق ويب تقدمي قابل للتثبيت بضغطة زر، مدمج بحزم إعلانية متوافقة ومربوط سحابياً مع لوحة تحكمك.'
-            : 'Build an installable Progressive Web App with custom styles, fast preview, and instant cloud sync.'}
+            : 'Créez une Progressive Web App installable en un clic, personnalisable et synchronisée avec le cloud.'}
         </p>
       </div>
 
@@ -151,20 +154,20 @@ export default function HomePage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Live Mockup Phone Preview */}
+        {/* Mockup Preview */}
         <div className="lg:col-span-5 flex flex-col items-center order-2 lg:order-1">
           <div className="sticky top-24 w-full max-w-[340px]">
             <div className="flex items-center justify-between mb-3 px-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900 border border-slate-800 text-[11px] font-semibold text-indigo-400 rounded-full">
                 <Eye className="h-3.5 w-3.5" />
-                <span>{lang === 'ar' ? 'معاينة حية للمتجر' : 'Live Interactive Preview'}</span>
+                <span>{lang === 'ar' ? 'معاينة حية للمتجر' : 'Aperçu Interactif Direct'}</span>
               </span>
               {storeUrl && (
                 <button
                   type="button"
                   onClick={() => setIframeKey((k) => k + 1)}
                   className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-900 transition-colors"
-                  title="تحديث المعاينة"
+                  title="Rafraîchir l'aperçu"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
                 </button>
@@ -198,7 +201,7 @@ export default function HomePage() {
                   <div className="w-full h-full bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
                     <Smartphone className="h-12 w-12 text-slate-700 mb-3" />
                     <p className="text-xs text-slate-400 font-medium">
-                      {lang === 'ar' ? 'أدخل رابط موقعك لمشاهدته مباشرة داخل الهاتف' : 'Enter website URL to view live interactive mockup'}
+                      {lang === 'ar' ? 'أدخل رابط موقعك لمشاهدته مباشرة داخل الهاتف' : 'Saisissez l\'URL de votre site pour afficher l\'aperçu interactif'}
                     </p>
                   </div>
                 )}
@@ -215,7 +218,7 @@ export default function HomePage() {
         <div className="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-xl space-y-6 order-1 lg:order-2">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              {lang === 'ar' ? 'رابط المتجر أو صفحة الهبوط' : 'Store or Landing Page URL'} *
+              {lang === 'ar' ? 'رابط المتجر أو صفحة الهبوط' : 'URL du magasin ou page d\'atterrissage'} *
             </label>
             <div className="relative">
               <Globe className="absolute right-4 top-3.5 h-4 w-4 text-slate-500" />
@@ -224,7 +227,7 @@ export default function HomePage() {
                 required
                 value={storeUrl}
                 onChange={(e) => handleUrlChange(e.target.value)}
-                placeholder="https://example.com"
+                placeholder="https://siin.shop/ar"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pr-11 pl-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
                 dir="ltr"
               />
@@ -233,7 +236,7 @@ export default function HomePage() {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              {lang === 'ar' ? 'اسم التطبيق' : 'App Name'}
+              {lang === 'ar' ? 'اسم التطبيق' : 'Nom de l\'application'}
             </label>
             <div className="relative">
               <Smartphone className="absolute right-4 top-3.5 h-4 w-4 text-slate-500" />
@@ -241,7 +244,7 @@ export default function HomePage() {
                 type="text"
                 value={appName}
                 onChange={(e) => setAppName(e.target.value)}
-                placeholder="Example App"
+                placeholder="Siin"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pr-11 pl-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
               />
             </div>
@@ -249,7 +252,7 @@ export default function HomePage() {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              {lang === 'ar' ? 'المنصة المستهدفة' : 'Target Platform'}
+              {lang === 'ar' ? 'المنصة المستهدفة' : 'Plateforme cible'}
             </label>
             <div className="grid grid-cols-3 gap-3">
               {(['both', 'android', 'ios'] as const).map((p) => (
@@ -263,7 +266,7 @@ export default function HomePage() {
                       : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
                   }`}
                 >
-                  {p === 'both' ? (lang === 'ar' ? 'الكل (موصى به)' : 'Both') : p === 'android' ? 'Android Only' : 'iOS Only'}
+                  {p === 'both' ? (lang === 'ar' ? 'الكل (موصى به)' : 'Les deux') : p === 'android' ? 'Android' : 'iOS'}
                 </button>
               ))}
             </div>
@@ -271,7 +274,7 @@ export default function HomePage() {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              {lang === 'ar' ? 'لون الهوية (Theme Color)' : 'Theme Color'}
+              {lang === 'ar' ? 'لون الهوية (Theme Color)' : 'Couleur du thème'}
             </label>
             <div className="flex items-center gap-3 bg-slate-950 border border-slate-800 rounded-xl p-2.5">
               <input
@@ -298,8 +301,8 @@ export default function HomePage() {
                   <Sparkles className="h-5 w-5" />
                   <span>
                     {user
-                      ? (lang === 'ar' ? 'حفظ وتصدير التطبيق إلى لوحة التحكم' : 'Save & Export to Dashboard')
-                      : (lang === 'ar' ? 'تسجيل الدخول وتصدير التطبيق' : 'Sign In & Export App')}
+                      ? (lang === 'ar' ? 'حفظ وتصدير التطبيق إلى لوحة التحكم' : 'Enregistrer & Exporter vers le tableau de bord')
+                      : (lang === 'ar' ? 'تسجيل الدخول وتصدير التطبيق' : 'Connexion & Exportation')}
                   </span>
                 </>
               )}

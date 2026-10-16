@@ -14,8 +14,8 @@ export default function DashboardPage() {
   const [apps, setApps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const databaseId = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || '';
-  const collectionId = '6ace931c00205a66e468';
+  const databaseId = '6ace931c00205a66e468';
+  const collectionId = '6ace935d0015975c804b';
 
   const isRtl = lang === 'ar';
 
