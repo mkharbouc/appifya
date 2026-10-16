@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from './lib/i18n';
@@ -15,6 +15,7 @@ import {
   AlertCircle,
   UploadCloud,
   Eye,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -28,30 +29,30 @@ export default function HomePage() {
   const [themeColor, setThemeColor] = useState('#6366f1');
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
-  const [adsNetwork, setAdsNetwork] = useState('none');
-  const [adsCode, setAdsCode] = useState('');
+  const [iframeKey, setIframeKey] = useState(0);
 
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Appwrite IDs with fallback
-  const databaseId =
-    process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID ||
-    process.env.NEXT_PUBLIC_DATABASE_ID ||
-    '6ace935d0015975c804b';
-
-  const collectionId =
-    process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ID ||
-    process.env.NEXT_PUBLIC_COLLECTION_ID ||
-    process.env.NEXT_PUBLIC_APPWRITE_TABLE_ID ||
-    'pwa_db';
-
-  const bucketId =
-    process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID ||
-    process.env.NEXT_PUBLIC_BUCKET_ID ||
-    '';
+  const databaseId = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || '6ace935d0015975c804b';
+  const collectionId = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ID || 'pwa_db';
+  const bucketId = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID || '';
 
   const isRtl = lang === 'ar';
+
+  // Auto extract app name if empty
+  const handleUrlChange = (val: string) => {
+    setStoreUrl(val);
+    if (!appName && val) {
+      try {
+        const clean = val.replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[/?#]/)[0];
+        const namePart = clean.split('.')[0];
+        if (namePart) {
+          setAppName(namePart.charAt(0).toUpperCase() + namePart.slice(1));
+        }
+      } catch {}
+    }
+  };
 
   const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -61,11 +62,19 @@ export default function HomePage() {
     }
   };
 
+  const getCleanPreviewUrl = () => {
+    if (!storeUrl) return '';
+    if (storeUrl.startsWith('http://') || storeUrl.startsWith('https://')) {
+      return storeUrl;
+    }
+    return `https://${storeUrl}`;
+  };
+
   const executeSaveApp = async (userId: string) => {
     if (!storeUrl) {
       setStatusMsg({
         type: 'error',
-        text: lang === 'ar' ? 'يرجى إدخال رابط المتجر أو صفحة الهبوط أولاً.' : 'Please enter your store or landing page URL first.',
+        text: lang === 'ar' ? 'يرجى إدخال رابط المتجر أو صفحة الهبوط أولاً.' : 'Please enter your store URL first.',
       });
       return;
     }
@@ -80,30 +89,25 @@ export default function HomePage() {
           const uploadRes = await storage.createFile(bucketId, ID.unique(), iconFile);
           iconUrl = `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1'}/storage/buckets/${bucketId}/files/${uploadRes.$id}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || ''}`;
         } catch (uploadErr) {
-          console.warn('Icon upload skipped/failed:', uploadErr);
+          console.warn('Icon upload failed/skipped:', uploadErr);
         }
       }
 
-      const formattedUrl = storeUrl.startsWith('http://') || storeUrl.startsWith('https://')
-        ? storeUrl
-        : `https://${storeUrl}`;
-
+      const formattedUrl = getCleanPreviewUrl();
       const finalAppName = appName.trim() || 'My PWA Store';
 
+      // Match exact Appwrite Table Columns
       await databases.createDocument(databaseId, collectionId, ID.unique(), {
         user_id: userId,
         store_url: formattedUrl,
         app_name: finalAppName,
         theme_color: themeColor,
-        platform: platform,
-        icon_url: iconUrl || '',
-        ads_network: adsNetwork,
-        ads_code: adsCode,
+        ...(iconUrl ? { icon_url: iconUrl } : {}),
       });
 
       setStatusMsg({
         type: 'success',
-        text: lang === 'ar' ? 'تم حفظ التطبيق وتصديره بنجاح! جاري تحويلك إلى لوحة التحكم...' : 'App saved and exported successfully! Redirecting...',
+        text: lang === 'ar' ? 'تم إنشاء التطبيق وحفظه بنجاح! جاري الانتقال للوحة التحكم...' : 'App created and saved successfully! Redirecting...',
       });
 
       setTimeout(() => {
@@ -113,7 +117,7 @@ export default function HomePage() {
       console.error(err);
       setStatusMsg({
         type: 'error',
-        text: err.message || (lang === 'ar' ? 'فشل حفظ التطبيق، يرجى المحاولة ثانية.' : 'Failed to save app, please try again.'),
+        text: err.message || (lang === 'ar' ? 'فشل حفظ التطبيق، يرجى المحاولة ثانية.' : 'Failed to save app.'),
       });
     } finally {
       setLoading(false);
@@ -162,7 +166,7 @@ export default function HomePage() {
         <p className="text-sm sm:text-base text-slate-400 leading-relaxed max-w-2xl mx-auto">
           {lang === 'ar'
             ? 'أنشئ تطبيق ويب تقدمي قابل للتثبيت بضغطة زر، مدمج بحزم إعلانية متوافقة ومربوط سحابياً مع لوحة تحكمك.'
-            : 'Build an installable Progressive Web App with native ad integration, custom styles, and instant cloud sync.'}
+            : 'Build an installable Progressive Web App with custom styles, fast preview, and instant cloud sync.'}
         </p>
       </div>
 
@@ -180,8 +184,77 @@ export default function HomePage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Live Mockup Phone Preview (Left on LTR, Right on RTL) */}
+        <div className="lg:col-span-5 flex flex-col items-center order-2 lg:order-1">
+          <div className="sticky top-24 w-full max-w-[340px]">
+            <div className="flex items-center justify-between mb-3 px-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900 border border-slate-800 text-[11px] font-semibold text-indigo-400 rounded-full">
+                <Eye className="h-3.5 w-3.5" />
+                <span>{lang === 'ar' ? 'معاينة حية للمتجر' : 'Live Interactive Preview'}</span>
+              </span>
+              {storeUrl && (
+                <button
+                  type="button"
+                  onClick={() => setIframeKey((k) => k + 1)}
+                  className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-900 transition-colors"
+                  title="تحديث المعاينة"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Mobile Device Frame */}
+            <div className="relative mx-auto border-[10px] border-slate-900 bg-slate-950 rounded-[48px] shadow-2xl overflow-hidden aspect-[9/19] flex flex-col ring-1 ring-slate-800">
+              {/* Dynamic Island / Notch */}
+              <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-28 h-4 bg-slate-900 rounded-full z-30"></div>
+
+              {/* Status Bar */}
+              <div
+                className="h-14 px-5 pt-5 pb-2 flex items-center justify-between text-[11px] text-white font-semibold transition-colors z-20 shrink-0"
+                style={{ backgroundColor: themeColor }}
+              >
+                <div className="flex items-center gap-2 truncate">
+                  {iconPreview ? (
+                    <img src={iconPreview} alt="App Icon" className="h-4 w-4 rounded object-cover" />
+                  ) : (
+                    <Smartphone className="h-3.5 w-3.5" />
+                  )}
+                  <span className="truncate max-w-[140px]">{appName || 'Appifya'}</span>
+                </div>
+                <span className="text-[10px] opacity-90">9:41</span>
+              </div>
+
+              {/* Screen Body: Live Iframe Preview */}
+              <div className="flex-1 bg-white relative overflow-hidden">
+                {getCleanPreviewUrl() ? (
+                  <iframe
+                    key={iframeKey}
+                    src={getCleanPreviewUrl()}
+                    className="w-full h-full border-0 select-none"
+                    sandbox="allow-scripts allow-same-origin allow-forms"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
+                    <Smartphone className="h-12 w-12 text-slate-700 mb-3" />
+                    <p className="text-xs text-slate-400 font-medium">
+                      {lang === 'ar' ? 'أدخل رابط موقعك لمشاهدته مباشرة داخل الهاتف' : 'Enter website URL to view live interactive mockup'}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom Home Indicator */}
+              <div className="h-5 bg-slate-950 flex items-center justify-center shrink-0">
+                <div className="w-28 h-1 bg-slate-700 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Form Panel */}
-        <div className="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-xl space-y-6">
+        <div className="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-xl space-y-6 order-1 lg:order-2">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
               {lang === 'ar' ? 'رابط المتجر أو صفحة الهبوط' : 'Store or Landing Page URL'} *
@@ -189,11 +262,11 @@ export default function HomePage() {
             <div className="relative">
               <Globe className="absolute right-4 top-3.5 h-4 w-4 text-slate-500" />
               <input
-                type="url"
+                type="text"
                 required
                 value={storeUrl}
-                onChange={(e) => setStoreUrl(e.target.value)}
-                placeholder="https://yourstore.com"
+                onChange={(e) => handleUrlChange(e.target.value)}
+                placeholder="shop.com"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pr-11 pl-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
                 dir="ltr"
               />
@@ -210,7 +283,7 @@ export default function HomePage() {
                 type="text"
                 value={appName}
                 onChange={(e) => setAppName(e.target.value)}
-                placeholder="Trendy Store"
+                placeholder="Shop Test"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pr-11 pl-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
               />
             </div>
@@ -266,37 +339,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              {lang === 'ar' ? 'شبكة الإعلانات (اختياري)' : 'Monetization & Ads'}
-            </label>
-            <select
-              value={adsNetwork}
-              onChange={(e) => setAdsNetwork(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
-            >
-              <option value="none">{lang === 'ar' ? 'بدون إعلانات' : 'No Ads'}</option>
-              <option value="google_adsense">Google AdSense</option>
-              <option value="custom_script">{lang === 'ar' ? 'كود إعلاني مخصص (Custom Script)' : 'Custom Ad Script'}</option>
-            </select>
-          </div>
-
-          {adsNetwork !== 'none' && (
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                {lang === 'ar' ? 'كود الإعلان' : 'Ad Script Code'}
-              </label>
-              <textarea
-                rows={3}
-                value={adsCode}
-                onChange={(e) => setAdsCode(e.target.value)}
-                placeholder="<script async src='https://pagead2.googlesyndication.com/...'></script>"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-indigo-500"
-                dir="ltr"
-              />
-            </div>
-          )}
-
           <div className="pt-2">
             <button
               type="button"
@@ -317,61 +359,6 @@ export default function HomePage() {
                 </>
               )}
             </button>
-          </div>
-        </div>
-
-        {/* Live Mockup Phone Preview */}
-        <div className="lg:col-span-5 flex flex-col items-center">
-          <div className="sticky top-24 w-full max-w-xs">
-            <div className="text-center mb-3">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900 border border-slate-800 text-[11px] font-semibold text-indigo-400 rounded-full">
-                <Eye className="h-3.5 w-3.5" />
-                <span>{lang === 'ar' ? 'معاينة حية للتطبيق' : 'Live Phone Preview'}</span>
-              </span>
-            </div>
-
-            <div className="relative mx-auto border-[10px] border-slate-900 bg-slate-950 rounded-[44px] shadow-2xl overflow-hidden aspect-[9/19] flex flex-col ring-1 ring-slate-800">
-              <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4 bg-slate-900 rounded-full z-20"></div>
-
-              <div
-                className="h-14 px-5 pt-5 pb-2 flex items-center justify-between text-[10px] text-white font-semibold transition-colors z-10"
-                style={{ backgroundColor: themeColor }}
-              >
-                <div className="flex items-center gap-2 truncate">
-                  {iconPreview ? (
-                    <img src={iconPreview} alt="App Icon" className="h-5 w-5 rounded-md object-cover" />
-                  ) : (
-                    <Smartphone className="h-4 w-4" />
-                  )}
-                  <span className="truncate">{appName || 'App Name'}</span>
-                </div>
-                <span>9:41</span>
-              </div>
-
-              <div className="flex-1 bg-slate-900/60 flex flex-col items-center justify-center p-4 text-center">
-                {storeUrl ? (
-                  <div className="space-y-3">
-                    <CheckCircle2 className="h-10 w-10 text-emerald-400 mx-auto" />
-                    <p className="text-xs text-slate-300 font-bold">{appName || 'My PWA Store'}</p>
-                    <p className="text-[10px] text-slate-500 truncate max-w-[200px]" dir="ltr">
-                      {storeUrl}
-                    </p>
-                    <span className="inline-block text-[10px] px-2.5 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg">
-                      {platform === 'both' ? 'iOS & Android' : platform}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="space-y-2 text-slate-600">
-                    <Smartphone className="h-12 w-12 mx-auto stroke-1" />
-                    <p className="text-xs">{lang === 'ar' ? 'أدخل رابط المتجر لتظهر المعاينة' : 'Enter URL to preview app'}</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="h-5 bg-slate-950 flex items-center justify-center">
-                <div className="w-24 h-1 bg-slate-700 rounded-full"></div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
