@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from './lib/i18n';
@@ -9,23 +9,18 @@ import { ID } from 'appwrite';
 import {
   Smartphone,
   Globe,
-  Palette,
   Sparkles,
-  Download,
   Loader2,
   CheckCircle2,
   AlertCircle,
   UploadCloud,
   Eye,
-  Layers,
-  Radio,
-  ExternalLink,
 } from 'lucide-react';
 
 export default function HomePage() {
   const router = useRouter();
   const { user, openAuthModal } = useAuth();
-  const { lang, t } = useLanguage();
+  const { lang } = useLanguage();
 
   const [storeUrl, setStoreUrl] = useState('');
   const [appName, setAppName] = useState('');
@@ -39,9 +34,22 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const databaseId = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || '';
-  const collectionId = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ID || '';
-  const bucketId = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID || '';
+  // Appwrite IDs with fallback
+  const databaseId =
+    process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID ||
+    process.env.NEXT_PUBLIC_DATABASE_ID ||
+    '6ace935d0015975c804b';
+
+  const collectionId =
+    process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ID ||
+    process.env.NEXT_PUBLIC_COLLECTION_ID ||
+    process.env.NEXT_PUBLIC_APPWRITE_TABLE_ID ||
+    'pwa_db';
+
+  const bucketId =
+    process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID ||
+    process.env.NEXT_PUBLIC_BUCKET_ID ||
+    '';
 
   const isRtl = lang === 'ar';
 
@@ -70,9 +78,9 @@ export default function HomePage() {
       if (iconFile && bucketId) {
         try {
           const uploadRes = await storage.createFile(bucketId, ID.unique(), iconFile);
-          iconUrl = `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/storage/buckets/${bucketId}/files/${uploadRes.$id}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
+          iconUrl = `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1'}/storage/buckets/${bucketId}/files/${uploadRes.$id}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || ''}`;
         } catch (uploadErr) {
-          console.warn('Icon upload failed, continuing with default theme icon:', uploadErr);
+          console.warn('Icon upload skipped/failed:', uploadErr);
         }
       }
 
@@ -95,12 +103,12 @@ export default function HomePage() {
 
       setStatusMsg({
         type: 'success',
-        text: lang === 'ar' ? 'تم إنشاء التطبيق وحفظه بنجاح! جاري الانتقال للوحة التحكم...' : 'App created and saved successfully! Redirecting to dashboard...',
+        text: lang === 'ar' ? 'تم حفظ التطبيق وتصديره بنجاح! جاري تحويلك إلى لوحة التحكم...' : 'App saved and exported successfully! Redirecting...',
       });
 
       setTimeout(() => {
         router.push('/dashboard');
-      }, 1200);
+      }, 1000);
     } catch (err: any) {
       console.error(err);
       setStatusMsg({
@@ -123,7 +131,6 @@ export default function HomePage() {
 
     if (!user) {
       openAuthModal(() => {
-        // Will be called automatically after successful auth
         if (typeof window !== 'undefined') {
           window.location.reload();
         }
@@ -136,7 +143,6 @@ export default function HomePage() {
 
   return (
     <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12" dir={isRtl ? 'rtl' : 'ltr'}>
-      {/* Hero Section */}
       <div className="text-center max-w-3xl mx-auto mb-10">
         <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-4">
           {lang === 'ar' ? (
@@ -173,9 +179,8 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Main Split Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Form Panel (7 cols) */}
+        {/* Form Panel */}
         <div className="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-xl space-y-6">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
@@ -315,7 +320,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Live Mockup Phone Preview (5 cols) */}
+        {/* Live Mockup Phone Preview */}
         <div className="lg:col-span-5 flex flex-col items-center">
           <div className="sticky top-24 w-full max-w-xs">
             <div className="text-center mb-3">
@@ -325,12 +330,9 @@ export default function HomePage() {
               </span>
             </div>
 
-            {/* Mobile Device Mockup Frame */}
             <div className="relative mx-auto border-[10px] border-slate-900 bg-slate-950 rounded-[44px] shadow-2xl overflow-hidden aspect-[9/19] flex flex-col ring-1 ring-slate-800">
-              {/* Speaker & Sensor Notch */}
               <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4 bg-slate-900 rounded-full z-20"></div>
 
-              {/* Status Header */}
               <div
                 className="h-14 px-5 pt-5 pb-2 flex items-center justify-between text-[10px] text-white font-semibold transition-colors z-10"
                 style={{ backgroundColor: themeColor }}
@@ -346,7 +348,6 @@ export default function HomePage() {
                 <span>9:41</span>
               </div>
 
-              {/* Screen Body */}
               <div className="flex-1 bg-slate-900/60 flex flex-col items-center justify-center p-4 text-center">
                 {storeUrl ? (
                   <div className="space-y-3">
@@ -367,7 +368,6 @@ export default function HomePage() {
                 )}
               </div>
 
-              {/* Bottom Home Indicator */}
               <div className="h-5 bg-slate-950 flex items-center justify-center">
                 <div className="w-24 h-1 bg-slate-700 rounded-full"></div>
               </div>
