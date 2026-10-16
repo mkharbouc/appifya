@@ -37,7 +37,7 @@ export default function DashboardPage() {
       ]);
       setApps(res.documents);
     } catch (err) {
-      console.error('Erreur lors de la récupération des applications :', err);
+      console.error('Error:', err);
     } finally {
       setLoading(false);
     }
@@ -58,12 +58,12 @@ export default function DashboardPage() {
       fr: 'Transformez votre boutique en une PWA ultra-rapide en quelques secondes.',
     },
     createFirst: { ar: 'إنشاء أول تطبيق لك', en: 'Create your first app', fr: 'Créer votre première app' },
-    preview: { ar: 'معاينة التطبيق', en: 'Preview App', fr: 'Aperçu' },
+    preview: { ar: 'معاينة المتجر', en: 'Preview Store', fr: 'Aperçu du site' },
+    install: { ar: 'تثبيت التطبيق', en: 'Install App', fr: 'Installer l\'app' },
     active: { ar: 'نشط ومرتبط بالسحابة', en: 'Cloud Synced & Active', fr: 'Actif & Synchronisé' },
     noName: { ar: 'تطبيق بدون اسم', en: 'Untitled App', fr: 'Application sans titre' },
     loginReq: { ar: 'يرجى تسجيل الدخول للوصول إلى لوحة التحكم', en: 'Please sign in to access your dashboard', fr: 'Veuillez vous connecter pour accéder au tableau de bord' },
     signInBtn: { ar: 'تسجيل الدخول الآن', en: 'Sign In Now', fr: 'Se connecter maintenant' },
-    download: { ar: 'تحميل حزمة PWA', en: 'Download Package', fr: 'Télécharger le package' },
   };
 
   const getTxt = (key: keyof typeof labels) => labels[key][lang] || labels[key]['en'];
@@ -128,62 +128,58 @@ export default function DashboardPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {apps.map((app) => {
-            const downloadUrl = `/api/proxy?url=${encodeURIComponent(app.store_url)}&name=${encodeURIComponent(app.app_name || 'App')}&theme=${encodeURIComponent(app.theme_color || '#6366f1')}`;
-
-            return (
-              <div
-                key={app.$id}
-                className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div
-                      className="h-11 w-11 rounded-xl flex items-center justify-center font-bold text-white shadow-md text-sm"
-                      style={{ backgroundColor: app.theme_color || '#6366f1' }}
-                    >
-                      {app.app_name ? app.app_name.substring(0, 2).toUpperCase() : 'AP'}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-white text-sm leading-tight">{app.app_name || getTxt('noName')}</h3>
-                      <p className="text-[11px] text-slate-400 truncate max-w-[200px] mt-0.5" dir="ltr">
-                        {app.store_url}
-                      </p>
-                    </div>
+          {apps.map((app) => (
+            <div
+              key={app.$id}
+              className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div
+                    className="h-11 w-11 rounded-xl flex items-center justify-center font-bold text-white shadow-md text-sm"
+                    style={{ backgroundColor: app.theme_color || '#6366f1' }}
+                  >
+                    {app.app_name ? app.app_name.substring(0, 2).toUpperCase() : 'AP'}
                   </div>
-
-                  <div className="flex items-center gap-2 mb-4 text-[11px]">
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
-                      {getTxt('active')}
-                    </span>
-                    <span className="text-slate-500">
-                      {new Date(app.$createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : lang === 'fr' ? 'fr-FR' : 'en-US')}
-                    </span>
+                  <div>
+                    <h3 className="font-bold text-white text-sm leading-tight">{app.app_name || getTxt('noName')}</h3>
+                    <p className="text-[11px] text-slate-400 truncate max-w-[200px] mt-0.5" dir="ltr">
+                      {app.store_url}
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-4 border-t border-slate-800/80">
-                  <a
-                    href={app.store_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-xl transition-colors"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    <span>{getTxt('preview')}</span>
-                  </a>
-                  <a
-                    href={downloadUrl}
-                    download={`${app.app_name || 'pwa-app'}.zip`}
-                    className="flex items-center justify-center gap-1 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-colors"
-                    title={getTxt('download')}
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                  </a>
+                <div className="flex items-center gap-2 mb-4 text-[11px]">
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                    {getTxt('active')}
+                  </span>
+                  <span className="text-slate-500">
+                    {new Date(app.$createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : lang === 'fr' ? 'fr-FR' : 'en-US')}
+                  </span>
                 </div>
               </div>
-            );
-          })}
+
+              <div className="flex items-center gap-2 pt-4 border-t border-slate-800/80">
+                <a
+                  href={app.store_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-xl transition-colors"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  <span>{getTxt('preview')}</span>
+                </a>
+                <Link
+                  href={`/app/${app.$id}`}
+                  className="flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-colors shadow-md shadow-indigo-600/20"
+                  title={getTxt('install')}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  <span>{getTxt('install')}</span>
+                </Link>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </main>

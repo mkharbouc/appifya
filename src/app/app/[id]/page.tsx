@@ -1,4 +1,4 @@
- 'use client';
+﻿'use client';
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -61,7 +61,7 @@ export default function AppInstallPage() {
       setInstallPrompt(null);
     } else {
       alert(
-        'لتثبيت التطبيق على جهازك:\n- على أندرويد (Chrome): اضغط على قائمة الخيارات (⋮) ثم اختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية".\n- على آيفون (Safari): اضغط على زر المشاركة ثم اختر "إضافة إلى الشاشة الرئيسية".'
+        'لتثبيت التطبيق على جهازك:\n- أندرويد (Chrome): اضغط على زر الخيارات (⋮) بأعلى المتصفح ثم اختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية".\n- آيفون (Safari): اضغط على زر المشاركة ثم "إضافة إلى الشاشة الرئيسية".'
       );
     }
   };
@@ -102,7 +102,6 @@ export default function AppInstallPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-between p-6 sm:p-10 font-sans" dir="rtl">
       <div className="max-w-md w-full mx-auto space-y-8 pt-4">
-        {/* App Card Header */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-center shadow-2xl relative overflow-hidden">
           <div
             className="w-24 h-24 rounded-3xl mx-auto flex items-center justify-center text-3xl font-black shadow-xl mb-4 border border-white/10"
@@ -122,7 +121,6 @@ export default function AppInstallPage() {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="space-y-3">
           <button
             onClick={handleInstallClick}
@@ -151,17 +149,16 @@ export default function AppInstallPage() {
           </button>
         </div>
 
-        {/* Instructions Guide */}
         <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 text-xs space-y-2 text-slate-400 leading-relaxed">
           <div className="flex items-center gap-2 font-bold text-slate-200 mb-1">
             <Sparkles className="h-4 w-4 text-indigo-400" />
             <span>كيف يتم تثبيت التطبيق؟</span>
           </div>
           <p>
-            تطبيقات الويب التقدمية (PWA) تعمل فوراً دون الحاجة لمتجر التطبيقات ودون استهلاك مساحة التخزين.
+            تطبيقات الويب التقدمية (PWA) تعمل فوراً دون الحاجة لمتجر التطبيقات ودون استهلاك مساحة الهاتف.
           </p>
           <p className="text-[11px] text-slate-500">
-            إذا لم يظهر زر التثبيت التلقائي: في متصفح Chrome اضغط على قائمة الخيارات (⋮) ثم اختر <strong className="text-slate-300">"تثبيت التطبيق"</strong>.
+            إذا لم يظهر زر التثبيت التلقائي: في متصفح Chrome اضغط على زر الخيارات (⋮) ثم اختر <strong className="text-slate-300">"تثبيت التطبيق"</strong>.
           </p>
         </div>
       </div>
