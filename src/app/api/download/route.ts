@@ -1,9 +1,6 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { databases } from '@/lib/appwrite';
-import archiver from 'archiver';
-import { PassThrough } from 'stream';
-
-export const dynamic = 'force-dynamic';
+import JSZip from 'jszip';
 
 export async function GET(req: NextRequest) {
   try {
@@ -71,7 +68,7 @@ export async function GET(req: NextRequest) {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
     }
-    setTimeout(() => { window.location.href = "${storeUrl}"; }, 1500);
+    setTimeout(() => { window.location.href = "${storeUrl}"; }, 1200);
   </script>
 </body>
 </html>`;
@@ -80,29 +77,19 @@ export async function GET(req: NextRequest) {
 self.addEventListener('activate', (e) => { clients.claim(); });
 self.addEventListener('fetch', (e) => {});`;
 
-    const archive = archiver('zip', { zlib: { level: 9 } });
-    const passthrough = new PassThrough();
+    const zip = new JSZip();
+    zip.file('manifest.json', manifestContent);
+    zip.file('index.html', indexHtmlContent);
+    zip.file('sw.js', swContent);
 
-    archive.pipe(passthrough);
-    archive.append(manifestContent, { name: 'manifest.json' });
-    archive.append(indexHtmlContent, { name: 'index.html' });
-    archive.append(swContent, { name: 'sw.js' });
-    archive.finalize();
+    const buffer = await zip.generateAsync({ type: 'nodebuffer' });
 
-    const stream = new ReadableStream({
-      start(controller) {
-        passthrough.on('data', (chunk) => controller.enqueue(chunk));
-        passthrough.on('end', () => controller.close());
-        passthrough.on('error', (err) => controller.error(err));
-      },
-    });
-
-    return new NextResponse(stream, {
+    return new NextResponse(buffer as any, {
       status: 200,
       headers: {
         'Content-Type': 'application/zip',
         'Content-Disposition': `attachment; filename="${safeName}.zip"`,
-        'Cache-Control': 'no-cache',
+        'Cache-Control': 'no-store',
       },
     });
   } catch (err: any) {
