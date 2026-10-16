@@ -30,7 +30,7 @@ function InstallContent() {
         link.rel = 'manifest';
         document.head.appendChild(link);
       }
-      link.href = `/api/manifest?id=${id}`;
+      link.href = `/app/${id}/manifest.json`;
     }
 
     const handleBeforeInstall = (e: Event) => {
