@@ -214,7 +214,7 @@ function AppViewerContent() {
       {appData.ad_placement === 'bottom_banner' && renderIsolatedAd()}
 
       <footer className="py-4 text-center text-[11px] text-slate-600 border-t border-slate-900">
-        مشغّل بواسطة منصة AppForge PWA
+        مشغّل بواسطة منصة Appifya
       </footer>
     </div>
   );

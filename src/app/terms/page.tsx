@@ -30,10 +30,10 @@ export default function TermsPage() {
           </h2>
           <p className="text-slate-400 text-xs md:text-sm">
             {lang === 'ar'
-              ? 'باستخدامك لمنصة AppForge PWA، فإنك توافق على الالتزام بهذه الشروط وبكافة القوانين واللوائح المعمول بها محلياً ودولياً.'
+              ? 'باستخدامك لمنصة Appifya، فإنك توافق على الالتزام بهذه الشروط وبكافة القوانين واللوائح المعمول بها محلياً ودولياً.'
               : lang === 'fr'
-              ? 'En utilisant AppForge PWA, vous acceptez d’être lié par les présentes conditions et par les lois en vigueur.'
-              : 'By accessing or using AppForge PWA, you agree to comply with and be bound by these Terms of Service.'}
+              ? 'En utilisant Appifya, vous acceptez d’être lié par les présentes conditions et par les lois en vigueur.'
+              : 'By accessing or using Appifya, you agree to comply with and be bound by these Terms of Service.'}
           </p>
         </section>
 

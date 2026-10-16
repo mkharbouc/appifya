@@ -610,7 +610,7 @@ export default function PwaBuilderPage() {
       <section className="max-w-7xl mx-auto px-6 space-y-10">
         <div className="text-center space-y-2">
           <h2 className="text-2xl md:text-4xl font-extrabold text-white">
-            {lang === 'ar' ? 'لماذا تختار AppForge PWA؟' : lang === 'fr' ? 'Pourquoi choisir AppForge ?' : 'Why AppForge PWA?'}
+            {lang === 'ar' ? 'لماذا تختار Appifya؟' : lang === 'fr' ? 'Pourquoi choisir Appifya ?' : 'Why Appifya?'}
           </h2>
           <p className="text-slate-400 text-sm max-w-xl mx-auto">
             {lang === 'ar'
@@ -721,7 +721,7 @@ export default function PwaBuilderPage() {
             <p className="text-xs text-slate-400 leading-relaxed">
               {lang === 'ar'
                 ? 'نعم، المنصة متوافقة تماماً مع جميع منصات التجارة الإلكترونية وصفحات الهبوط المبنية بأي تقنية.'
-                : 'Yes, AppForge works seamlessly with any web URL, eCommerce store, or custom landing page.'}
+                : 'Yes, Appifya works seamlessly with any web URL, eCommerce store, or custom landing page.'}
             </p>
           </div>
 

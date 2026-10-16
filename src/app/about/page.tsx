@@ -21,10 +21,10 @@ export default function AboutPage() {
         </h1>
         <p className="max-w-2xl mx-auto text-slate-400 text-sm md:text-base leading-relaxed">
           {lang === 'ar'
-            ? 'تأسست منصة AppForge PWA لسد الفجوة بين تكلفة تطوير التطبيقات الباهظة وسرعة إطلاق المتاجر. نساعد أصحاب المتاجر وصناع المحتوى على تحويل روابطهم إلى تطبيقات تقدمية سريعة بنقرة واحدة.'
+            ? 'تأسست منصة Appifya لسد الفجوة بين تكلفة تطوير التطبيقات الباهظة وسرعة إطلاق المتاجر. نساعد أصحاب المتاجر وصناع المحتوى على تحويل روابطهم إلى تطبيقات تقدمية سريعة بنقرة واحدة.'
             : lang === 'fr'
-            ? 'AppForge PWA a été créée pour éliminer les barrières de coût et de complexité liées au développement mobile. Transformez vos sites en applications PWA natives en quelques secondes.'
-            : 'AppForge PWA was built to bridge the gap between expensive native app development and instant store launches. Convert any URL into a high-converting PWA in seconds.'}
+            ? 'Appifya a été créée pour éliminer les barrières de coût et de complexité liées au développement mobile. Transformez vos sites en applications PWA natives en quelques secondes.'
+            : 'Appifya was built to bridge the gap between expensive native app development and instant store launches. Convert any URL into a high-converting PWA in seconds.'}
         </p>
       </div>
 

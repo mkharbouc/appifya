@@ -16,7 +16,7 @@ function NavigationBar() {
           <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center font-bold text-lg shadow-lg shadow-indigo-500/20 text-white">
             P
           </div>
-          <span className="font-semibold text-lg tracking-tight text-white">AppForge PWA</span>
+          <span className="font-semibold text-lg tracking-tight text-white">Appifya</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-5 text-sm font-medium text-slate-400">
@@ -70,7 +70,7 @@ function SiteFooter() {
         <Link href="/privacy" className="hover:text-white">{lang === 'ar' ? 'سياسة الخصوصية' : lang === 'fr' ? 'Confidentialité' : 'Privacy Policy'}</Link>
         <Link href="/terms" className="hover:text-white">{lang === 'ar' ? 'شروط الخدمة' : lang === 'fr' ? 'Conditions' : 'Terms of Service'}</Link>
       </div>
-      <p>© 2026 AppForge PWA. {lang === 'ar' ? 'جميع الحقوق محفوظة.' : lang === 'fr' ? 'Tous droits réservés.' : 'All rights reserved.'}</p>
+      <p>© 2026 Appifya. {lang === 'ar' ? 'جميع الحقوق محفوظة.' : lang === 'fr' ? 'Tous droits réservés.' : 'All rights reserved.'}</p>
     </footer>
   );
 }
