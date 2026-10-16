@@ -1,10 +1,10 @@
 ﻿'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from './lib/i18n';
-import { databases, storage } from '@/lib/appwrite';
+import { databases } from '@/lib/appwrite';
 import { ID } from 'appwrite';
 import {
   Smartphone,
@@ -13,7 +13,6 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
-  UploadCloud,
   Eye,
   RefreshCw,
 } from 'lucide-react';
@@ -27,20 +26,16 @@ export default function HomePage() {
   const [appName, setAppName] = useState('');
   const [platform, setPlatform] = useState<'both' | 'android' | 'ios'>('both');
   const [themeColor, setThemeColor] = useState('#6366f1');
-  const [iconFile, setIconFile] = useState<File | null>(null);
-  const [iconPreview, setIconPreview] = useState<string | null>(null);
   const [iframeKey, setIframeKey] = useState(0);
 
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const databaseId = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || '6ace935d0015975c804b';
-  const collectionId = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ID || 'pwa_db';
-  const bucketId = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID || '';
+  const databaseId = '6ace935d0015975c804b';
+  const collectionId = 'pwa_db';
 
   const isRtl = lang === 'ar';
 
-  // Auto extract app name if empty
   const handleUrlChange = (val: string) => {
     setStoreUrl(val);
     if (!appName && val) {
@@ -51,14 +46,6 @@ export default function HomePage() {
           setAppName(namePart.charAt(0).toUpperCase() + namePart.slice(1));
         }
       } catch {}
-    }
-  };
-
-  const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setIconFile(file);
-      setIconPreview(URL.createObjectURL(file));
     }
   };
 
@@ -74,7 +61,7 @@ export default function HomePage() {
     if (!storeUrl) {
       setStatusMsg({
         type: 'error',
-        text: lang === 'ar' ? 'يرجى إدخال رابط المتجر أو صفحة الهبوط أولاً.' : 'Please enter your store URL first.',
+        text: lang === 'ar' ? 'يرجى إدخال رابط المتجر أولاً.' : 'Please enter your store URL first.',
       });
       return;
     }
@@ -83,31 +70,19 @@ export default function HomePage() {
       setLoading(true);
       setStatusMsg(null);
 
-      let iconUrl = '';
-      if (iconFile && bucketId) {
-        try {
-          const uploadRes = await storage.createFile(bucketId, ID.unique(), iconFile);
-          iconUrl = `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1'}/storage/buckets/${bucketId}/files/${uploadRes.$id}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || ''}`;
-        } catch (uploadErr) {
-          console.warn('Icon upload failed/skipped:', uploadErr);
-        }
-      }
-
       const formattedUrl = getCleanPreviewUrl();
       const finalAppName = appName.trim() || 'My PWA Store';
 
-      // Match exact Appwrite Table Columns
       await databases.createDocument(databaseId, collectionId, ID.unique(), {
         user_id: userId,
         store_url: formattedUrl,
         app_name: finalAppName,
         theme_color: themeColor,
-        ...(iconUrl ? { icon_url: iconUrl } : {}),
       });
 
       setStatusMsg({
         type: 'success',
-        text: lang === 'ar' ? 'تم إنشاء التطبيق وحفظه بنجاح! جاري الانتقال للوحة التحكم...' : 'App created and saved successfully! Redirecting...',
+        text: lang === 'ar' ? 'تم حفظ التطبيق وتصديره بنجاح! جاري تحويلك إلى لوحة التحكم...' : 'App saved and exported successfully! Redirecting...',
       });
 
       setTimeout(() => {
@@ -150,17 +125,9 @@ export default function HomePage() {
       <div className="text-center max-w-3xl mx-auto mb-10">
         <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-4">
           {lang === 'ar' ? (
-            <>
-              حوّل متجرك أو صفحة الهبوط إلى <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">تطبيق PWA فائق السرعة</span>
-            </>
-          ) : lang === 'fr' ? (
-            <>
-              Transformez votre boutique en une <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">PWA Mobile Ultra-Rapide</span>
-            </>
+            <>حوّل متجرك أو صفحة الهبوط إلى <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">تطبيق PWA فائق السرعة</span></>
           ) : (
-            <>
-              Convert Your Store or Landing Page into a <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">Fast Mobile PWA</span>
-            </>
+            <>Convert Your Store or Landing Page into a <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">Fast Mobile PWA</span></>
           )}
         </h1>
         <p className="text-sm sm:text-base text-slate-400 leading-relaxed max-w-2xl mx-auto">
@@ -184,7 +151,7 @@ export default function HomePage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Live Mockup Phone Preview (Left on LTR, Right on RTL) */}
+        {/* Live Mockup Phone Preview */}
         <div className="lg:col-span-5 flex flex-col items-center order-2 lg:order-1">
           <div className="sticky top-24 w-full max-w-[340px]">
             <div className="flex items-center justify-between mb-3 px-2">
@@ -204,28 +171,20 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Mobile Device Frame */}
             <div className="relative mx-auto border-[10px] border-slate-900 bg-slate-950 rounded-[48px] shadow-2xl overflow-hidden aspect-[9/19] flex flex-col ring-1 ring-slate-800">
-              {/* Dynamic Island / Notch */}
               <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-28 h-4 bg-slate-900 rounded-full z-30"></div>
 
-              {/* Status Bar */}
               <div
                 className="h-14 px-5 pt-5 pb-2 flex items-center justify-between text-[11px] text-white font-semibold transition-colors z-20 shrink-0"
                 style={{ backgroundColor: themeColor }}
               >
                 <div className="flex items-center gap-2 truncate">
-                  {iconPreview ? (
-                    <img src={iconPreview} alt="App Icon" className="h-4 w-4 rounded object-cover" />
-                  ) : (
-                    <Smartphone className="h-3.5 w-3.5" />
-                  )}
+                  <Smartphone className="h-3.5 w-3.5" />
                   <span className="truncate max-w-[140px]">{appName || 'Appifya'}</span>
                 </div>
                 <span className="text-[10px] opacity-90">9:41</span>
               </div>
 
-              {/* Screen Body: Live Iframe Preview */}
               <div className="flex-1 bg-white relative overflow-hidden">
                 {getCleanPreviewUrl() ? (
                   <iframe
@@ -245,7 +204,6 @@ export default function HomePage() {
                 )}
               </div>
 
-              {/* Bottom Home Indicator */}
               <div className="h-5 bg-slate-950 flex items-center justify-center shrink-0">
                 <div className="w-28 h-1 bg-slate-700 rounded-full"></div>
               </div>
@@ -266,7 +224,7 @@ export default function HomePage() {
                 required
                 value={storeUrl}
                 onChange={(e) => handleUrlChange(e.target.value)}
-                placeholder="shop.com"
+                placeholder="https://example.com"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pr-11 pl-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
                 dir="ltr"
               />
@@ -283,7 +241,7 @@ export default function HomePage() {
                 type="text"
                 value={appName}
                 onChange={(e) => setAppName(e.target.value)}
-                placeholder="Shop Test"
+                placeholder="Example App"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pr-11 pl-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
               />
             </div>
@@ -311,31 +269,18 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                {lang === 'ar' ? 'لون الهوية (Theme Color)' : 'Theme Color'}
-              </label>
-              <div className="flex items-center gap-3 bg-slate-950 border border-slate-800 rounded-xl p-2.5">
-                <input
-                  type="color"
-                  value={themeColor}
-                  onChange={(e) => setThemeColor(e.target.value)}
-                  className="h-8 w-10 bg-transparent cursor-pointer rounded-lg border-0"
-                />
-                <span className="text-xs font-mono text-slate-300 uppercase">{themeColor}</span>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                {lang === 'ar' ? 'أيقونة التطبيق' : 'App Icon'}
-              </label>
-              <label className="flex items-center justify-center gap-2 bg-slate-950 border border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-2.5 cursor-pointer text-xs text-slate-400 hover:text-white transition-all">
-                <UploadCloud className="h-4 w-4" />
-                <span className="truncate max-w-[150px]">{iconFile ? iconFile.name : (lang === 'ar' ? 'اختر أيقونة' : 'Upload Icon')}</span>
-                <input type="file" accept="image/*" onChange={handleIconChange} className="hidden" />
-              </label>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+              {lang === 'ar' ? 'لون الهوية (Theme Color)' : 'Theme Color'}
+            </label>
+            <div className="flex items-center gap-3 bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+              <input
+                type="color"
+                value={themeColor}
+                onChange={(e) => setThemeColor(e.target.value)}
+                className="h-8 w-10 bg-transparent cursor-pointer rounded-lg border-0"
+              />
+              <span className="text-xs font-mono text-slate-300 uppercase">{themeColor}</span>
             </div>
           </div>
 
