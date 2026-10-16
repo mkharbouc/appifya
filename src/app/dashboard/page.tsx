@@ -6,13 +6,15 @@ import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '../lib/i18n';
 import { databases } from '@/lib/appwrite';
 import { Query } from 'appwrite';
-import { Smartphone, ExternalLink, Download, Plus, Loader2, ArrowRight } from 'lucide-react';
+import { Smartphone, ExternalLink, Download, Plus, Loader2, ArrowRight, CheckCircle2, Clock, Play } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, loading: authLoading, openAuthModal } = useAuth();
   const { lang } = useLanguage();
   const [apps, setApps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [buildingAppId, setBuildingAppId] = useState<string | null>(null);
+  const [buildNotice, setBuildNotice] = useState<{ id: string; appName: string } | null>(null);
 
   const databaseId = '6ace931c00205a66e468';
   const collectionId = '6ace935d0015975c804b';
@@ -43,6 +45,28 @@ export default function DashboardPage() {
     }
   };
 
+  const handleTriggerBuild = async (app: any) => {
+    try {
+      setBuildingAppId(app.$id);
+      const res = await fetch('/api/build-apk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appId: app.$id }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setBuildNotice({ id: app.$id, appName: app.app_name || 'تطبيق المتجر' });
+      } else {
+        alert(data.error || 'فشل إرسال طلب البناء، يرجى المحاولة مرة أخرى.');
+      }
+    } catch (err: any) {
+      alert('تعذر الاتصال بالسيرفر لبدء البناء');
+    } finally {
+      setBuildingAppId(null);
+    }
+  };
+
   const labels = {
     title: { ar: 'لوحة تحكم تطبيقاتي', en: 'My Applications', fr: 'Mes Applications' },
     welcome: {
@@ -53,14 +77,14 @@ export default function DashboardPage() {
     newApp: { ar: 'إنشاء تطبيق جديد', en: 'Create New App', fr: 'Nouvelle Application' },
     emptyTitle: { ar: 'لا توجد تطبيقات محفوظة بعد', en: 'No apps saved yet', fr: 'Aucune application trouvée' },
     emptyDesc: {
-      ar: 'ابدأ الآن بتحويل متجرك الإلكتروني أو صفحة الهبوط إلى تطبيق PWA سريع خلال ثوانٍ.',
-      en: 'Start converting your store or landing page into a blazing-fast PWA in seconds.',
-      fr: 'Transformez votre boutique en une PWA ultra-rapide en quelques secondes.',
+      ar: 'ابدأ الآن بتحويل متجرك الإلكتروني أو صفحة الهبوط إلى تطبيق أندرويد و PWA احترافي خلال دقائق.',
+      en: 'Start converting your store or landing page into an Android App and PWA in minutes.',
+      fr: 'Transformez votre boutique en application Android et PWA en quelques minutes.',
     },
     createFirst: { ar: 'إنشاء أول تطبيق لك', en: 'Create your first app', fr: 'Créer votre première app' },
     preview: { ar: 'معاينة المتجر', en: 'Preview Store', fr: 'Aperçu du site' },
-    install: { ar: 'تثبيت التطبيق', en: 'Install App', fr: 'Installer l\'app' },
-    active: { ar: 'نشط ومرتبط بالسحابة', en: 'Cloud Synced & Active', fr: 'Actif & Synchronisé' },
+    buildApk: { ar: 'بناء ملف APK', en: 'Build APK', fr: 'Compiler APK' },
+    active: { ar: 'نشط ومتصل بالسحابة', en: 'Cloud Synced & Active', fr: 'Actif & Synchronisé' },
     noName: { ar: 'تطبيق بدون اسم', en: 'Untitled App', fr: 'Application sans titre' },
     loginReq: { ar: 'يرجى تسجيل الدخول للوصول إلى لوحة التحكم', en: 'Please sign in to access your dashboard', fr: 'Veuillez vous connecter pour accéder au tableau de bord' },
     signInBtn: { ar: 'تسجيل الدخول الآن', en: 'Sign In Now', fr: 'Se connecter maintenant' },
@@ -108,6 +132,41 @@ export default function DashboardPage() {
           <span>{getTxt('newApp')}</span>
         </Link>
       </div>
+
+      {buildNotice && (
+        <div className="mb-8 p-5 bg-indigo-950/40 border border-indigo-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-indigo-500/20 rounded-xl text-indigo-400 shrink-0">
+              <Clock className="h-5 w-5 animate-pulse" />
+            </div>
+            <div>
+              <h4 className="font-bold text-white text-sm mb-0.5">
+                جاري تجميع حزمة تطبيق ({buildNotice.appName}) الآن في خوادم GitHub Actions!
+              </h4>
+              <p className="text-slate-300">
+                يتم الآن تجهيز كود أندرويد وتجميعه عبر Gradle وتوقيعه. تستغرق العملية حوالي 60 إلى 90 ثانية.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <a
+              href="https://github.com/mkharbouc/appifya-android-engine/actions"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl flex items-center gap-1.5 transition"
+            >
+              <span>متابعة تقدم البناء المباشر</span>
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+            <button
+              onClick={() => setBuildNotice(null)}
+              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl transition"
+            >
+              إغلاق
+            </button>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
@@ -169,14 +228,20 @@ export default function DashboardPage() {
                   <ExternalLink className="h-3.5 w-3.5" />
                   <span>{getTxt('preview')}</span>
                 </a>
-                <Link
-                  href={`/view/${app.$id}`} target="_blank"
-                  className="flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-colors shadow-md shadow-indigo-600/20"
-                  title={getTxt('install')}
+
+                <button
+                  onClick={() => handleTriggerBuild(app)}
+                  disabled={buildingAppId === app.$id}
+                  className="flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors shadow-md shadow-indigo-600/20 cursor-pointer"
+                  title={getTxt('buildApk')}
                 >
-                  <Download className="h-3.5 w-3.5" />
-                  <span>{getTxt('install')}</span>
-                </Link>
+                  {buildingAppId === app.$id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Play className="h-3.5 w-3.5 fill-current" />
+                  )}
+                  <span>{buildingAppId === app.$id ? 'جاري البدء...' : getTxt('buildApk')}</span>
+                </button>
               </div>
             </div>
           ))}
