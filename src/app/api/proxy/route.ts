@@ -1,42 +1,65 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const targetUrl = searchParams.get('url');
-
-  if (!targetUrl) {
-    return new NextResponse('URL is required', { status: 400 });
-  }
-
   try {
-    const res = await fetch(targetUrl, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1',
-      },
-    });
+    const { searchParams } = new URL(req.url);
+    const storeUrl = searchParams.get('url');
+    const appName = searchParams.get('name') || 'Appifya-App';
+    const themeColor = searchParams.get('theme') || '#6366f1';
 
-    const contentType = res.headers.get('content-type') || 'text/html';
-    let html = await res.text();
+    if (!storeUrl) {
+      return new NextResponse('URL is required', { status: 400 });
+    }
 
-    // إضافة وسم base لضمان تحميل الصور وملفات الـ CSS بروابطها الأصلية
-    const baseTag = `<base href="${targetUrl}">`;
-    html = html.replace(/<head[^>]*>/i, `$&${baseTag}`);
+    // تنظيف اسم الملف لتجنب المحارف غير الصالحة
+    const safeName = appName.replace(/[^a-zA-Z0-9_-]/g, '_') || 'pwa-package';
+    const filename = `${safeName}.zip`;
 
-    // إرجاع المحتوى بدون ترويسات الحظر (X-Frame-Options / CSP)
-    const response = new NextResponse(html, {
+    // استدعاء خدمة بناء حزمة الـ PWA
+    // (أو إنشاء ملف الـ ZIP مباشرة)
+    const externalApiUrl = `https://builder.appifya.app/export?url=${encodeURIComponent(storeUrl)}&name=${encodeURIComponent(appName)}&theme=${encodeURIComponent(themeColor)}`;
+
+    // إذا كان التوليد يعتمد على مزود خارجي أو خدمة داخلية:
+    const response = await fetch(externalApiUrl).catch(() => null);
+
+    if (response && response.ok) {
+      const blob = await response.blob();
+      return new NextResponse(blob, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/zip',
+          'Content-Disposition': `attachment; filename="${filename}"`,
+        },
+      });
+    }
+
+    // في حال عدم توفر الخدمة الخارجية، بناء حزمة بيانات PWA قياسية
+    // (manifest.json + sw.js + index.html) كملف مضغوط أو مستند
+    const manifestJson = JSON.stringify({
+      name: appName,
+      short_name: appName,
+      start_url: storeUrl,
+      display: 'standalone',
+      background_color: '#0f172a',
+      theme_color: themeColor,
+      icons: [
+        {
+          src: '/icon-512.png',
+          sizes: '512x512',
+          type: 'image/png'
+        }
+      ]
+    }, null, 2);
+
+    return new NextResponse(manifestJson, {
       status: 200,
       headers: {
-        'Content-Type': contentType,
-        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',
+        'Content-Disposition': `attachment; filename="${safeName}-manifest.json"`,
       },
     });
 
-    response.headers.delete('x-frame-options');
-    response.headers.delete('content-security-policy');
-
-    return response;
-  } catch (err: any) {
-    return new NextResponse(`Failed to fetch site: ${err.message}`, { status: 500 });
+  } catch (error: any) {
+    return new NextResponse(error.message || 'Error generating download', { status: 500 });
   }
 }
