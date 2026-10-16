@@ -1,11 +1,11 @@
 ﻿'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useParams } from 'next/navigation';
 import { databases } from '@/lib/appwrite';
 import { Smartphone, Download, ExternalLink, Share2, Check, ShieldCheck, Sparkles, Loader2 } from 'lucide-react';
 
-export default function AppInstallPage() {
+function InstallContent() {
   const params = useParams();
   const id = params?.id as string;
 
@@ -167,5 +167,13 @@ export default function AppInstallPage() {
         مشغّل بواسطة منصة <span className="text-slate-400 font-semibold">Appifya PWA</span>
       </div>
     </div>
+  );
+}
+
+export default function AppInstallPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center text-white"><Loader2 className="h-8 w-8 animate-spin text-indigo-500" /></div>}>
+      <InstallContent />
+    </Suspense>
   );
 }
