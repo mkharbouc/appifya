@@ -32,7 +32,7 @@ export default function HomePage() {
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const databaseId = '6ace935d0015975c804b';
-  const collectionId = 'pwa_db';
+  const collectionId = '6ace931c00205a66e468';
 
   const isRtl = lang === 'ar';
 
