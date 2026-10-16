@@ -3,7 +3,7 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { useParams } from 'next/navigation';
 import { databases } from '@/lib/appwrite';
-import { Smartphone, Download, ExternalLink, Share2, Check, ShieldCheck, Sparkles, Loader2 } from 'lucide-react';
+import { Smartphone, Download, ExternalLink, Share2, Check, ShieldCheck, Sparkles, Loader2, Info } from 'lucide-react';
 
 function InstallContent() {
   const params = useParams();
@@ -14,6 +14,7 @@ function InstallContent() {
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   const databaseId = '6ace931c00205a66e468';
   const collectionId = '6ace935d0015975c804b';
@@ -21,6 +22,15 @@ function InstallContent() {
   useEffect(() => {
     if (id) {
       loadAppDetails();
+
+      // Dynamically attach manifest link
+      let link = document.querySelector("link[rel*='manifest']") as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'manifest';
+        document.head.appendChild(link);
+      }
+      link.href = `/api/manifest?id=${id}`;
     }
 
     const handleBeforeInstall = (e: Event) => {
@@ -60,9 +70,7 @@ function InstallContent() {
       }
       setInstallPrompt(null);
     } else {
-      alert(
-        'لتثبيت التطبيق على جهازك:\n- أندرويد (Chrome): اضغط على زر الخيارات (⋮) بأعلى المتصفح ثم اختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية".\n- آيفون (Safari): اضغط على زر المشاركة ثم "إضافة إلى الشاشة الرئيسية".'
-      );
+      setShowInstructions(true);
     }
   };
 
@@ -101,7 +109,7 @@ function InstallContent() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-between p-6 sm:p-10 font-sans" dir="rtl">
-      <div className="max-w-md w-full mx-auto space-y-8 pt-4">
+      <div className="max-w-md w-full mx-auto space-y-6 pt-4">
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-center shadow-2xl relative overflow-hidden">
           <div
             className="w-24 h-24 rounded-3xl mx-auto flex items-center justify-center text-3xl font-black shadow-xl mb-4 border border-white/10"
@@ -117,9 +125,24 @@ function InstallContent() {
 
           <div className="flex items-center justify-center gap-2 mt-4 text-[11px] text-emerald-400 font-semibold bg-emerald-500/10 py-1.5 px-3 rounded-full border border-emerald-500/20 w-fit mx-auto">
             <ShieldCheck className="h-4 w-4" />
-            <span>تطبيق PWA آمن ومعتمد</span>
+            <span>تطبيق PWA آمن وموثّق</span>
           </div>
         </div>
+
+        {showInstructions && (
+          <div className="bg-indigo-950/60 border border-indigo-500/30 rounded-2xl p-4 text-xs space-y-2 text-indigo-200">
+            <div className="flex items-center gap-2 font-bold text-white mb-1">
+              <Info className="h-4 w-4 text-indigo-400" />
+              <span>خطوات التثبيت السريع:</span>
+            </div>
+            <p className="leading-relaxed">
+              <strong>أندرويد:</strong> اضغط على قائمة الخيارات (⋮) أعلى المتصفح ثم اختر <span className="text-white underline">"تثبيت التطبيق"</span>.
+            </p>
+            <p className="leading-relaxed">
+              <strong>آيفون (iOS):</strong> اضغط على زر المشاركة أسفل Safari ثم اختر <span className="text-white underline">"إضافة إلى الشاشة الرئيسية"</span>.
+            </p>
+          </div>
+        )}
 
         <div className="space-y-3">
           <button
@@ -152,13 +175,10 @@ function InstallContent() {
         <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 text-xs space-y-2 text-slate-400 leading-relaxed">
           <div className="flex items-center gap-2 font-bold text-slate-200 mb-1">
             <Sparkles className="h-4 w-4 text-indigo-400" />
-            <span>كيف يتم تثبيت التطبيق؟</span>
+            <span>مميزات تطبيق الـ PWA</span>
           </div>
           <p>
-            تطبيقات الويب التقدمية (PWA) تعمل فوراً دون الحاجة لمتجر التطبيقات ودون استهلاك مساحة الهاتف.
-          </p>
-          <p className="text-[11px] text-slate-500">
-            إذا لم يظهر زر التثبيت التلقائي: في متصفح Chrome اضغط على زر الخيارات (⋮) ثم اختر <strong className="text-slate-300">"تثبيت التطبيق"</strong>.
+            يعمل التطبيق بكامل طاقته بدون استهلاك لسعة الهاتف التخزينية، مع شاشة كاملة وسرعة فائقة دون شريط المتصفح.
           </p>
         </div>
       </div>
