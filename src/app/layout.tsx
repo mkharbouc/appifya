@@ -3,6 +3,7 @@
 import "./globals.css";
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { LanguageProvider, useLanguage } from "./lib/i18n";
 import { Globe, Sparkles } from "lucide-react";
 
@@ -10,13 +11,19 @@ function NavigationBar() {
   const { lang, setLang, t } = useLanguage();
 
   return (
-    <header className="border-b border-slate-800/80 px-6 py-4 flex items-center justify-between backdrop-blur-md sticky top-0 z-50 bg-slate-950/80">
+    <header className="border-b border-slate-800/80 px-6 py-3.5 flex items-center justify-between backdrop-blur-md sticky top-0 z-50 bg-slate-950/80">
       <div className="flex items-center gap-6">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center font-bold text-lg shadow-lg shadow-indigo-500/20 text-white">
-            P
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="relative h-9 w-9 rounded-xl overflow-hidden border border-indigo-500/30 group-hover:border-indigo-400 transition-colors shadow-lg shadow-indigo-500/20">
+            <img
+              src="/logo.jpg"
+              alt="Appifya Logo"
+              className="h-full w-full object-cover"
+            />
           </div>
-          <span className="font-semibold text-lg tracking-tight text-white">Appifya</span>
+          <span className="font-extrabold text-xl tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-slate-400">
+            Appifya
+          </span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-5 text-sm font-medium text-slate-400">
@@ -82,6 +89,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" className="scroll-smooth">
+      <head>
+        <link rel="icon" href="/logo.jpg" />
+      </head>
       <body className="antialiased bg-slate-950 text-slate-100 flex flex-col min-h-screen">
         <LanguageProvider>
           <NavigationBar />
