@@ -170,7 +170,7 @@ export default function DashboardPage() {
                   <span>{getTxt('preview')}</span>
                 </a>
                 <Link
-                  href={`/api/download?id=${app.$id}`} download
+                  href={`/view/${app.$id}`} target="_blank"
                   className="flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-colors shadow-md shadow-indigo-600/20"
                   title={getTxt('install')}
                 >
