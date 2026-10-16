@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '../lib/i18n';
 import { databases } from '@/lib/appwrite';
 import { Query } from 'appwrite';
-import { Smartphone, ExternalLink,, Plus, Loader2, ArrowRight } from 'lucide-react';
+import { Smartphone, ExternalLink, Download, Plus, Loader2, ArrowRight } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, loading: authLoading, openAuthModal } = useAuth();

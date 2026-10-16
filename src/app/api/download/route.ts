@@ -1,8 +1,6 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { databases } from '@/lib/appwrite';
 
-export const dynamic = 'force-dynamic';
-
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -24,7 +22,6 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // التوجيه المباشر إلى محرك بناء APK السحابي المعتمد
     const cloudBuilderUrl = `https://www.pwabuilder.com/reportcard?site=${encodeURIComponent(targetUrl)}`;
 
     return NextResponse.redirect(cloudBuilderUrl);
