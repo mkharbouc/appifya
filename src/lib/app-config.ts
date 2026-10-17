@@ -1,22 +1,23 @@
 import { Client, Databases, Storage, Account } from 'appwrite';
 
-function requiredEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} is missing.`);
-  return value;
-}
-
-const endpoint = requiredEnv('NEXT_PUBLIC_APPWRITE_ENDPOINT');
-const projectId = requiredEnv('NEXT_PUBLIC_APPWRITE_PROJECT_ID');
+const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
+const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '';
 const client = new Client().setEndpoint(endpoint).setProject(projectId);
 
 export const account = new Account(client);
 export const databases = new Databases(client);
 export const storage = new Storage(client);
 
-export const DB_ID = requiredEnv('NEXT_PUBLIC_APPWRITE_DATABASE_ID');
-export const TABLE_ID = requiredEnv('NEXT_PUBLIC_APPWRITE_TABLE_ID');
-export const BUCKET_ID = requiredEnv('NEXT_PUBLIC_APPWRITE_BUCKET_ID');
+export const DB_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || '';
+export const TABLE_ID = process.env.NEXT_PUBLIC_APPWRITE_TABLE_ID || '';
+export const BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID || '';
+
+export const appwriteConfigMissing = [
+  ['NEXT_PUBLIC_APPWRITE_PROJECT_ID', projectId],
+  ['NEXT_PUBLIC_APPWRITE_DATABASE_ID', DB_ID],
+  ['NEXT_PUBLIC_APPWRITE_TABLE_ID', TABLE_ID],
+  ['NEXT_PUBLIC_APPWRITE_BUCKET_ID', BUCKET_ID],
+].filter(([, value]) => !value).map(([name]) => name);
 
 export function isValidPublicUrl(value: unknown): value is string {
   if (typeof value !== 'string' || value.length > 2048) return false;

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '../lib/i18n';
 import { databases, DB_ID, TABLE_ID } from '@/lib/appwrite';
+import { appwriteConfigMissing } from '@/lib/app-config';
 import { Query } from 'appwrite';
 import type { AppDocument } from '@/lib/types';
 import { Smartphone, ExternalLink, Download, Plus, Loader2, ArrowRight, CheckCircle2, Clock, Play } from 'lucide-react';
@@ -126,6 +127,19 @@ export default function DashboardPage() {
       <div className="flex-1 flex items-center justify-center p-12">
         <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
       </div>
+    );
+  }
+
+  if (appwriteConfigMissing.length > 0) {
+    return (
+      <main className="flex-1 flex items-center justify-center p-12 text-center" dir={isRtl ? 'rtl' : 'ltr'}>
+        <div className="max-w-lg">
+          <h2 className="text-xl font-bold text-white mb-3">إعدادات التطبيق غير مكتملة</h2>
+          <p className="text-sm text-slate-400">
+            يرجى إضافة متغيرات Appwrite الناقصة في إعدادات الاستضافة ثم إعادة النشر.
+          </p>
+        </div>
+      </main>
     );
   }
 
