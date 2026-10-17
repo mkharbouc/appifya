@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from './lib/i18n';
 import { databases } from '@/lib/appwrite';
+import { DB_ID, TABLE_ID, getErrorMessage, normalizePublicUrl } from '@/lib/app-config';
 import { ID } from 'appwrite';
 import {
   Smartphone,
@@ -30,10 +31,6 @@ export default function HomePage() {
 
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-  // Exact Appwrite Identifiers
-  const databaseId = '6ace931c00205a66e468';
-  const collectionId = '6ace935d0015975c804b';
 
   const isRtl = lang === 'ar';
 
@@ -71,10 +68,19 @@ export default function HomePage() {
       setLoading(true);
       setStatusMsg(null);
 
-      const formattedUrl = getCleanPreviewUrl();
+      let formattedUrl: string;
+      try {
+        formattedUrl = normalizePublicUrl(storeUrl.trim());
+      } catch {
+        setStatusMsg({
+          type: 'error',
+          text: lang === 'ar' ? 'يرجى إدخال رابط HTTPS صالح.' : 'Please enter a valid HTTPS URL.',
+        });
+        return;
+      }
       const finalAppName = appName.trim() || 'My PWA Store';
 
-      await databases.createDocument(databaseId, collectionId, ID.unique(), {
+      await databases.createDocument(DB_ID, TABLE_ID, ID.unique(), {
         user_id: userId,
         store_url: formattedUrl,
         app_name: finalAppName,
@@ -89,11 +95,11 @@ export default function HomePage() {
       setTimeout(() => {
         router.push('/dashboard');
       }, 1000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setStatusMsg({
         type: 'error',
-        text: err.message || (lang === 'ar' ? 'فشل حفظ التطبيق، يرجى المحاولة ثانية.' : 'Échec de l\'enregistrement.'),
+        text: getErrorMessage(err, lang === 'ar' ? 'فشل حفظ التطبيق، يرجى المحاولة ثانية.' : 'Failed to save the application.'),
       });
     } finally {
       setLoading(false);

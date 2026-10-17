@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { account } from '@/lib/appwrite';
 import { ID, Models, OAuthProvider } from 'appwrite';
 import { LogIn, UserPlus, X, Mail, Lock, User, Loader2 } from 'lucide-react';
@@ -34,11 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [onSuccess, setOnSuccess] = useState<(() => void) | null>(null);
 
-  useEffect(() => {
-    checkUser();
-  }, []);
-
-  const checkUser = async () => {
+  const checkUser = useCallback(async () => {
     try {
       const current = await account.get();
       setUser(current);
@@ -47,7 +43,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // Authentication state is synchronized with Appwrite after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void checkUser();
+  }, [checkUser]);
 
   const openAuthModal = (callback?: () => void) => {
     if (callback) setOnSuccess(() => callback);
@@ -61,8 +63,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthError('');
       const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : 'https://appifya.app/dashboard';
       account.createOAuth2Session(OAuthProvider.Google, redirectUrl, redirectUrl);
-    } catch (err: any) {
-      setAuthError(err.message || 'فشل تسجيل الدخول عبر Google');
+    } catch (err: unknown) {
+      setAuthError(err instanceof Error ? err.message : 'فشل تسجيل الدخول عبر Google');
       setGoogleLoading(false);
     }
   };
@@ -84,8 +86,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         onSuccess();
         setOnSuccess(null);
       }
-    } catch (err: any) {
-      setAuthError(err.message || 'حدث خطأ في التسجيل، يرجى التأكد من البيانات والمحاولة مجدداً');
+    } catch (err: unknown) {
+      setAuthError(err instanceof Error ? err.message : 'حدث خطأ في التسجيل، يرجى التأكد من البيانات والمحاولة مجدداً');
     } finally {
       setActionLoading(false);
     }

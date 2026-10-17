@@ -34,7 +34,7 @@ export const metadata: Metadata = {
       "Transform your e-commerce store or landing page into a high-converting, installable mobile app with native ads integration.",
     images: [
       {
-        url: "/logo.jpg",
+        url: "/logo.jpg.jpeg",
         width: 1200,
         height: 630,
         alt: "Appifya PWA Platform",
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     title: "Appifya - Convert Websites to Fast Mobile PWAs",
     description:
       "Instant installable mobile apps for stores and landing pages with built-in ad networks and monetization.",
-    images: ["/logo.jpg"],
+    images: ["/logo.jpg.jpeg"],
     creator: "@appifya",
   },
   robots: {
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
-    apple: "/logo.jpg",
+    apple: "/logo.jpg.jpeg",
   },
 };
 

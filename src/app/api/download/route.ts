@@ -1,20 +1,17 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
-import { databases } from '@/lib/appwrite';
+import { databases, DB_ID, TABLE_ID } from '@/lib/appwrite';
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 
-    const databaseId = '6ace931c00205a66e468';
-    const collectionId = '6ace935d0015975c804b';
-
     let appName = 'AppifyaStore';
     let storeUrl = 'https://appifya.app';
 
     if (id) {
       try {
-        const doc = await databases.getDocument(databaseId, collectionId, id);
+        const doc = await databases.getDocument(DB_ID, TABLE_ID, id);
         if (doc) {
           appName = doc.app_name || appName;
           storeUrl = doc.store_url || storeUrl;
@@ -28,12 +25,10 @@ export async function GET(req: NextRequest) {
     const cleanUrl = encodeURIComponent(storeUrl);
 
     // استخدام محرك تجميع APK المباشر عالي السرعة والمخصص لتطبيقات الويب
-    const directApkUrl = `https://builder.appifya.app/api/build-apk?name=${safeName}&url=${cleanUrl}`;
-
     // التحقق من توفر الخدمة أو التوجيه المباشر لتفادي خطأ 500
     return NextResponse.redirect(`https://app-builder-api.vercel.app/api/generate-apk?name=${safeName}&url=${cleanUrl}`, 302);
 
-  } catch (err: any) {
+  } catch {
     return new NextResponse('عذراً، تعذر إنشاء الحزمة في الوقت الحالي. يرجى المحاولة لاحقاً.', { status: 500 });
   }
 }

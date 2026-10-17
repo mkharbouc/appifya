@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useLanguage } from '../lib/i18n';
-import { Rocket, ShieldCheck, Zap, HeartHandshake, CheckCircle2 } from 'lucide-react';
+import { Rocket, ShieldCheck, Zap, HeartHandshake } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AboutPage() {

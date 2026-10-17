@@ -1,8 +1,8 @@
 ﻿'use client';
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
-import { LanguageProvider, useLanguage } from "./lib/i18n";
+import { LanguageProvider, useLanguage, type Language } from "./lib/i18n";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { Globe, Sparkles, LayoutDashboard, LogOut, User } from "lucide-react";
 
@@ -84,7 +84,7 @@ function NavigationBar() {
           <Globe className="h-3.5 w-3.5 text-indigo-400" />
           <select
             value={lang}
-            onChange={(e) => setLang(e.target.value as any)}
+            onChange={(e) => setLang(e.target.value as Language)}
             className="bg-transparent border-0 text-xs text-slate-200 focus:outline-none cursor-pointer"
           >
             <option value="ar" className="bg-slate-900 text-white">العربية</option>
@@ -142,6 +142,14 @@ function SiteFooter() {
 }
 
 export default function ClientLayoutWrapper({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch((error: unknown) => {
+        console.error('Service worker registration failed:', error);
+      });
+    }
+  }, []);
+
   return (
     <AuthProvider>
       <LanguageProvider>

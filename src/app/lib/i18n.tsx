@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Language = 'ar' | 'en' | 'fr';
+export type Language = 'ar' | 'en' | 'fr';
 
 interface Translations {
   [key: string]: {
@@ -95,6 +95,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem('app_lang') as Language;
     if (saved && ['ar', 'en', 'fr'].includes(saved)) {
+      // Hydrate the language preference after the browser becomes available.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLangState(saved);
       document.documentElement.dir = saved === 'ar' ? 'rtl' : 'ltr';
       document.documentElement.lang = saved;

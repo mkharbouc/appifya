@@ -1,11 +1,7 @@
-self.addEventListener('install', (e) => {
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil(clients.claim());
-});
-
-self.addEventListener('fetch', (e) => {
-  // تمرير الطلبات كالمعتاد
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim());
 });

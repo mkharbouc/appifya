@@ -1,39 +1,29 @@
 ﻿'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '../lib/i18n';
-import { databases } from '@/lib/appwrite';
+import { databases, DB_ID, TABLE_ID } from '@/lib/appwrite';
 import { Query } from 'appwrite';
+import type { AppDocument } from '@/lib/types';
 import { Smartphone, ExternalLink, Download, Plus, Loader2, ArrowRight, CheckCircle2, Clock, Play } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, loading: authLoading, openAuthModal } = useAuth();
   const { lang } = useLanguage();
-  const [apps, setApps] = useState<any[]>([]);
+  const [apps, setApps] = useState<AppDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [buildingAppId, setBuildingAppId] = useState<string | null>(null);
-  const [buildNotice, setBuildNotice] = useState<{ id: string; appName: string } | null>(null);
-
-  const databaseId = '6ace931c00205a66e468';
-  const collectionId = '6ace935d0015975c804b';
+  const [builds, setBuilds] = useState<Record<string, { status: 'building' | 'completed' | 'failed'; downloadUrl?: string }>>({});
 
   const isRtl = lang === 'ar';
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      openAuthModal();
-    } else if (user) {
-      loadUserApps();
-    }
-  }, [user, authLoading]);
-
-  const loadUserApps = async () => {
+  const loadUserApps = useCallback(async () => {
     if (!user) return;
     try {
       setLoading(true);
-      const res = await databases.listDocuments(databaseId, collectionId, [
+      const res = await databases.listDocuments(DB_ID, TABLE_ID, [
         Query.equal('user_id', user.$id),
         Query.orderDesc('$createdAt'),
       ]);
@@ -43,29 +33,68 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const handleTriggerBuild = async (app: any) => {
+  useEffect(() => {
+    if (!authLoading && !user) {
+      openAuthModal();
+    } else if (user) {
+      // Loading the user's remote documents is an external synchronization effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadUserApps();
+    }
+  }, [user, authLoading, loadUserApps]);
+
+  const handleTriggerBuild = async (app: AppDocument) => {
     try {
       setBuildingAppId(app.$id);
       const res = await fetch('/api/build-apk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appId: app.$id }),
+        body: JSON.stringify({ appId: app.$id, userId: user?.$id }),
       });
 
       const data = await res.json();
       if (res.ok) {
-        setBuildNotice({ id: app.$id, appName: app.app_name || 'تطبيق المتجر' });
+        setBuilds((current) => ({ ...current, [app.$id]: { status: 'building' } }));
       } else {
         alert(data.error || 'فشل إرسال طلب البناء، يرجى المحاولة مرة أخرى.');
       }
-    } catch (err: any) {
+    } catch {
       alert('تعذر الاتصال بالسيرفر لبدء البناء');
     } finally {
       setBuildingAppId(null);
     }
   };
+
+  useEffect(() => {
+    const activeIds = Object.entries(builds)
+      .filter(([, build]) => build.status === 'building')
+      .map(([id]) => id);
+    if (activeIds.length === 0) return;
+
+    const checkBuilds = async () => {
+      await Promise.all(activeIds.map(async (appId) => {
+        try {
+          const response = await fetch(`/api/build-apk?appId=${encodeURIComponent(appId)}`, { cache: 'no-store' });
+          if (!response.ok) return;
+          const result = await response.json();
+          if (result.status === 'completed' || result.status === 'failed') {
+            setBuilds((current) => ({
+              ...current,
+              [appId]: { status: result.status, downloadUrl: result.downloadUrl },
+            }));
+          }
+        } catch (error) {
+          console.error('Build status check failed:', error);
+        }
+      }));
+    };
+
+    void checkBuilds();
+    const interval = window.setInterval(checkBuilds, 10000);
+    return () => window.clearInterval(interval);
+  }, [builds]);
 
   const labels = {
     title: { ar: 'لوحة تحكم تطبيقاتي', en: 'My Applications', fr: 'Mes Applications' },
@@ -132,41 +161,6 @@ export default function DashboardPage() {
           <span>{getTxt('newApp')}</span>
         </Link>
       </div>
-
-      {buildNotice && (
-        <div className="mb-8 p-5 bg-indigo-950/40 border border-indigo-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-500/20 rounded-xl text-indigo-400 shrink-0">
-              <Clock className="h-5 w-5 animate-pulse" />
-            </div>
-            <div>
-              <h4 className="font-bold text-white text-sm mb-0.5">
-                جاري تجميع حزمة تطبيق ({buildNotice.appName}) الآن في خوادم GitHub Actions!
-              </h4>
-              <p className="text-slate-300">
-                يتم الآن تجهيز كود أندرويد وتجميعه عبر Gradle وتوقيعه. تستغرق العملية حوالي 60 إلى 90 ثانية.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <a
-              href="https://github.com/mkharbouc/appifya-android-engine/actions"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl flex items-center gap-1.5 transition"
-            >
-              <span>متابعة تقدم البناء المباشر</span>
-              <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-            <button
-              onClick={() => setBuildNotice(null)}
-              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl transition"
-            >
-              إغلاق
-            </button>
-          </div>
-        </div>
-      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
@@ -243,6 +237,21 @@ export default function DashboardPage() {
                   <span>{buildingAppId === app.$id ? 'جاري البدء...' : getTxt('buildApk')}</span>
                 </button>
               </div>
+              {builds[app.$id]?.status === 'building' && (
+                <div className="mt-3 flex items-center gap-2 text-[11px] text-indigo-300">
+                  <Clock className="h-3.5 w-3.5 animate-pulse" />
+                  <span>يتم تجهيز APK في الخلفية...</span>
+                </div>
+              )}
+              {builds[app.$id]?.status === 'completed' && builds[app.$id]?.downloadUrl && (
+                <a
+                  href={builds[app.$id].downloadUrl}
+                  className="mt-3 flex items-center justify-center gap-2 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  <span>تنزيل APK</span>
+                </a>
+              )}
             </div>
           ))}
         </div>

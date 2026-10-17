@@ -1,25 +1,37 @@
 ﻿'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useCallback, useEffect, useState, Suspense } from 'react';
 import { useParams } from 'next/navigation';
-import { databases } from '@/lib/appwrite';
+import { databases, DB_ID, TABLE_ID } from '@/lib/appwrite';
 import { Download, Share2, Check, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
+import type { AppDocument, BeforeInstallPromptEvent } from '@/lib/types';
 
 function PwaViewContent() {
   const params = useParams();
   const id = params?.id as string;
 
-  const [app, setApp] = useState<any>(null);
+  const [app, setApp] = useState<AppDocument | null>(null);
   const [loading, setLoading] = useState(true);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isStandalone, setIsStandalone] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const databaseId = '6ace931c00205a66e468';
-  const collectionId = '6ace935d0015975c804b';
+  const loadApp = useCallback(async () => {
+    try {
+      setLoading(true);
+      const doc = await databases.getDocument(DB_ID, TABLE_ID, id);
+      setApp(doc);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
 
   useEffect(() => {
     if (id) {
+      // Loading remote Appwrite data is an external synchronization effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadApp();
 
       let manifestLink = document.querySelector("link[rel*='manifest']") as HTMLLinkElement;
@@ -37,7 +49,7 @@ function PwaViewContent() {
 
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
@@ -45,19 +57,7 @@ function PwaViewContent() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
     };
-  }, [id]);
-
-  const loadApp = async () => {
-    try {
-      setLoading(true);
-      const doc = await databases.getDocument(databaseId, collectionId, id);
-      setApp(doc);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [id, loadApp]);
 
   const handleInstall = async () => {
     if (deferredPrompt) {

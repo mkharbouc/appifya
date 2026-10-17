@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Appifya
 
-## Getting Started
+Appifya converts a store or landing page into a configurable, installable PWA. Users can save applications in Appwrite, preview them, share an install page, and request an Android build through GitHub Actions.
 
-First, run the development server:
+## Requirements
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 20+
+- An Appwrite project with an applications collection
+- Optional GitHub repository for APK builds
+
+## Configuration
+
+Create `.env.local` with:
+
+```env
+NEXT_PUBLIC_APPWRITE_ENDPOINT=https://fra.cloud.appwrite.io/v1
+NEXT_PUBLIC_APPWRITE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_APPWRITE_DATABASE_ID=your-database-id
+NEXT_PUBLIC_APPWRITE_TABLE_ID=your-collection-id
+NEXT_PUBLIC_APPWRITE_BUCKET_ID=your-bucket-id
+
+# Required only for the APK build endpoint
+GITHUB_PAT=your-server-side-token
+GITHUB_OWNER=your-github-owner
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Never expose `GITHUB_PAT` through a `NEXT_PUBLIC_` variable or commit it to the repository.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The application collection must allow the signed-in user to create and list documents containing at least `user_id`, `store_url`, `app_name`, and `theme_color`. Configure document permissions so users can only access their own documents.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Development
 
-## Learn More
+```bash
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Validation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run lint
+npm run build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Export and APK notes
 
-## Deploy on Vercel
+- `GET /api/proxy` validates an HTTPS URL and returns a real ZIP containing an HTML wrapper, manifest, service worker, and generated icon.
+- APK requests dispatch the `build_apk` event to the configured Android repository. The Android workflow is responsible for producing and publishing the final artifact.
+- Sites that send restrictive `X-Frame-Options` or CSP headers may not render inside the preview iframe; users can still open the original URL directly.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Payment and paid export flows are intentionally not implemented yet.

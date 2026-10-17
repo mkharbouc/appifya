@@ -9,7 +9,7 @@ export async function GET(
 
   try {
     const doc = await databases.getDocument(DB_ID, TABLE_ID, id);
-    let iconUrl = '/favicon.ico';
+    let iconUrl = '/logo.jpg.jpeg';
 
     if (doc.icon_id) {
       iconUrl = storage.getFileView(BUCKET_ID, doc.icon_id).toString();
