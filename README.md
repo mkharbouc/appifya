@@ -28,6 +28,14 @@ Never expose `GITHUB_PAT` through a `NEXT_PUBLIC_` variable or commit it to the 
 
 The application collection must allow the signed-in user to create and list documents containing at least `user_id`, `store_url`, `app_name`, and `theme_color`. Configure document permissions so users can only access their own documents.
 
+Optional AdSense fields can be added to the same collection for per-application advertising:
+
+- `adsense_publisher_id` — string, for example `ca-pub-1234567890123456`
+- `adsense_slot_id` — string containing the AdSense ad unit slot number
+- `adsense_format` — string enum/value: `auto`, `fluid`, or `rectangle`
+
+The exported PWA ZIP includes the AdSense unit when both IDs are provided. Google must approve the publisher account and site before ads can serve. The Android WebView builder currently receives these values in the dispatch payload but must explicitly render the exported wrapper to display them in APKs.
+
 ## Development
 
 ```bash
