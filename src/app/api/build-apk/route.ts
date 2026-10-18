@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { databases, DB_ID, TABLE_ID } from '@/lib/appwrite';
+import { databases, storage, DB_ID, TABLE_ID, BUCKET_ID } from '@/lib/appwrite';
 
 const targetRepo = 'appifya-android-engine';
 
@@ -16,6 +16,15 @@ function githubHeaders(token: string): HeadersInit {
     'Content-Type': 'application/json',
     'User-Agent': 'Appifya',
   };
+}
+
+function getLogoUrl(appDoc: Record<string, unknown>): string {
+  const iconId = typeof appDoc.icon_id === 'string' ? appDoc.icon_id : '';
+  if (iconId && BUCKET_ID) {
+    return storage.getFileView(BUCKET_ID, iconId).toString();
+  }
+
+  return 'https://appifya.app/logo.jpg.jpeg';
 }
 
 export async function POST(req: NextRequest) {
@@ -50,6 +59,7 @@ export async function POST(req: NextRequest) {
             app_name: appDoc.app_name || 'MyStore',
             store_url: appDoc.store_url || 'https://appifya.app',
             theme_color: appDoc.theme_color || '#6366f1',
+            logo_url: getLogoUrl(appDoc),
             admob_app_id: appDoc.admob_app_id || '',
             admob_banner_unit_id: appDoc.admob_banner_unit_id || '',
           },
