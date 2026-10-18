@@ -58,8 +58,8 @@ export const metadata: Metadata = {
     follow: true,
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
     apple: "/logo.jpg.jpeg",
   },
 };
@@ -87,7 +87,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className="scroll-smooth">
       <head>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
       <body className="antialiased bg-slate-950 text-slate-100 flex flex-col min-h-screen">
         <script

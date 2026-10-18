@@ -8,40 +8,8 @@ import { Globe, Sparkles, LayoutDashboard, LogOut, User } from "lucide-react";
 
 function AppifyaLogoIcon() {
   return (
-    <div className="relative flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-950 via-slate-900 to-pink-950 border border-indigo-500/30 shadow-lg shadow-indigo-500/20 group-hover:border-pink-500/50 transition-all">
-      <svg
-        viewBox="0 0 40 40"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-6 w-6"
-      >
-        <defs>
-          <linearGradient id="appifyaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#6366f1" />
-            <stop offset="50%" stopColor="#a855f7" />
-            <stop offset="100%" stopColor="#ec4899" />
-          </linearGradient>
-        </defs>
-        <rect
-          x="10"
-          y="6"
-          width="20"
-          height="28"
-          rx="4.5"
-          stroke="url(#appifyaGrad)"
-          strokeWidth="2"
-          className="opacity-70"
-        />
-        <line x1="17" y1="9" x2="23" y2="9" stroke="url(#appifyaGrad)" strokeWidth="1.5" strokeLinecap="round" />
-        <circle cx="20" cy="30" r="1.2" fill="url(#appifyaGrad)" />
-        <path
-          d="M21.5 12L15 21H20L18.5 28L25 19H20L21.5 12Z"
-          fill="url(#appifyaGrad)"
-          stroke="#0f172a"
-          strokeWidth="1"
-          strokeLinejoin="round"
-        />
-      </svg>
+    <div className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-500/30 bg-slate-950 shadow-lg shadow-indigo-500/20 transition-all group-hover:border-pink-500/50">
+      <img src="/icon.svg" alt="Appifya" className="h-8 w-8 rounded-lg" />
     </div>
   );
 }
