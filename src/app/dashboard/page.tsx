@@ -8,7 +8,7 @@ import { databases, DB_ID, TABLE_ID } from '@/lib/appwrite';
 import { appwriteConfigMissing } from '@/lib/app-config';
 import { Query } from 'appwrite';
 import type { AppDocument } from '@/lib/types';
-import { Smartphone, ExternalLink, Download, Plus, Loader2, ArrowRight, CheckCircle2, Clock, Play } from 'lucide-react';
+import { Smartphone, ExternalLink, Download, Plus, Loader2, ArrowRight, CheckCircle2, Clock, Play, X, Hammer } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, loading: authLoading, openAuthModal } = useAuth();
@@ -16,6 +16,7 @@ export default function DashboardPage() {
   const [apps, setApps] = useState<AppDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [buildingAppId, setBuildingAppId] = useState<string | null>(null);
+  const [buildNoticeAppId, setBuildNoticeAppId] = useState<string | null>(null);
   const [builds, setBuilds] = useState<Record<string, { status: 'building' | 'completed' | 'failed'; downloadUrl?: string }>>({});
 
   const isRtl = lang === 'ar';
@@ -56,11 +57,12 @@ export default function DashboardPage() {
           if (!response.ok) return;
 
           const result = await response.json();
-          if (result.status === 'completed' || result.status === 'failed') {
+          if (result.status === 'building' || result.status === 'completed' || result.status === 'failed') {
             setBuilds((current) => ({
               ...current,
               [app.$id]: { status: result.status, downloadUrl: result.downloadUrl },
             }));
+            if (result.status === 'building') setBuildNoticeAppId(app.$id);
           }
         } catch (error) {
           console.error('Build status restore failed:', error);
@@ -83,6 +85,7 @@ export default function DashboardPage() {
       const data = await res.json();
       if (res.ok) {
         setBuilds((current) => ({ ...current, [app.$id]: { status: 'building' } }));
+        setBuildNoticeAppId(app.$id);
       } else {
         alert(data.error || 'فشل إرسال طلب البناء، يرجى المحاولة مرة أخرى.');
       }
@@ -110,6 +113,7 @@ export default function DashboardPage() {
               ...current,
               [appId]: { status: result.status, downloadUrl: result.downloadUrl },
             }));
+            setBuildNoticeAppId((current) => (current === appId ? null : current));
           }
         } catch (error) {
           console.error('Build status check failed:', error);
@@ -144,6 +148,14 @@ export default function DashboardPage() {
     noName: { ar: 'تطبيق بدون اسم', en: 'Untitled App', fr: 'Application sans titre' },
     loginReq: { ar: 'يرجى تسجيل الدخول للوصول إلى لوحة التحكم', en: 'Please sign in to access your dashboard', fr: 'Veuillez vous connecter pour accéder au tableau de bord' },
     signInBtn: { ar: 'تسجيل الدخول الآن', en: 'Sign In Now', fr: 'Se connecter maintenant' },
+    buildNoticeTitle: { ar: 'جاري تجهيز تطبيقك', en: 'Your app is being built', fr: 'Votre application est en cours de création' },
+    buildNoticeText: {
+      ar: 'تم إرسال الطلب بنجاح إلى خوادم البناء. يمكنك إغلاق هذه النافذة؛ سنواصل العمل في الخلفية ويظهر زر التنزيل تلقائياً عند الجاهزية.',
+      en: 'Your request was sent successfully to the build servers. You can close this window; the build continues in the background and the download button will appear when ready.',
+      fr: 'Votre demande a été envoyée aux serveurs de compilation. Vous pouvez fermer cette fenêtre : le traitement continue en arrière-plan et le bouton de téléchargement apparaîtra dès que le fichier sera prêt.',
+    },
+    buildNoticeStatus: { ar: 'جاري إنشاء ملف APK', en: 'Building APK', fr: 'Compilation de l’APK' },
+    close: { ar: 'متابعة في الخلفية', en: 'Continue in background', fr: 'Continuer en arrière-plan' },
   };
 
   const getTxt = (key: keyof typeof labels) => labels[key][lang] || labels[key]['en'];
@@ -186,6 +198,37 @@ export default function DashboardPage() {
 
   return (
     <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-10" dir={isRtl ? 'rtl' : 'ltr'}>
+      {buildNoticeAppId && builds[buildNoticeAppId]?.status === 'building' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-5" role="dialog" aria-modal="true">
+          <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-indigo-400/30 bg-slate-900 p-7 text-center shadow-2xl shadow-indigo-950/50">
+            <button
+              type="button"
+              onClick={() => setBuildNoticeAppId(null)}
+              className="absolute right-4 top-4 rounded-lg p-2 text-slate-500 transition hover:bg-slate-800 hover:text-white"
+              aria-label={getTxt('close')}
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-pink-500 shadow-lg shadow-indigo-500/30">
+              <Hammer className="h-8 w-8 animate-pulse text-white" />
+            </div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-indigo-300">{getTxt('buildNoticeStatus')}</p>
+            <h2 className="mb-4 text-2xl font-black text-white">{getTxt('buildNoticeTitle')}</h2>
+            <p className="mx-auto max-w-md text-sm leading-7 text-slate-300">{getTxt('buildNoticeText')}</p>
+            <div className="mt-6 flex items-center justify-center gap-2 text-xs font-semibold text-indigo-300">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>{apps.find((app) => app.$id === buildNoticeAppId)?.app_name || getTxt('noName')}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setBuildNoticeAppId(null)}
+              className="mt-7 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-indigo-500"
+            >
+              {getTxt('close')}
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 border-b border-slate-800 pb-6">
         <div>
           <h1 className="text-2xl font-extrabold text-white">{getTxt('title')}</h1>
