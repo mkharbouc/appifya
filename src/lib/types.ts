@@ -6,9 +6,8 @@ export interface AppDocument {
   app_name?: string;
   theme_color?: string;
   icon_id?: string;
-  adsense_publisher_id?: string;
-  adsense_slot_id?: string;
-  adsense_format?: 'auto' | 'fluid' | 'rectangle';
+  admob_app_id?: string;
+  admob_banner_unit_id?: string;
 }
 
 export interface BeforeInstallPromptEvent extends Event {

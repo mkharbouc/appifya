@@ -11,10 +11,6 @@ export async function GET(req: NextRequest) {
   const storeUrl = searchParams.get('url');
   const appName = searchParams.get('name') || 'Appifya App';
   const themeColor = searchParams.get('theme') || '#6366f1';
-  const publisherId = searchParams.get('adsensePublisherId') || '';
-  const slotId = searchParams.get('adsenseSlotId') || '';
-  const requestedAdFormat = searchParams.get('adsenseFormat') || 'auto';
-  const adFormat = ['auto', 'fluid', 'rectangle'].includes(requestedAdFormat) ? requestedAdFormat : 'auto';
 
   if (!isValidPublicUrl(storeUrl)) {
     return NextResponse.json({ error: 'A valid HTTPS URL is required.' }, { status: 400 });
@@ -34,16 +30,11 @@ export async function GET(req: NextRequest) {
     null,
     2,
   );
-  const adMarkup = /^ca-pub-\d{10,}$/.test(publisherId) && /^\d{4,}$/.test(slotId)
-    ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${publisherId}" crossorigin="anonymous"></script>
-<ins class="adsbygoogle" style="display:block" data-ad-client="${publisherId}" data-ad-slot="${slotId}" data-ad-format="${adFormat}" data-full-width-responsive="true"></ins>
-<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>`
-    : '';
   const html = `<!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="${themeColor}"><link rel="manifest" href="manifest.json"></head>
-<body style="margin:0"><div style="min-height:100vh;display:flex;flex-direction:column">${adMarkup ? `<div style="padding:8px;text-align:center">${adMarkup}</div>` : ''}<iframe src="${storeUrl}" title="${appName.replaceAll('"', '&quot;')}" style="border:0;width:100%;flex:1;min-height:0"></iframe></div>
+<body style="margin:0"><iframe src="${storeUrl}" title="${appName.replaceAll('"', '&quot;')}" style="border:0;width:100vw;height:100vh"></iframe>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script></body></html>`;
   const serviceWorker = `self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));`;

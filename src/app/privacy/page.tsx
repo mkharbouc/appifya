@@ -44,10 +44,10 @@ export default function PrivacyPage() {
           </h2>
           <p className="text-slate-400 text-xs md:text-sm">
             {lang === 'ar'
-              ? 'عند إدخال شفرات Google AdSense أو أية شفرات إعلانية بديلة، يتم تنقيتها وعزلها داخل بيئة Sandbox آمنة. تخضع هذه الإعلانات لسياسات الخصوصية الخاصة بمزود الخدمة الإعلانية المعني.'
+              ? 'عند تفعيل Google AdMob في تطبيق Android، يتصل التطبيق بخدمات Google لعرض الإعلانات وفق إعدادات العميل وسياسات الخصوصية الخاصة بمزود الخدمة.'
               : lang === 'fr'
-              ? 'Les scripts publicitaires (Google AdSense, etc.) sont isolés dans des conteneurs sécurisés et restent soumis aux politiques de leurs fournisseurs respectifs.'
-              : 'When embedding Google AdSense or custom ad networks, scripts are isolated within a secure sandbox environment under their respective privacy terms.'}
+              ? 'Lorsque Google AdMob est activé dans une application Android, l’application communique avec les services Google pour afficher les annonces selon les paramètres du client et les politiques de confidentialité du fournisseur.'
+              : 'When Google AdMob is enabled in an Android app, the app communicates with Google services to display ads under the customer’s settings and the provider’s privacy policies.'}
           </p>
         </section>
 

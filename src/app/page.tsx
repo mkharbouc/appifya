@@ -27,9 +27,8 @@ export default function HomePage() {
   const [appName, setAppName] = useState('');
   const [platform, setPlatform] = useState<'both' | 'android' | 'ios'>('both');
   const [themeColor, setThemeColor] = useState('#6366f1');
-  const [adsensePublisherId, setAdsensePublisherId] = useState('');
-  const [adsenseSlotId, setAdsenseSlotId] = useState('');
-  const [adsenseFormat, setAdsenseFormat] = useState<'auto' | 'fluid' | 'rectangle'>('auto');
+  const [admobAppId, setAdmobAppId] = useState('');
+  const [admobBannerUnitId, setAdmobBannerUnitId] = useState('');
   const [iframeKey, setIframeKey] = useState(0);
 
   const [loading, setLoading] = useState(false);
@@ -82,21 +81,21 @@ export default function HomePage() {
         return;
       }
       const finalAppName = appName.trim() || 'My PWA Store';
-      const normalizedPublisherId = adsensePublisherId.trim();
-      const normalizedSlotId = adsenseSlotId.trim();
+      const normalizedAppId = admobAppId.trim();
+      const normalizedBannerUnitId = admobBannerUnitId.trim();
 
-      if (normalizedPublisherId && !/^ca-pub-\d{10,}$/.test(normalizedPublisherId)) {
+      if (normalizedAppId && !/^ca-app-pub-\d{10,}~\d{8,}$/.test(normalizedAppId)) {
         setStatusMsg({
           type: 'error',
-          text: lang === 'ar' ? 'معرّف الناشر يجب أن يبدأ بـ ca-pub- ويحتوي على أرقام.' : 'The publisher ID must start with ca-pub- and contain digits.',
+          text: lang === 'ar' ? 'معرّف تطبيق AdMob غير صالح. يجب أن يكون بصيغة ca-app-pub-...~...' : 'The AdMob App ID must use the ca-app-pub-...~... format.',
         });
         return;
       }
 
-      if (normalizedSlotId && !/^\d{4,}$/.test(normalizedSlotId)) {
+      if (normalizedBannerUnitId && !/^ca-app-pub-\d{10,}\/\d{6,}$/.test(normalizedBannerUnitId)) {
         setStatusMsg({
           type: 'error',
-          text: lang === 'ar' ? 'معرّف الوحدة الإعلانية يجب أن يحتوي على أرقام فقط.' : 'The ad slot ID must contain digits only.',
+          text: lang === 'ar' ? 'معرّف إعلان Banner غير صالح. يجب أن يكون بصيغة ca-app-pub-.../... .' : 'The banner ad unit ID must use the ca-app-pub-.../... format.',
         });
         return;
       }
@@ -106,9 +105,8 @@ export default function HomePage() {
         store_url: formattedUrl,
         app_name: finalAppName,
         theme_color: themeColor,
-        adsense_publisher_id: normalizedPublisherId || undefined,
-        adsense_slot_id: normalizedSlotId || undefined,
-        adsense_format: normalizedPublisherId && normalizedSlotId ? adsenseFormat : undefined,
+        admob_app_id: normalizedAppId || undefined,
+        admob_banner_unit_id: normalizedBannerUnitId || undefined,
       });
 
       setStatusMsg({
@@ -319,45 +317,35 @@ export default function HomePage() {
 
           <div className="border-t border-slate-800 pt-5">
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
-              {lang === 'ar' ? 'إعلانات Google AdSense (اختياري)' : lang === 'fr' ? 'Publicités Google AdSense (facultatif)' : 'Google AdSense ads (optional)'}
+              {lang === 'ar' ? 'إعلانات Google AdMob (اختياري)' : lang === 'fr' ? 'Publicités Google AdMob (facultatif)' : 'Google AdMob ads (optional)'}
             </h2>
             <p className="text-[11px] text-slate-500 mb-4">
               {lang === 'ar'
-                ? 'تظهر في حزمة PWA المصدّرة بعد موافقة Google على حسابك.'
+                ? 'تُدمج في نسخة Android المصدّرة بعد إعداد حسابك في AdMob.'
                 : lang === 'fr'
-                  ? 'Apparaissent dans le PWA exporté après approbation de Google.'
-                  : 'Displayed in the exported PWA after Google approves your account.'}
+                  ? 'Intégrées dans l’application Android exportée après la configuration de votre compte AdMob.'
+                  : 'Integrated into the exported Android app after your AdMob account is configured.'}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input
                 type="text"
-                value={adsensePublisherId}
-                onChange={(e) => setAdsensePublisherId(e.target.value)}
-                placeholder="ca-pub-1234567890123456"
-                aria-label="AdSense publisher ID"
+                value={admobAppId}
+                onChange={(e) => setAdmobAppId(e.target.value)}
+                placeholder="ca-app-pub-...~..."
+                aria-label="AdMob App ID"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
                 dir="ltr"
               />
               <input
                 type="text"
-                value={adsenseSlotId}
-                onChange={(e) => setAdsenseSlotId(e.target.value)}
-                placeholder="Ad slot ID, e.g. 1234567890"
-                aria-label="AdSense ad slot ID"
+                value={admobBannerUnitId}
+                onChange={(e) => setAdmobBannerUnitId(e.target.value)}
+                placeholder="ca-app-pub-.../..."
+                aria-label="AdMob Banner Ad Unit ID"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
                 dir="ltr"
               />
             </div>
-            <select
-              value={adsenseFormat}
-              onChange={(e) => setAdsenseFormat(e.target.value as typeof adsenseFormat)}
-              aria-label="AdSense ad format"
-              className="mt-3 w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
-            >
-              <option value="auto">{lang === 'ar' ? 'متجاوب تلقائياً' : lang === 'fr' ? 'Responsive automatique' : 'Responsive automatic'}</option>
-              <option value="fluid">{lang === 'ar' ? 'سائل' : lang === 'fr' ? 'Fluide' : 'Fluid'}</option>
-              <option value="rectangle">{lang === 'ar' ? 'مستطيل' : lang === 'fr' ? 'Rectangle' : 'Rectangle'}</option>
-            </select>
           </div>
 
           <div className="pt-2">

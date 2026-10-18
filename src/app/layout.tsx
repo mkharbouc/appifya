@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     "Shopify to app",
     "YouCan to app",
     "Landing page to PWA",
-    "AdSense monetization",
+    "Optional AdMob integration",
     "Appifya",
   ],
   authors: [{ name: "Appifya Team" }],
