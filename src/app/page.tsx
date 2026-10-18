@@ -4,9 +4,9 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from './lib/i18n';
-import { databases } from '@/lib/appwrite';
-import { DB_ID, TABLE_ID, getErrorMessage, normalizePublicUrl } from '@/lib/app-config';
-import { ID } from 'appwrite';
+import { databases, storage } from '@/lib/appwrite';
+import { BUCKET_ID, DB_ID, TABLE_ID, getErrorMessage, normalizePublicUrl } from '@/lib/app-config';
+import { ID, Permission, Role } from 'appwrite';
 import {
   Smartphone,
   Globe,
@@ -27,6 +27,8 @@ export default function HomePage() {
   const [appName, setAppName] = useState('');
   const [platform, setPlatform] = useState<'both' | 'android' | 'ios'>('both');
   const [themeColor, setThemeColor] = useState('#6366f1');
+  const [iconFile, setIconFile] = useState<File | null>(null);
+  const [iconPreview, setIconPreview] = useState('');
   const [admobAppId, setAdmobAppId] = useState('');
   const [admobBannerUnitId, setAdmobBannerUnitId] = useState('');
   const [iframeKey, setIframeKey] = useState(0);
@@ -100,11 +102,27 @@ export default function HomePage() {
         return;
       }
 
+      let iconId: string | undefined;
+      if (iconFile) {
+        if (!BUCKET_ID) {
+          throw new Error('Appwrite Storage is not configured.');
+        }
+
+        const uploadedIcon = await storage.createFile({
+          bucketId: BUCKET_ID,
+          fileId: ID.unique(),
+          file: iconFile,
+          permissions: [Permission.read(Role.any())],
+        });
+        iconId = uploadedIcon.$id;
+      }
+
       await databases.createDocument(DB_ID, TABLE_ID, ID.unique(), {
         user_id: userId,
         store_url: formattedUrl,
         app_name: finalAppName,
         theme_color: themeColor,
+        icon_id: iconId,
         admob_app_id: normalizedAppId || undefined,
         admob_banner_unit_id: normalizedBannerUnitId || undefined,
       });
@@ -126,6 +144,19 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleIconChange = (file: File | undefined) => {
+    if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
+      setStatusMsg({
+        type: 'error',
+        text: lang === 'ar' ? 'اختر صورة PNG أو JPG أو WebP بحجم أقصى 2MB.' : 'Choose a PNG, JPG, or WebP image up to 2MB.',
+      });
+      return;
+    }
+    setIconFile(file);
+    setIconPreview(URL.createObjectURL(file));
   };
 
   const handleCreateOrExport = () => {
@@ -313,6 +344,28 @@ export default function HomePage() {
               />
               <span className="text-xs font-mono text-slate-300 uppercase">{themeColor}</span>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+              {lang === 'ar' ? 'أيقونة التطبيق (اختياري)' : lang === 'fr' ? 'Icône de l’application (facultatif)' : 'App icon (optional)'}
+            </label>
+            <label className="flex items-center gap-3 bg-slate-950 border border-slate-800 rounded-xl p-3 cursor-pointer hover:border-indigo-500 transition-colors">
+              {iconPreview ? (
+                <img src={iconPreview} alt="" className="h-10 w-10 rounded-xl object-cover" />
+              ) : (
+                <Smartphone className="h-8 w-8 text-slate-600" />
+              )}
+              <span className="text-xs text-slate-400">
+                {iconFile?.name || (lang === 'ar' ? 'اختر صورة PNG أو JPG (حتى 2MB)' : 'Choose PNG or JPG image (up to 2MB)')}
+              </span>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="sr-only"
+                onChange={(e) => handleIconChange(e.target.files?.[0])}
+              />
+            </label>
           </div>
 
           <div className="border-t border-slate-800 pt-5">
