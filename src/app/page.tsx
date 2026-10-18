@@ -321,10 +321,10 @@ export default function HomePage() {
             </h2>
             <p className="text-[11px] text-slate-500 mb-4">
               {lang === 'ar'
-                ? 'تُدمج في نسخة Android المصدّرة بعد إعداد حسابك في AdMob.'
+                ? 'اختياري لنسخة Android فقط. التحويل المجاني لا يحتوي على إعلانات. لن تُستخدم الإعلانات قبل اكتمال إعداد APK المدعوم بـ AdMob.'
                 : lang === 'fr'
-                  ? 'Intégrées dans l’application Android exportée après la configuration de votre compte AdMob.'
-                  : 'Integrated into the exported Android app after your AdMob account is configured.'}
+                  ? 'Optionnel et réservé à Android. L’export gratuit est sans publicité. Les annonces ne seront utilisées qu’après la mise en place du APK AdMob.'
+                  : 'Optional and Android-only. The free export has no ads. Ads will only be used after the AdMob-enabled APK builder is ready.'}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input

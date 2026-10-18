@@ -30,7 +30,7 @@ export default function PrivacyPage() {
           </h2>
           <p className="text-slate-400 text-xs md:text-sm">
             {lang === 'ar'
-              ? 'نحن نجمع فقط المعلومات الضرورية لتشغيل وتوليد تطبيقك: رابط المتجر، اسم التطبيق، الألوان المختارة، والأيقونة المرفوعة. لا نصل إلى بيانات عملاء متجرك أو معاملاتهم المالية الداخلية.'
+              ? 'نحن نجمع فقط المعلومات الضرورية لتشغيل وتوليد تطبيقك: رابط المتجر، اسم التطبيق، الألوان المختارة، والأيقونة المرفوعة. عند اختيار AdMob، نخزن معرّف التطبيق ومعرّف وحدة الإعلان اللذين يقدمهما العميل. لا نصل إلى بيانات عملاء متجرك أو أرباح AdMob.'
               : lang === 'fr'
               ? 'Nous collectons uniquement les informations requises pour générer votre application : URL, nom, couleurs et icônes. Nous n’avons pas accès aux données de vos clients.'
               : 'We only collect details necessary to build your PWA: store URL, app name, theme color, and uploaded icons. We do not access your customers’ personal data.'}
@@ -44,10 +44,10 @@ export default function PrivacyPage() {
           </h2>
           <p className="text-slate-400 text-xs md:text-sm">
             {lang === 'ar'
-              ? 'عند تفعيل Google AdMob في تطبيق Android، يتصل التطبيق بخدمات Google لعرض الإعلانات وفق إعدادات العميل وسياسات الخصوصية الخاصة بمزود الخدمة.'
+              ? 'إعداد AdMob اختياري ومخصص لتطبيق Android. التحويل المجاني لا يحتوي على إعلانات. عند استخدامه، يتصل التطبيق بخدمات Google لعرض الإعلانات وفق إعدادات العميل، ويجب على العميل الالتزام بسياسات Google ومتطلبات الخصوصية والموافقة.'
               : lang === 'fr'
-              ? 'Lorsque Google AdMob est activé dans une application Android, l’application communique avec les services Google pour afficher les annonces selon les paramètres du client et les politiques de confidentialité du fournisseur.'
-              : 'When Google AdMob is enabled in an Android app, the app communicates with Google services to display ads under the customer’s settings and the provider’s privacy policies.'}
+              ? 'AdMob est facultatif et réservé à Android. L’export gratuit ne contient aucune publicité. Lorsqu’il est activé, l’application communique avec les services Google selon les paramètres du client, qui doit respecter les règles Google et les exigences de consentement et de confidentialité.'
+              : 'AdMob is optional and Android-only. The free export has no ads. When enabled, the app communicates with Google services under the customer’s settings; the customer must follow Google policies and applicable consent and privacy requirements.'}
           </p>
         </section>
 

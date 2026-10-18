@@ -31,7 +31,7 @@ export const translations: Translations = {
     navContact: "اتصل بنا",
     navPricing: "الأسعار",
     installBtn: "تثبيت التطبيق على جهازك",
-    exportBtn: "تصدير الكود النظيف ($19)",
+    exportBtn: "تصدير التطبيق",
   },
   en: {
     heroTitle: "Convert Your Store or Landing Page into a",
@@ -53,7 +53,7 @@ export const translations: Translations = {
     navContact: "Contact",
     navPricing: "Pricing",
     installBtn: "Install App on Device",
-    exportBtn: "Export Clean Package ($19)",
+    exportBtn: "Export App",
   },
   fr: {
     heroTitle: "Convertissez votre boutique ou page en",
@@ -75,7 +75,7 @@ export const translations: Translations = {
     navContact: "Contact",
     navPricing: "Tarifs",
     installBtn: "Installer l'application",
-    exportBtn: "Exporter le pack propre (19$)",
+    exportBtn: "Exporter l’application",
   }
 };
 

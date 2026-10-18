@@ -58,10 +58,23 @@ export default function TermsPage() {
           </h2>
           <p className="text-slate-400 text-xs md:text-sm">
             {lang === 'ar'
-              ? 'رسوم تصدير الكود النظيف ($19) تمنحك ترخيصاً غير حصري للاستخدام التجاري للملفات المستخرجة. ونظراً للطبيعة الرقمية للملفات، فإن رسوم التصدير غير قابلة للاسترداد بعد تسليم الحزمة البرمجية.'
+              ? 'لا توجد مدفوعات مفعّلة حالياً. التحويل الأساسي بدون إعلانات مجاني. أي اشتراك أو رسوم مستقبلية، بما في ذلك خدمة APK المدمج بإعلانات AdMob، ستُعرض بوضوح قبل الدفع ولن تُفرض تلقائياً.'
               : lang === 'fr'
-              ? 'La licence d’exportation propre (19$) est définitive et non remboursable une fois le code source téléchargé.'
-              : 'The $19 standalone export grants a commercial license for the generated code. Due to the digital delivery nature, exports are non-refundable once downloaded.'}
+              ? 'Les paiements ne sont pas encore activés. L’export de base sans publicité est actuellement gratuit. Tout futur abonnement ou tarif sera affiché clairement avant le paiement et ne sera pas prélevé automatiquement.'
+              : 'Payments are not enabled yet. The basic export without ads is currently free. Any future subscription or fee, including AdMob-enabled APK exports, will be shown clearly before payment and will not be charged automatically.'}
+          </p>
+        </section>
+
+        <section className="space-y-3 border-t border-slate-800/80 pt-6">
+          <h2 className="text-lg font-bold text-white">
+            {lang === 'ar' ? '4. إعلانات AdMob وملكية العميل' : lang === 'fr' ? '4. AdMob et propriété du client' : '4. AdMob and Customer Ownership'}
+          </h2>
+          <p className="text-slate-400 text-xs md:text-sm">
+            {lang === 'ar'
+              ? 'إعدادات AdMob، الحساب الإعلاني، الأرباح، والمحتوى الذي يحمّله العميل تبقى ملكاً للعميل. Appifya لا تملك أرباح الإعلانات ولا تضمن قبول الحساب من Google. العميل مسؤول عن الالتزام بسياسات Google وعن بياناته الإعلانية.'
+              : lang === 'fr'
+                ? 'Les paramètres AdMob, le compte publicitaire, les revenus et le contenu du client restent la propriété du client. Appifya ne perçoit pas les revenus publicitaires et ne garantit pas l’approbation de Google.'
+                : 'AdMob settings, the advertising account, revenue, and customer content remain the customer’s property. Appifya does not own ad revenue or guarantee Google approval. The customer is responsible for Google policy compliance.'}
           </p>
         </section>
       </div>
