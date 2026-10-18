@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Eye,
   RefreshCw,
+  ExternalLink,
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -222,14 +223,25 @@ export default function HomePage() {
                 <span>{lang === 'ar' ? 'معاينة حية للمتجر' : 'Aperçu Interactif Direct'}</span>
               </span>
               {storeUrl && (
-                <button
-                  type="button"
-                  onClick={() => setIframeKey((k) => k + 1)}
-                  className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-900 transition-colors"
-                  title="Rafraîchir l'aperçu"
-                >
-                  <RefreshCw className="h-3.5 w-3.5" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setIframeKey((k) => k + 1)}
+                    className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-900 transition-colors"
+                    title="Rafraîchir l'aperçu"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  </button>
+                  <a
+                    href={getCleanPreviewUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-2 py-1 text-[10px] font-semibold text-indigo-300 hover:bg-slate-800 hover:text-white transition-colors"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    <span>{lang === 'ar' ? 'فتح خارجياً' : lang === 'fr' ? 'Ouvrir' : 'Open externally'}</span>
+                  </a>
+                </div>
               )}
             </div>
 
