@@ -46,6 +46,31 @@ export default function DashboardPage() {
     }
   }, [user, authLoading, loadUserApps]);
 
+  useEffect(() => {
+    if (apps.length === 0) return;
+
+    const restoreBuildStatuses = async () => {
+      await Promise.all(apps.map(async (app) => {
+        try {
+          const response = await fetch(`/api/build-apk?appId=${encodeURIComponent(app.$id)}`, { cache: 'no-store' });
+          if (!response.ok) return;
+
+          const result = await response.json();
+          if (result.status === 'completed' || result.status === 'failed') {
+            setBuilds((current) => ({
+              ...current,
+              [app.$id]: { status: result.status, downloadUrl: result.downloadUrl },
+            }));
+          }
+        } catch (error) {
+          console.error('Build status restore failed:', error);
+        }
+      }));
+    };
+
+    void restoreBuildStatuses();
+  }, [apps]);
+
   const handleTriggerBuild = async (app: AppDocument) => {
     try {
       setBuildingAppId(app.$id);
