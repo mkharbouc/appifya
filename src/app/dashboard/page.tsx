@@ -139,6 +139,7 @@ export default function DashboardPage() {
     createFirst: { ar: 'إنشاء أول تطبيق لك', en: 'Create your first app', fr: 'Créer votre première app' },
     preview: { ar: 'معاينة المتجر', en: 'Preview Store', fr: 'Aperçu du site' },
     buildApk: { ar: 'بناء ملف APK', en: 'Build APK', fr: 'Compiler APK' },
+    downloadApk: { ar: 'تنزيل APK', en: 'Download APK', fr: 'Télécharger APK' },
     active: { ar: 'نشط ومتصل بالسحابة', en: 'Cloud Synced & Active', fr: 'Actif & Synchronisé' },
     noName: { ar: 'تطبيق بدون اسم', en: 'Untitled App', fr: 'Application sans titre' },
     loginReq: { ar: 'يرجى تسجيل الدخول للوصول إلى لوحة التحكم', en: 'Please sign in to access your dashboard', fr: 'Veuillez vous connecter pour accéder au tableau de bord' },
@@ -288,7 +289,7 @@ export default function DashboardPage() {
                   className="mt-3 flex items-center justify-center gap-2 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl"
                 >
                   <Download className="h-3.5 w-3.5" />
-                  <span>تنزيل APK</span>
+                  <span>{getTxt('downloadApk')}</span>
                 </a>
               )}
             </div>
