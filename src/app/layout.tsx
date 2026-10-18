@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     template: "%s | Appifya",
   },
   description:
-    "Build blazing-fast Progressive Web Apps with ad monetization, custom platform styling, and instant Appwrite cloud sync. Convert Shopify, YouCan, WooCommerce, or any landing page in seconds.",
+    "Appifya helps store owners and creators turn a website or online store into an installable PWA and Android APK with a simple, transparent workflow.",
   keywords: [
     "PWA Builder",
     "Convert store to app",
@@ -20,6 +20,10 @@ export const metadata: Metadata = {
     "YouCan to app",
     "Landing page to PWA",
     "Optional AdMob integration",
+    "website to Android app",
+    "store to mobile app",
+    "PWA builder online",
+    "convert website to APK",
     "Appifya",
   ],
   authors: [{ name: "Appifya Team" }],
@@ -65,12 +69,31 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Appifya',
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'Web, Android',
+    url: 'https://appifya.app',
+    description: metadata.description,
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+  };
+
   return (
     <html lang="ar" dir="rtl" className="scroll-smooth">
       <head>
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className="antialiased bg-slate-950 text-slate-100 flex flex-col min-h-screen">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
         <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
       </body>
     </html>

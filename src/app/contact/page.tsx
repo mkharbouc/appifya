@@ -38,7 +38,7 @@ export default function ContactPage() {
             </div>
             <div>
               <p className="text-xs text-slate-400">{lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}</p>
-              <p className="text-sm font-semibold text-white">support@appifyapwa.com</p>
+              <p className="text-sm font-semibold text-white">support@appifya.app</p>
             </div>
           </div>
 
