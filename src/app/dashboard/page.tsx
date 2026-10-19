@@ -10,6 +10,9 @@ import { Query } from 'appwrite';
 import type { AppDocument } from '@/lib/types';
 import { Smartphone, ExternalLink, Download, Plus, Loader2, ArrowRight, CheckCircle2, Clock, Play, X, Hammer } from 'lucide-react';
 
+const BUILD_TIMEOUT_MS = 20 * 60 * 1000;
+const buildStartedStorageKey = (appId: string) => `appifya_build_started_${appId}`;
+
 export default function DashboardPage() {
   const { user, loading: authLoading, openAuthModal } = useAuth();
   const { lang } = useLanguage();
@@ -20,6 +23,21 @@ export default function DashboardPage() {
   const [builds, setBuilds] = useState<Record<string, { status: 'building' | 'completed' | 'failed'; downloadUrl?: string }>>({});
 
   const isRtl = lang === 'ar';
+
+  const clearBuildStart = (appId: string) => {
+    localStorage.removeItem(buildStartedStorageKey(appId));
+  };
+
+  const markBuildStarted = (appId: string) => {
+    // This runs only after a user starts a build.
+    // eslint-disable-next-line react-hooks/purity
+    localStorage.setItem(buildStartedStorageKey(appId), String(Date.now()));
+  };
+
+  const getBuildStartedAt = (appId: string) => {
+    const value = Number(localStorage.getItem(buildStartedStorageKey(appId)));
+    return Number.isFinite(value) && value > 0 ? value : null;
+  };
 
   const loadUserApps = useCallback(async () => {
     if (!user) return;
@@ -58,11 +76,23 @@ export default function DashboardPage() {
 
           const result = await response.json();
           if (result.status === 'building' || result.status === 'completed' || result.status === 'failed') {
+            const startedAt = getBuildStartedAt(app.$id);
+            const isStale = result.status === 'building'
+              && (!startedAt || Date.now() - startedAt > BUILD_TIMEOUT_MS);
             setBuilds((current) => ({
               ...current,
-              [app.$id]: { status: result.status, downloadUrl: result.downloadUrl },
+              [app.$id]: {
+                status: isStale ? 'failed' : result.status,
+                downloadUrl: result.downloadUrl,
+              },
             }));
-            if (result.status === 'building') setBuildNoticeAppId(app.$id);
+            if (isStale) {
+              clearBuildStart(app.$id);
+            } else if (result.status === 'building') {
+              setBuildNoticeAppId(app.$id);
+            } else {
+              clearBuildStart(app.$id);
+            }
           }
         } catch (error) {
           console.error('Build status restore failed:', error);
@@ -84,6 +114,7 @@ export default function DashboardPage() {
 
       const data = await res.json();
       if (res.ok) {
+        markBuildStarted(app.$id);
         setBuilds((current) => ({ ...current, [app.$id]: { status: 'building' } }));
         setBuildNoticeAppId(app.$id);
       } else {
@@ -108,12 +139,19 @@ export default function DashboardPage() {
           const response = await fetch(`/api/build-apk?appId=${encodeURIComponent(appId)}`, { cache: 'no-store' });
           if (!response.ok) return;
           const result = await response.json();
-          if (result.status === 'completed' || result.status === 'failed') {
+          const startedAt = getBuildStartedAt(appId);
+          const isStale = result.status === 'building'
+            && (!startedAt || Date.now() - startedAt > BUILD_TIMEOUT_MS);
+          if (isStale || result.status === 'completed' || result.status === 'failed') {
             setBuilds((current) => ({
               ...current,
-              [appId]: { status: result.status, downloadUrl: result.downloadUrl },
+              [appId]: {
+                status: isStale ? 'failed' : result.status,
+                downloadUrl: result.downloadUrl,
+              },
             }));
             setBuildNoticeAppId((current) => (current === appId ? null : current));
+            clearBuildStart(appId);
           }
         } catch (error) {
           console.error('Build status check failed:', error);
@@ -156,6 +194,12 @@ export default function DashboardPage() {
     },
     buildNoticeStatus: { ar: 'جاري إنشاء ملف APK', en: 'Building APK', fr: 'Compilation de l’APK' },
     close: { ar: 'متابعة في الخلفية', en: 'Continue in background', fr: 'Continuer en arrière-plan' },
+    buildStarting: { ar: 'جاري البدء...', en: 'Starting...', fr: 'Démarrage...' },
+    buildStuck: {
+      ar: 'تعذر إكمال البناء. يمكنك المحاولة مرة أخرى.',
+      en: 'The build timed out. You can try again.',
+      fr: 'La compilation a expiré. Vous pouvez réessayer.',
+    },
   };
 
   const getTxt = (key: keyof typeof labels) => labels[key][lang] || labels[key]['en'];
@@ -317,13 +361,19 @@ export default function DashboardPage() {
                   ) : (
                     <Play className="h-3.5 w-3.5 fill-current" />
                   )}
-                  <span>{buildingAppId === app.$id ? 'جاري البدء...' : getTxt('buildApk')}</span>
+                  <span>{buildingAppId === app.$id ? getTxt('buildStarting') : getTxt('buildApk')}</span>
                 </button>
               </div>
               {builds[app.$id]?.status === 'building' && (
                 <div className="mt-3 flex items-center gap-2 text-[11px] text-indigo-300">
                   <Clock className="h-3.5 w-3.5 animate-pulse" />
-                  <span>يتم تجهيز APK في الخلفية...</span>
+                  <span>{lang === 'ar' ? 'يتم تجهيز APK في الخلفية...' : lang === 'fr' ? 'APK en cours de préparation en arrière-plan...' : 'APK is being prepared in the background...'}</span>
+                </div>
+              )}
+              {builds[app.$id]?.status === 'failed' && (
+                <div className="mt-3 flex items-center gap-2 text-[11px] text-rose-500">
+                  <X className="h-3.5 w-3.5" />
+                  <span>{getTxt('buildStuck')}</span>
                 </div>
               )}
               {builds[app.$id]?.status === 'completed' && builds[app.$id]?.downloadUrl && (
