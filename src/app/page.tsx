@@ -259,7 +259,9 @@ export default function HomePage() {
         <p className="text-sm sm:text-base text-slate-400 leading-relaxed max-w-2xl mx-auto">
           {lang === 'ar'
             ? 'أنشئ تطبيق ويب تقدمي قابل للتثبيت بضغطة زر، مدمج بحزم إعلانية متوافقة ومربوط سحابياً مع لوحة تحكمك.'
-            : 'Créez une Progressive Web App installable en un clic, personnalisable et synchronisée avec le cloud.'}
+            : lang === 'fr'
+              ? 'Créez une Progressive Web App installable en un clic, personnalisable et synchronisée avec le cloud.'
+              : 'Build an installable Progressive Web App in one click, customize it, and keep it synced with your cloud dashboard.'}
         </p>
       </div>
 
@@ -371,7 +373,7 @@ export default function HomePage() {
               )}
             </div>
 
-            <div className="relative mx-auto border-[10px] border-slate-900 bg-slate-950 rounded-[48px] shadow-2xl overflow-hidden aspect-[9/19] flex flex-col ring-1 ring-slate-800">
+            <div className="preview-device relative mx-auto border-[10px] border-slate-900 bg-slate-950 rounded-[48px] shadow-2xl overflow-hidden aspect-[9/19] flex flex-col ring-1 ring-slate-800">
               <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-28 h-4 bg-slate-900 rounded-full z-30"></div>
 
               <div

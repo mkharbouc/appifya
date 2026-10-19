@@ -30,7 +30,8 @@ html[data-theme="light"] {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Arabic", "Noto Sans", Arial, sans-serif;
+  text-rendering: optimizeLegibility;
 }
 
 .site-body {
@@ -101,6 +102,96 @@ html[data-theme="light"] .showcase-step {
 
 html[data-theme="light"] .showcase-step .text-white {
   color: #1e1b4b;
+}
+
+html[data-theme="light"] .site-main {
+  color: #0f172a;
+}
+
+html[data-theme="light"] .site-main .text-white {
+  color: #0f172a;
+}
+
+html[data-theme="light"] .site-main .text-slate-300 {
+  color: #475569;
+}
+
+html[data-theme="light"] .site-main .text-slate-400 {
+  color: #64748b;
+}
+
+html[data-theme="light"] .site-main .text-slate-500 {
+  color: #64748b;
+}
+
+html[data-theme="light"] .site-main .bg-slate-900,
+html[data-theme="light"] .site-main .bg-slate-900\/80,
+html[data-theme="light"] .site-main .bg-slate-900\/60 {
+  background-color: rgb(255 255 255 / 0.9);
+}
+
+html[data-theme="light"] .site-main .bg-slate-950,
+html[data-theme="light"] .site-main .bg-slate-950\/70,
+html[data-theme="light"] .site-main .bg-slate-950\/30 {
+  background-color: #f8fafc;
+}
+
+html[data-theme="light"] .site-main .border-slate-800,
+html[data-theme="light"] .site-main .border-slate-700 {
+  border-color: #cbd5e1;
+}
+
+html[data-theme="light"] .site-main input,
+html[data-theme="light"] .site-main textarea {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+html[data-theme="light"] .site-main input::placeholder,
+html[data-theme="light"] .site-main textarea::placeholder {
+  color: #94a3b8;
+}
+
+html[data-theme="light"] .site-main .hover\:bg-slate-900:hover,
+html[data-theme="light"] .site-main .hover\:bg-slate-800:hover {
+  background-color: #e2e8f0;
+}
+
+html[data-theme="light"] .preview-device {
+  background-color: #020617;
+  border-color: #0f172a;
+  color: #f8fafc;
+}
+
+html[data-theme="light"] .preview-device .bg-slate-950 {
+  background-color: #020617;
+}
+
+html[data-theme="light"] .preview-device .text-white {
+  color: #ffffff;
+}
+
+html[data-theme="light"] .preview-device .text-slate-400 {
+  color: #94a3b8;
+}
+
+html[data-theme="light"] .preview-device input,
+html[data-theme="light"] .preview-device textarea {
+  background-color: #020617;
+  border-color: #334155;
+  color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @keyframes shake {

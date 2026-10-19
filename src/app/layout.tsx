@@ -28,6 +28,9 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Appifya Team" }],
   creator: "Appifya",
+  alternates: {
+    canonical: "https://appifya.app",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -85,9 +88,20 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="ar" dir="rtl" className="scroll-smooth">
+    <html lang="ar" dir="rtl" className="scroll-smooth" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+              const saved = localStorage.getItem('app_theme');
+              const theme = saved === 'light' || saved === 'dark'
+                ? saved
+                : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+              document.documentElement.dataset.theme = theme;
+            })();`,
+          }}
+        />
       </head>
       <body className="site-body antialiased bg-slate-950 text-slate-100 flex flex-col min-h-screen">
         <script
