@@ -9,7 +9,7 @@ export default function AboutPage() {
   const { lang } = useLanguage();
 
   return (
-    <main className="flex-1 max-w-5xl mx-auto px-6 py-16 space-y-12">
+    <main className="theme-page flex-1 max-w-5xl mx-auto px-6 py-16 space-y-12">
       {/* Hero Intro */}
       <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold">

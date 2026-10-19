@@ -197,7 +197,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-10" dir={isRtl ? 'rtl' : 'ltr'}>
+    <main className="theme-page flex-1 max-w-6xl w-full mx-auto px-6 py-10" dir={isRtl ? 'rtl' : 'ltr'}>
       {buildNoticeAppId && builds[buildNoticeAppId]?.status === 'building' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-5" role="dialog" aria-modal="true">
           <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-indigo-400/30 bg-slate-900 p-7 text-center shadow-2xl shadow-indigo-950/50">

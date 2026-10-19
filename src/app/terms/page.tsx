@@ -8,7 +8,7 @@ export default function TermsPage() {
   const { lang } = useLanguage();
 
   return (
-    <main className="flex-1 max-w-4xl mx-auto px-6 py-16 space-y-10">
+    <main className="theme-page flex-1 max-w-4xl mx-auto px-6 py-16 space-y-10">
       <div className="text-center space-y-3">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs font-semibold">
           <Scale className="h-3.5 w-3.5" />
@@ -18,7 +18,7 @@ export default function TermsPage() {
           {lang === 'ar' ? 'شروط الخدمة والاستخدام' : lang === 'fr' ? 'Conditions Générales' : 'Terms of Service'}
         </h1>
         <p className="text-xs text-slate-500 font-mono">
-          {lang === 'ar' ? 'آخر تحديث: 2026' : 'Last Updated: 2026'}
+          {lang === 'ar' ? 'آخر تحديث: 2026' : lang === 'fr' ? 'Dernière mise à jour : 2026' : 'Last updated: 2026'}
         </p>
       </div>
 

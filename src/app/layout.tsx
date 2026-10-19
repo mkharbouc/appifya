@@ -88,7 +88,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="ar" dir="rtl" className="scroll-smooth" suppressHydrationWarning>
+    <html lang="ar" dir="rtl" className="scroll-smooth" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <script

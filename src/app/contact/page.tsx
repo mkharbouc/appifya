@@ -15,7 +15,7 @@ export default function ContactPage() {
   };
 
   return (
-    <main className="flex-1 max-w-4xl mx-auto px-6 py-16 space-y-10">
+    <main className="theme-page flex-1 max-w-4xl mx-auto px-6 py-16 space-y-10">
       <div className="text-center space-y-3">
         <h1 className="text-3xl md:text-4xl font-extrabold text-white">
           {lang === 'ar' ? 'تواصل معنا' : lang === 'fr' ? 'Contactez-nous' : 'Get in Touch'}
@@ -37,7 +37,7 @@ export default function ContactPage() {
               <Mail className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs text-slate-400">{lang === 'ar' ? 'البريد الإلكتروني' : 'Email'}</p>
+              <p className="text-xs text-slate-400">{lang === 'ar' ? 'البريد الإلكتروني' : lang === 'fr' ? 'E-mail' : 'Email'}</p>
               <p className="text-sm font-semibold text-white">support@appifya.app</p>
             </div>
           </div>
@@ -47,8 +47,8 @@ export default function ContactPage() {
               <Clock className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs text-slate-400">{lang === 'ar' ? 'أوقات الدعم' : 'Support Hours'}</p>
-              <p className="text-sm font-semibold text-white">24/7 {lang === 'ar' ? 'دعم مستمر' : 'Always Active'}</p>
+              <p className="text-xs text-slate-400">{lang === 'ar' ? 'أوقات الدعم' : lang === 'fr' ? 'Heures du support' : 'Support hours'}</p>
+              <p className="text-sm font-semibold text-white">24/7 {lang === 'ar' ? 'دعم مستمر' : lang === 'fr' ? 'Toujours disponible' : 'Always active'}</p>
             </div>
           </div>
         </div>
@@ -62,14 +62,14 @@ export default function ContactPage() {
                 {lang === 'ar' ? 'تم استلام رسالتك بنجاح!' : lang === 'fr' ? 'Message envoyé avec succès !' : 'Message Sent Successfully!'}
               </h3>
               <p className="text-xs text-slate-400">
-                {lang === 'ar' ? 'سنرد على بريدك الإلكتروني في أقرب وقت.' : 'We will get back to you shortly.'}
+                {lang === 'ar' ? 'سنرد على بريدك الإلكتروني في أقرب وقت.' : lang === 'fr' ? 'Nous vous répondrons rapidement.' : 'We will get back to you shortly.'}
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-400 mb-1.5">
-                  {lang === 'ar' ? 'الاسم الكامل' : 'Full Name'}
+                  {lang === 'ar' ? 'الاسم الكامل' : lang === 'fr' ? 'Nom complet' : 'Full name'}
                 </label>
                 <input
                   type="text"
@@ -82,7 +82,7 @@ export default function ContactPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-400 mb-1.5">
-                  {lang === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}
+                  {lang === 'ar' ? 'البريد الإلكتروني' : lang === 'fr' ? 'Adresse e-mail' : 'Email address'}
                 </label>
                 <input
                   type="email"
@@ -96,7 +96,7 @@ export default function ContactPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-400 mb-1.5">
-                  {lang === 'ar' ? 'نص الرسالة' : 'Your Message'}
+                  {lang === 'ar' ? 'نص الرسالة' : lang === 'fr' ? 'Votre message' : 'Your message'}
                 </label>
                 <textarea
                   rows={4}
