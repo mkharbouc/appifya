@@ -1,10 +1,10 @@
 ﻿'use client';
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { LanguageProvider, useLanguage, type Language } from "./lib/i18n";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { Globe, Sparkles, LayoutDashboard, LogOut, User } from "lucide-react";
+import { Globe, Sparkles, LayoutDashboard, LogOut, User, Moon, Sun } from "lucide-react";
 
 function AppifyaLogoIcon() {
   return (
@@ -17,9 +17,29 @@ function AppifyaLogoIcon() {
 function NavigationBar() {
   const { lang, setLang, t } = useLanguage();
   const { user, openAuthModal, logout } = useAuth();
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('app_theme');
+    const initialTheme = savedTheme === 'light' || savedTheme === 'dark'
+      ? savedTheme
+      : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+    // Hydrate the theme after the browser becomes available.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTheme(initialTheme);
+    document.documentElement.dataset.theme = initialTheme;
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    localStorage.setItem('app_theme', nextTheme);
+    document.documentElement.dataset.theme = nextTheme;
+  };
 
   return (
-    <header className="border-b border-slate-800/80 px-6 py-3.5 flex items-center justify-between backdrop-blur-md sticky top-0 z-50 bg-slate-950/80">
+    <header className="site-header border-b border-slate-800/80 px-6 py-3.5 flex items-center justify-between backdrop-blur-md sticky top-0 z-50 bg-slate-950/80">
       <div className="flex items-center gap-6">
         <Link href="/" className="flex items-center gap-3 group">
           <AppifyaLogoIcon />
@@ -48,6 +68,15 @@ function NavigationBar() {
       </div>
 
       <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="theme-toggle rounded-xl border border-slate-800 bg-slate-900 p-2 text-slate-300 transition-colors hover:text-white"
+          aria-label={theme === 'dark' ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع المظلم'}
+          title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+        >
+          {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
         <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-2.5 py-1.5 rounded-xl text-xs text-slate-300">
           <Globe className="h-3.5 w-3.5 text-indigo-400" />
           <select
@@ -96,7 +125,7 @@ function SiteFooter() {
   const { lang, t } = useLanguage();
 
   return (
-    <footer className="border-t border-slate-800/80 bg-slate-950/60 py-8 px-6 text-center text-xs text-slate-500 space-y-4">
+    <footer className="site-footer border-t border-slate-800/80 bg-slate-950/60 py-8 px-6 text-center text-xs text-slate-500 space-y-4">
       <div className="flex flex-wrap justify-center gap-6 text-slate-400 font-medium">
         <Link href="/" className="hover:text-white">{lang === 'ar' ? 'الرئيسية' : lang === 'fr' ? 'Accueil' : 'Home'}</Link>
         <Link href="/about" className="hover:text-white">{t('navAbout')}</Link>

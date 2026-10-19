@@ -22,6 +22,10 @@ import {
   ShieldCheck,
   Zap,
   Layers3,
+  Bell,
+  Send,
+  Play,
+  ArrowUpRight,
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -38,6 +42,10 @@ export default function HomePage() {
   const [admobAppId, setAdmobAppId] = useState('');
   const [admobBannerUnitId, setAdmobBannerUnitId] = useState('');
   const [iframeKey, setIframeKey] = useState(0);
+  const [notificationTitle, setNotificationTitle] = useState('عرض خاص من متجرك');
+  const [notificationMessage, setNotificationMessage] = useState('خصم 50% لفترة محدودة على جميع المنتجات!');
+  const [previewNotification, setPreviewNotification] = useState(false);
+  const [previewNotificationKey, setPreviewNotificationKey] = useState(0);
 
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -186,8 +194,16 @@ export default function HomePage() {
     executeSaveApp(user.$id);
   };
 
+  const simulateNotification = () => {
+    setPreviewNotificationKey((current) => current + 1);
+    setPreviewNotification(true);
+    if ('vibrate' in navigator) {
+      navigator.vibrate([120, 70, 120]);
+    }
+  };
+
   return (
-    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12" dir={isRtl ? 'rtl' : 'ltr'}>
+    <main className="site-main flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12" dir={isRtl ? 'rtl' : 'ltr'}>
       <div className="text-center max-w-3xl mx-auto mb-10">
         <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-4">
           {lang === 'ar' ? (
@@ -205,6 +221,69 @@ export default function HomePage() {
         </p>
       </div>
 
+      <section className="showcase-panel relative isolate mb-12 overflow-hidden rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-indigo-950 via-slate-950 to-pink-950 p-5 shadow-2xl shadow-indigo-950/30 sm:p-8" aria-labelledby="showcase-title">
+        <div className="pointer-events-none absolute -left-20 -top-24 -z-10 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -right-16 -z-10 h-64 w-64 rounded-full bg-pink-500/15 blur-3xl" />
+        <div className="grid items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className={isRtl ? 'text-right' : 'text-left'}>
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-indigo-300/20 bg-white/5 px-3 py-1.5 text-[11px] font-bold text-indigo-200">
+              <Sparkles className="h-3.5 w-3.5" />
+              {lang === 'ar' ? 'شاهد كيف تتحول فكرتك إلى تطبيق' : lang === 'fr' ? 'Voyez votre idée devenir une application' : 'See your idea become an app'}
+            </div>
+            <h2 id="showcase-title" className="max-w-xl text-2xl font-black leading-tight text-white sm:text-4xl">
+              {lang === 'ar' ? 'تجربة عصرية تبدأ من رابط واحد' : lang === 'fr' ? 'Une expérience moderne à partir d’un seul lien' : 'A modern experience from one simple link'}
+            </h2>
+            <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">
+              {lang === 'ar'
+                ? 'أدخل رابط متجرك، خصص مظهر التطبيق، ثم شاهد المعاينة الفورية قبل النشر. كل خطوة واضحة ومصممة لتكسب ثقة زوارك.'
+                : lang === 'fr'
+                  ? 'Ajoutez votre lien, personnalisez l’apparence et prévisualisez votre application avant de la publier.'
+                  : 'Add your store link, customize the look, and preview your app before publishing. Every step is clear and built to earn trust.'}
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <a href="#builder" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-indigo-950 shadow-lg transition hover:bg-indigo-50">
+                <Play className="h-3.5 w-3.5 fill-current" />
+                {lang === 'ar' ? 'ابدأ التجربة' : lang === 'fr' ? 'Commencer' : 'Start building'}
+              </a>
+              <a href="/about" className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/10">
+                {lang === 'ar' ? 'اكتشف الطريقة' : lang === 'fr' ? 'Découvrir' : 'Discover how it works'}
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          </div>
+
+          <div className="relative mx-auto w-full max-w-md">
+            <div className="showcase-window overflow-hidden rounded-2xl border border-white/15 bg-slate-900/80 shadow-2xl backdrop-blur">
+              <div className="flex items-center gap-1.5 border-b border-white/10 px-4 py-3">
+                <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                <span className="ml-2 truncate rounded-md bg-white/5 px-3 py-1 text-[9px] text-slate-400">appifya.app/preview</span>
+              </div>
+              <div className="relative aspect-[16/10] overflow-hidden">
+                <img src="/logo.jpg.jpeg" alt="Appifya platform preview" className="h-full w-full object-cover opacity-35" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-indigo-950/95 via-indigo-950/40 to-transparent" />
+                <div className="absolute inset-x-5 bottom-5">
+                  <div className="mb-3 h-2 w-20 rounded-full bg-indigo-300/60" />
+                  <div className="h-3 w-4/5 rounded-full bg-white/80" />
+                  <div className="mt-2 h-2 w-3/5 rounded-full bg-white/30" />
+                  <div className="mt-5 flex gap-2">
+                    <span className="h-7 w-20 rounded-lg bg-white/90" />
+                    <span className="h-7 w-14 rounded-lg bg-white/20" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="showcase-step absolute -bottom-4 -left-3 rounded-xl border border-indigo-300/20 bg-slate-900/95 px-3 py-2 shadow-xl sm:-left-6">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-400/15 text-emerald-300"><Check className="h-4 w-4" /></span>
+                <span className="text-[10px] font-bold text-white">{lang === 'ar' ? 'جاهز للنشر' : lang === 'fr' ? 'Prêt à publier' : 'Ready to publish'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {statusMsg && (
         <div
           className={`max-w-4xl mx-auto mb-8 p-4 rounded-2xl border flex items-center gap-3 text-sm font-medium ${
@@ -218,7 +297,7 @@ export default function HomePage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div id="builder" className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Mockup Preview */}
         <div className="lg:col-span-5 flex flex-col items-center order-2 lg:order-1">
           <div className="sticky top-24 w-full max-w-[340px]">
@@ -265,6 +344,24 @@ export default function HomePage() {
               </div>
 
               <div className="flex-1 bg-white relative overflow-hidden">
+                {previewNotification && (
+                  <div key={previewNotificationKey} className="absolute left-3 right-3 top-3 z-40 animate-[shake_0.45s_ease-in-out] rounded-2xl border border-slate-200/80 bg-white/95 p-3 text-slate-900 shadow-2xl backdrop-blur-md" role="status">
+                    <div className="flex items-start gap-2">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white">
+                        <Bell className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1 text-left" dir={isRtl ? 'rtl' : 'ltr'}>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="truncate text-[10px] font-bold">{appName || 'Appifya Store'}</p>
+                          <button type="button" onClick={() => setPreviewNotification(false)} className="text-xs text-slate-400 hover:text-slate-700" aria-label={lang === 'ar' ? 'إغلاق الإشعار' : lang === 'fr' ? 'Fermer la notification' : 'Close notification'}>×</button>
+                        </div>
+                        <p className="mt-1 text-xs font-bold">{notificationTitle || 'عرض خاص'}</p>
+                        <p className="mt-0.5 line-clamp-2 text-[10px] text-slate-600">{notificationMessage || 'رسالة تجريبية لمتجرك'}</p>
+                        <p className="mt-1 text-[9px] text-slate-400">now · Appifya demo</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {getCleanPreviewUrl() ? (
                   <iframe
                     key={iframeKey}
@@ -285,6 +382,40 @@ export default function HomePage() {
 
               <div className="h-5 bg-slate-950 flex items-center justify-center shrink-0">
                 <div className="w-28 h-1 bg-slate-700 rounded-full"></div>
+              </div>
+              <div className="mt-4 rounded-2xl border border-indigo-500/20 bg-indigo-950/30 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <Bell className="h-4 w-4 text-indigo-300" />
+                  <div>
+                    <h3 className="text-xs font-bold text-white">
+                      {lang === 'ar' ? 'محاكاة الإشعارات الفورية' : lang === 'fr' ? 'Simulateur de notifications' : 'Push notification simulator'}
+                    </h3>
+                    <p className="mt-0.5 text-[10px] text-slate-400">
+                      {lang === 'ar' ? 'جرّب كيف سيظهر التنبيه داخل تطبيقك.' : lang === 'fr' ? 'Voyez comment votre notification apparaîtra.' : 'See how a notification will look in your app.'}
+                    </p>
+                  </div>
+                </div>
+                <input
+                  value={notificationTitle}
+                  onChange={(event) => setNotificationTitle(event.target.value)}
+                  placeholder={lang === 'ar' ? 'عنوان الإشعار' : 'Notification title'}
+                  className="mb-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
+                />
+                <textarea
+                  value={notificationMessage}
+                  onChange={(event) => setNotificationMessage(event.target.value)}
+                  placeholder={lang === 'ar' ? 'اكتب رسالتك...' : 'Write your message...'}
+                  rows={2}
+                  className="mb-3 w-full resize-none rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={simulateNotification}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 py-2 text-xs font-bold text-white transition hover:bg-indigo-500"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                  {lang === 'ar' ? 'تجربة الإشعار' : lang === 'fr' ? 'Tester la notification' : 'Test notification'}
+                </button>
               </div>
             </div>
           </div>

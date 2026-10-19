@@ -5,6 +5,14 @@
   --foreground: #171717;
 }
 
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -23,4 +31,80 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.site-body {
+  background: #f8fafc;
+  color: #0f172a;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+html[data-theme="dark"] .site-body {
+  background: #020617;
+  color: #f8fafc;
+}
+
+html[data-theme="light"] .site-header {
+  background: rgb(255 255 255 / 0.86);
+  border-color: #e2e8f0;
+}
+
+html[data-theme="light"] .site-header .text-white,
+html[data-theme="light"] .site-header .text-slate-100,
+html[data-theme="light"] .site-header .text-slate-200 {
+  color: #0f172a;
+}
+
+html[data-theme="light"] .site-header .text-slate-300,
+html[data-theme="light"] .site-header .text-slate-400 {
+  color: #475569;
+}
+
+html[data-theme="light"] .site-header .bg-slate-900,
+html[data-theme="light"] .site-header .theme-toggle {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+html[data-theme="light"] .site-footer {
+  background: rgb(255 255 255 / 0.8);
+  border-color: #e2e8f0;
+}
+
+html[data-theme="light"] .site-footer .text-slate-400 {
+  color: #475569;
+}
+
+html[data-theme="light"] .showcase-panel {
+  background: linear-gradient(135deg, #eef2ff, #ffffff 50%, #fdf2f8);
+  border-color: #c7d2fe;
+  box-shadow: 0 25px 60px rgb(99 102 241 / 0.12);
+}
+
+html[data-theme="light"] .showcase-panel .text-white {
+  color: #0f172a;
+}
+
+html[data-theme="light"] .showcase-panel .text-slate-300 {
+  color: #475569;
+}
+
+html[data-theme="light"] .showcase-window {
+  background: rgb(255 255 255 / 0.86);
+  border-color: #cbd5e1;
+}
+
+html[data-theme="light"] .showcase-step {
+  background: rgb(255 255 255 / 0.95);
+  border-color: #c7d2fe;
+}
+
+html[data-theme="light"] .showcase-step .text-white {
+  color: #1e1b4b;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px) rotate(-1deg); }
+  75% { transform: translateX(4px) rotate(1deg); }
 }

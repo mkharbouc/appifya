@@ -89,7 +89,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
-      <body className="antialiased bg-slate-950 text-slate-100 flex flex-col min-h-screen">
+      <body className="site-body antialiased bg-slate-950 text-slate-100 flex flex-col min-h-screen">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
