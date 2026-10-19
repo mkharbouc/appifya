@@ -210,6 +210,16 @@ html[data-theme="light"] .theme-page .hover\:bg-slate-700:hover {
   background-color: #e2e8f0;
 }
 
+html[data-theme="light"] .theme-page .bg-slate-800 {
+  background-color: #e2e8f0;
+  color: #1e293b;
+}
+
+html[data-theme="light"] .theme-page .bg-slate-800:hover {
+  background-color: #cbd5e1;
+  color: #0f172a;
+}
+
 html[data-theme="light"] .preview-device {
   background-color: #020617;
   border-color: #0f172a;
