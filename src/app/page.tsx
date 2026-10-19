@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from './lib/i18n';
@@ -51,6 +51,48 @@ export default function HomePage() {
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const isRtl = lang === 'ar';
+  const notificationDefaults = lang === 'ar'
+    ? {
+        title: 'عرض خاص من متجرك',
+        message: 'خصم 50% لفترة محدودة على جميع المنتجات!',
+        fallbackTitle: 'عرض خاص',
+        fallbackMessage: 'رسالة تجريبية لمتجرك',
+        now: 'الآن · تجربة Appifya',
+      }
+    : lang === 'fr'
+      ? {
+          title: 'Offre spéciale de votre boutique',
+          message: '50 % de réduction pendant une durée limitée sur tous les produits !',
+          fallbackTitle: 'Offre spéciale',
+          fallbackMessage: 'Message de test pour votre boutique',
+          now: 'Maintenant · Démo Appifya',
+        }
+      : {
+          title: 'Special offer from your store',
+          message: '50% off for a limited time on all products!',
+          fallbackTitle: 'Special offer',
+          fallbackMessage: 'A test message for your store',
+          now: 'Now · Appifya demo',
+        };
+
+  useEffect(() => {
+    const defaultTitles = ['عرض خاص من متجرك', 'Special offer from your store', 'Offre spéciale de votre boutique'];
+    const defaultMessages = [
+      'خصم 50% لفترة محدودة على جميع المنتجات!',
+      '50% off for a limited time on all products!',
+      '50 % de réduction pendant une durée limitée sur tous les produits !',
+    ];
+
+    if (defaultTitles.includes(notificationTitle)) {
+      // Keep untouched sample content aligned with the selected language.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNotificationTitle(notificationDefaults.title);
+    }
+    if (defaultMessages.includes(notificationMessage)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNotificationMessage(notificationDefaults.message);
+    }
+  }, [lang, notificationDefaults.message, notificationDefaults.title, notificationMessage, notificationTitle]);
 
   const handleUrlChange = (val: string) => {
     setStoreUrl(val);
@@ -77,7 +119,7 @@ export default function HomePage() {
     if (!storeUrl) {
       setStatusMsg({
         type: 'error',
-        text: lang === 'ar' ? 'يرجى إدخال رابط المتجر أولاً.' : 'Veuillez saisir l\'URL de la boutique.',
+        text: lang === 'ar' ? 'يرجى إدخال رابط المتجر أولاً.' : lang === 'fr' ? 'Veuillez saisir l\'URL de la boutique.' : 'Please enter your store URL first.',
       });
       return;
     }
@@ -92,7 +134,7 @@ export default function HomePage() {
       } catch {
         setStatusMsg({
           type: 'error',
-          text: lang === 'ar' ? 'يرجى إدخال رابط HTTPS صالح.' : 'Please enter a valid HTTPS URL.',
+          text: lang === 'ar' ? 'يرجى إدخال رابط HTTPS صالح.' : lang === 'fr' ? 'Veuillez saisir une URL HTTPS valide.' : 'Please enter a valid HTTPS URL.',
         });
         return;
       }
@@ -103,7 +145,7 @@ export default function HomePage() {
       if (normalizedAppId && !/^ca-app-pub-\d{10,}~\d{8,}$/.test(normalizedAppId)) {
         setStatusMsg({
           type: 'error',
-          text: lang === 'ar' ? 'معرّف تطبيق AdMob غير صالح. يجب أن يكون بصيغة ca-app-pub-...~...' : 'The AdMob App ID must use the ca-app-pub-...~... format.',
+          text: lang === 'ar' ? 'معرّف تطبيق AdMob غير صالح. يجب أن يكون بصيغة ca-app-pub-...~...' : lang === 'fr' ? 'L’identifiant d’application AdMob doit respecter le format ca-app-pub-...~... .' : 'The AdMob App ID must use the ca-app-pub-...~... format.',
         });
         return;
       }
@@ -111,7 +153,7 @@ export default function HomePage() {
       if (normalizedBannerUnitId && !/^ca-app-pub-\d{10,}\/\d{6,}$/.test(normalizedBannerUnitId)) {
         setStatusMsg({
           type: 'error',
-          text: lang === 'ar' ? 'معرّف إعلان Banner غير صالح. يجب أن يكون بصيغة ca-app-pub-.../... .' : 'The banner ad unit ID must use the ca-app-pub-.../... format.',
+          text: lang === 'ar' ? 'معرّف إعلان Banner غير صالح. يجب أن يكون بصيغة ca-app-pub-.../... .' : lang === 'fr' ? 'L’identifiant Banner doit respecter le format ca-app-pub-.../... .' : 'The banner ad unit ID must use the ca-app-pub-.../... format.',
         });
         return;
       }
@@ -143,7 +185,7 @@ export default function HomePage() {
 
       setStatusMsg({
         type: 'success',
-        text: lang === 'ar' ? 'تم حفظ التطبيق وتصديره بنجاح! جاري تحويلك إلى لوحة التحكم...' : 'Application enregistrée avec succès ! Redirection...',
+        text: lang === 'ar' ? 'تم حفظ التطبيق وتصديره بنجاح! جاري تحويلك إلى لوحة التحكم...' : lang === 'fr' ? 'Application enregistrée avec succès ! Redirection...' : 'Application saved successfully! Redirecting to your dashboard...',
       });
 
       setTimeout(() => {
@@ -153,7 +195,7 @@ export default function HomePage() {
       console.error(err);
       setStatusMsg({
         type: 'error',
-        text: getErrorMessage(err, lang === 'ar' ? 'فشل حفظ التطبيق، يرجى المحاولة ثانية.' : 'Failed to save the application.'),
+        text: getErrorMessage(err, lang === 'ar' ? 'فشل حفظ التطبيق، يرجى المحاولة ثانية.' : lang === 'fr' ? 'Échec de l’enregistrement de l’application.' : 'Failed to save the application.'),
       });
     } finally {
       setLoading(false);
@@ -165,7 +207,7 @@ export default function HomePage() {
     if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
       setStatusMsg({
         type: 'error',
-        text: lang === 'ar' ? 'اختر صورة PNG أو JPG أو WebP بحجم أقصى 2MB.' : 'Choose a PNG, JPG, or WebP image up to 2MB.',
+        text: lang === 'ar' ? 'اختر صورة PNG أو JPG أو WebP بحجم أقصى 2MB.' : lang === 'fr' ? 'Choisissez une image PNG, JPG ou WebP de 2 Mo maximum.' : 'Choose a PNG, JPG, or WebP image up to 2MB.',
       });
       return;
     }
@@ -177,7 +219,7 @@ export default function HomePage() {
     if (!storeUrl) {
       setStatusMsg({
         type: 'error',
-        text: lang === 'ar' ? 'يرجى إدخال رابط المتجر أولاً.' : 'Veuillez saisir l\'URL de la boutique.',
+        text: lang === 'ar' ? 'يرجى إدخال رابط المتجر أولاً.' : lang === 'fr' ? 'Veuillez saisir l\'URL de la boutique.' : 'Please enter your store URL first.',
       });
       return;
     }
@@ -304,7 +346,7 @@ export default function HomePage() {
             <div className="flex items-center justify-between mb-3 px-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900 border border-slate-800 text-[11px] font-semibold text-indigo-400 rounded-full">
                 <Eye className="h-3.5 w-3.5" />
-                <span>{lang === 'ar' ? 'معاينة حية للمتجر' : 'Aperçu Interactif Direct'}</span>
+                <span>{lang === 'ar' ? 'معاينة حية للمتجر' : lang === 'fr' ? 'Aperçu interactif direct' : 'Live store preview'}</span>
               </span>
               {storeUrl && (
                 <div className="flex items-center gap-1">
@@ -312,7 +354,7 @@ export default function HomePage() {
                     type="button"
                     onClick={() => setIframeKey((k) => k + 1)}
                     className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-900 transition-colors"
-                    title="Rafraîchir l'aperçu"
+                    title={lang === 'ar' ? 'تحديث المعاينة' : lang === 'fr' ? 'Actualiser l’aperçu' : 'Refresh preview'}
                   >
                     <RefreshCw className="h-3.5 w-3.5" />
                   </button>
@@ -355,9 +397,9 @@ export default function HomePage() {
                           <p className="truncate text-[10px] font-bold">{appName || 'Appifya Store'}</p>
                           <button type="button" onClick={() => setPreviewNotification(false)} className="text-xs text-slate-400 hover:text-slate-700" aria-label={lang === 'ar' ? 'إغلاق الإشعار' : lang === 'fr' ? 'Fermer la notification' : 'Close notification'}>×</button>
                         </div>
-                        <p className="mt-1 text-xs font-bold">{notificationTitle || 'عرض خاص'}</p>
-                        <p className="mt-0.5 line-clamp-2 text-[10px] text-slate-600">{notificationMessage || 'رسالة تجريبية لمتجرك'}</p>
-                        <p className="mt-1 text-[9px] text-slate-400">now · Appifya demo</p>
+                        <p className="mt-1 text-xs font-bold">{notificationTitle || notificationDefaults.fallbackTitle}</p>
+                        <p className="mt-0.5 line-clamp-2 text-[10px] text-slate-600">{notificationMessage || notificationDefaults.fallbackMessage}</p>
+                        <p className="mt-1 text-[9px] text-slate-400">{notificationDefaults.now}</p>
                       </div>
                     </div>
                   </div>
@@ -374,7 +416,7 @@ export default function HomePage() {
                   <div className="w-full h-full bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
                     <Smartphone className="h-12 w-12 text-slate-700 mb-3" />
                     <p className="text-xs text-slate-400 font-medium">
-                      {lang === 'ar' ? 'أدخل رابط موقعك لمشاهدته مباشرة داخل الهاتف' : 'Saisissez l\'URL de votre site pour afficher l\'aperçu interactif'}
+                      {lang === 'ar' ? 'أدخل رابط موقعك لمشاهدته مباشرة داخل الهاتف' : lang === 'fr' ? 'Saisissez l\'URL de votre site pour afficher l\'aperçu interactif' : 'Enter your website URL to see it inside the phone preview'}
                     </p>
                   </div>
                 )}
@@ -398,13 +440,13 @@ export default function HomePage() {
                 <input
                   value={notificationTitle}
                   onChange={(event) => setNotificationTitle(event.target.value)}
-                  placeholder={lang === 'ar' ? 'عنوان الإشعار' : 'Notification title'}
+                  placeholder={lang === 'ar' ? 'عنوان الإشعار' : lang === 'fr' ? 'Titre de la notification' : 'Notification title'}
                   className="mb-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
                 />
                 <textarea
                   value={notificationMessage}
                   onChange={(event) => setNotificationMessage(event.target.value)}
-                  placeholder={lang === 'ar' ? 'اكتب رسالتك...' : 'Write your message...'}
+                  placeholder={lang === 'ar' ? 'اكتب رسالتك...' : lang === 'fr' ? 'Écrivez votre message...' : 'Write your message...'}
                   rows={2}
                   className="mb-3 w-full resize-none rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
                 />
@@ -425,7 +467,7 @@ export default function HomePage() {
         <div id="create-app" className="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-xl space-y-6 order-1 lg:order-2">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              {lang === 'ar' ? 'رابط المتجر أو صفحة الهبوط' : 'URL du magasin ou page d\'atterrissage'} *
+              {lang === 'ar' ? 'رابط المتجر أو صفحة الهبوط' : lang === 'fr' ? 'URL du magasin ou page d\'atterrissage' : 'Store or landing page URL'} *
             </label>
             <div className="relative">
               <Globe className="absolute right-4 top-3.5 h-4 w-4 text-slate-500" />
@@ -443,7 +485,7 @@ export default function HomePage() {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              {lang === 'ar' ? 'اسم التطبيق' : 'Nom de l\'application'}
+              {lang === 'ar' ? 'اسم التطبيق' : lang === 'fr' ? 'Nom de l\'application' : 'App name'}
             </label>
             <div className="relative">
               <Smartphone className="absolute right-4 top-3.5 h-4 w-4 text-slate-500" />
@@ -459,7 +501,7 @@ export default function HomePage() {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              {lang === 'ar' ? 'المنصة المستهدفة' : 'Plateforme cible'}
+              {lang === 'ar' ? 'المنصة المستهدفة' : lang === 'fr' ? 'Plateforme cible' : 'Target platform'}
             </label>
             <div className="grid grid-cols-3 gap-3">
               {(['both', 'android', 'ios'] as const).map((p) => (
@@ -473,7 +515,7 @@ export default function HomePage() {
                       : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
                   }`}
                 >
-                  {p === 'both' ? (lang === 'ar' ? 'الكل (موصى به)' : 'Les deux') : p === 'android' ? 'Android' : 'iOS'}
+                  {p === 'both' ? (lang === 'ar' ? 'الكل (موصى به)' : lang === 'fr' ? 'Les deux' : 'Both (recommended)') : p === 'android' ? 'Android' : 'iOS'}
                 </button>
               ))}
             </div>
@@ -481,7 +523,7 @@ export default function HomePage() {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              {lang === 'ar' ? 'لون الهوية (Theme Color)' : 'Couleur du thème'}
+              {lang === 'ar' ? 'لون الهوية (Theme Color)' : lang === 'fr' ? 'Couleur du thème' : 'Theme color'}
             </label>
             <div className="flex items-center gap-3 bg-slate-950 border border-slate-800 rounded-xl p-2.5">
               <input
@@ -505,7 +547,7 @@ export default function HomePage() {
                 <Smartphone className="h-8 w-8 text-slate-600" />
               )}
               <span className="text-xs text-slate-400">
-                {iconFile?.name || (lang === 'ar' ? 'اختر صورة PNG أو JPG (حتى 2MB)' : 'Choose PNG or JPG image (up to 2MB)')}
+                {iconFile?.name || (lang === 'ar' ? 'اختر صورة PNG أو JPG (حتى 2MB)' : lang === 'fr' ? 'Choisissez une image PNG ou JPG (2 Mo maximum)' : 'Choose a PNG or JPG image (up to 2MB)')}
               </span>
               <input
                 type="file"
@@ -563,8 +605,8 @@ export default function HomePage() {
                   <Sparkles className="h-5 w-5" />
                   <span>
                     {user
-                      ? (lang === 'ar' ? 'حفظ وتصدير التطبيق إلى لوحة التحكم' : 'Enregistrer & Exporter vers le tableau de bord')
-                      : (lang === 'ar' ? 'تسجيل الدخول وتصدير التطبيق' : 'Connexion & Exportation')}
+                      ? (lang === 'ar' ? 'حفظ وتصدير التطبيق إلى لوحة التحكم' : lang === 'fr' ? 'Enregistrer et exporter vers le tableau de bord' : 'Save and export to dashboard')
+                      : (lang === 'ar' ? 'تسجيل الدخول وتصدير التطبيق' : lang === 'fr' ? 'Connexion et exportation' : 'Sign in and export')}
                   </span>
                 </>
               )}

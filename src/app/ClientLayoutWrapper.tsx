@@ -72,8 +72,12 @@ function NavigationBar() {
           type="button"
           onClick={toggleTheme}
           className="theme-toggle rounded-xl border border-slate-800 bg-slate-900 p-2 text-slate-300 transition-colors hover:text-white"
-          aria-label={theme === 'dark' ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع المظلم'}
-          title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          aria-label={theme === 'dark'
+            ? (lang === 'ar' ? 'تفعيل الوضع الفاتح' : lang === 'fr' ? 'Activer le mode clair' : 'Enable light mode')
+            : (lang === 'ar' ? 'تفعيل الوضع المظلم' : lang === 'fr' ? 'Activer le mode sombre' : 'Enable dark mode')}
+          title={theme === 'dark'
+            ? (lang === 'ar' ? 'الوضع الفاتح' : lang === 'fr' ? 'Mode clair' : 'Light mode')
+            : (lang === 'ar' ? 'الوضع المظلم' : lang === 'fr' ? 'Mode sombre' : 'Dark mode')}
         >
           {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
@@ -101,7 +105,7 @@ function NavigationBar() {
             </Link>
             <button
               onClick={() => logout()}
-              title="تسجيل الخروج"
+              title={lang === 'ar' ? 'تسجيل الخروج' : lang === 'fr' ? 'Se déconnecter' : 'Sign out'}
               className="p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-900 transition-colors"
             >
               <LogOut className="h-4 w-4" />
