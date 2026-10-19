@@ -80,7 +80,10 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const appId = new URL(req.url).searchParams.get('appId');
+  const searchParams = new URL(req.url).searchParams;
+  const appId = searchParams.get('appId');
+  const startedAtValue = searchParams.get('startedAt');
+  const startedAt = startedAtValue ? Date.parse(startedAtValue) : NaN;
   if (!appId) return NextResponse.json({ error: 'appId is required' }, { status: 400 });
 
   const config = getConfig();
@@ -101,11 +104,25 @@ export async function GET(req: NextRequest) {
     const releases = (await response.json()) as Array<{
       tag_name: string;
       html_url: string;
+      published_at?: string | null;
+      created_at?: string;
       assets?: Array<{ name: string; browser_download_url: string }>;
     }>;
-    const release = releases.find((item) => item.tag_name.startsWith(`build-${appId}-`));
+    const matchingReleases = releases
+      .filter((item) => item.tag_name.startsWith(`build-${appId}-`))
+      .sort((left, right) => {
+        const leftTime = Date.parse(left.published_at || left.created_at || '') || 0;
+        const rightTime = Date.parse(right.published_at || right.created_at || '') || 0;
+        return rightTime - leftTime;
+      });
+    const release = matchingReleases[0];
 
     if (release) {
+      const releaseTime = Date.parse(release.published_at || release.created_at || '');
+      if (Number.isFinite(startedAt) && Number.isFinite(releaseTime) && releaseTime < startedAt) {
+        return NextResponse.json({ status: 'building' });
+      }
+
       const apk = release.assets?.find((asset) => asset.name.toLowerCase().endsWith('.apk'));
       return NextResponse.json({
         status: apk ? 'completed' : 'failed',

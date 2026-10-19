@@ -12,6 +12,12 @@ import { Smartphone, ExternalLink, Download, Plus, Loader2, ArrowRight, CheckCir
 
 const BUILD_TIMEOUT_MS = 20 * 60 * 1000;
 const buildStartedStorageKey = (appId: string) => `appifya_build_started_${appId}`;
+const statusUrl = (appId: string) => {
+  const startedAt = localStorage.getItem(buildStartedStorageKey(appId));
+  const query = new URLSearchParams({ appId });
+  if (startedAt) query.set('startedAt', new Date(Number(startedAt)).toISOString());
+  return `/api/build-apk?${query.toString()}`;
+};
 
 export default function DashboardPage() {
   const { user, loading: authLoading, openAuthModal } = useAuth();
@@ -71,7 +77,7 @@ export default function DashboardPage() {
     const restoreBuildStatuses = async () => {
       await Promise.all(apps.map(async (app) => {
         try {
-          const response = await fetch(`/api/build-apk?appId=${encodeURIComponent(app.$id)}`, { cache: 'no-store' });
+          const response = await fetch(statusUrl(app.$id), { cache: 'no-store' });
           if (!response.ok) return;
 
           const result = await response.json();
@@ -90,8 +96,6 @@ export default function DashboardPage() {
               clearBuildStart(app.$id);
             } else if (result.status === 'building') {
               setBuildNoticeAppId(app.$id);
-            } else {
-              clearBuildStart(app.$id);
             }
           }
         } catch (error) {
@@ -136,7 +140,7 @@ export default function DashboardPage() {
     const checkBuilds = async () => {
       await Promise.all(activeIds.map(async (appId) => {
         try {
-          const response = await fetch(`/api/build-apk?appId=${encodeURIComponent(appId)}`, { cache: 'no-store' });
+          const response = await fetch(statusUrl(appId), { cache: 'no-store' });
           if (!response.ok) return;
           const result = await response.json();
           const startedAt = getBuildStartedAt(appId);
@@ -151,7 +155,7 @@ export default function DashboardPage() {
               },
             }));
             setBuildNoticeAppId((current) => (current === appId ? null : current));
-            clearBuildStart(appId);
+            if (isStale) clearBuildStart(appId);
           }
         } catch (error) {
           console.error('Build status check failed:', error);
