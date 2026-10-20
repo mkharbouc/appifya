@@ -1,0 +1,8 @@
+{
+  "id": "2",
+  "subject": "Add \"How to install\" link to dashboard after APK download",
+  "description": "In src/app/dashboard/page.tsx, add a small \"How to install?\" link next to the Download APK button that points to /guide, visible only when build status is 'completed'.",
+  "status": "in_progress",
+  "blocks": [],
+  "blockedBy": []
+}

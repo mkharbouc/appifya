@@ -1,0 +1,8 @@
+{
+  "id": "1",
+  "subject": "Create /guide page with step-by-step APK install instructions",
+  "description": "Build src/app/guide/page.tsx following the same conventions as about/page.tsx — 'use client', useLanguage hook, inline ternary translations for ar/en/fr, theme-page class, Tailwind + Lucide icons. Include: hero section, Android steps with inline SVG illustrations, iOS PWA steps, a troubleshooting section, and a CTA back to dashboard.",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}
