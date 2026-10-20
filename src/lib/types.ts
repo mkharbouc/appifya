@@ -8,6 +8,7 @@ export interface AppDocument {
   icon_id?: string;
   admob_app_id?: string;
   admob_banner_unit_id?: string;
+  uploaded_file_id?: string;
 }
 
 export interface BeforeInstallPromptEvent extends Event {
