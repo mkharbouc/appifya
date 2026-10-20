@@ -58,6 +58,9 @@ function NavigationBar() {
           <Link href="/guide" className="hover:text-white transition-colors">
             {lang === 'ar' ? 'دليل التثبيت' : lang === 'fr' ? 'Guide' : 'Install Guide'}
           </Link>
+          <Link href="/admob" className="hover:text-white transition-colors">
+            {lang === 'ar' ? 'إعداد AdMob' : lang === 'fr' ? 'Config. AdMob' : 'AdMob Setup'}
+          </Link>
           <Link href="/contact" className="hover:text-white transition-colors">
             {t('navContact')}
           </Link>
@@ -137,6 +140,7 @@ function SiteFooter() {
         <Link href="/" className="hover:text-white">{lang === 'ar' ? 'الرئيسية' : lang === 'fr' ? 'Accueil' : 'Home'}</Link>
         <Link href="/about" className="hover:text-white">{t('navAbout')}</Link>
         <Link href="/guide" className="hover:text-white">{lang === 'ar' ? 'دليل التثبيت' : lang === 'fr' ? 'Guide' : 'Install Guide'}</Link>
+        <Link href="/admob" className="hover:text-white">{lang === 'ar' ? 'إعداد AdMob' : lang === 'fr' ? 'Config. AdMob' : 'AdMob Setup'}</Link>
         <Link href="/contact" className="hover:text-white">{t('navContact')}</Link>
         <Link href="/privacy" className="hover:text-white">{lang === 'ar' ? 'سياسة الخصوصية' : lang === 'fr' ? 'Confidentialité' : 'Privacy Policy'}</Link>
         <Link href="/terms" className="hover:text-white">{lang === 'ar' ? 'شروط الخدمة' : lang === 'fr' ? 'Conditions' : 'Terms of Service'}</Link>
