@@ -8,7 +8,7 @@ import { databases, DB_ID, TABLE_ID } from '@/lib/appwrite';
 import { appwriteConfigMissing } from '@/lib/app-config';
 import { Query } from 'appwrite';
 import type { AppDocument } from '@/lib/types';
-import { Smartphone, ExternalLink, Download, Plus, Loader2, ArrowRight, CheckCircle2, Clock, Play, X, Hammer } from 'lucide-react';
+import { Smartphone, ExternalLink, Download, Plus, Loader2, ArrowRight, CheckCircle2, Clock, Play, X, Hammer, HelpCircle } from 'lucide-react';
 
 const BUILD_TIMEOUT_MS = 20 * 60 * 1000;
 const buildStartedStorageKey = (appId: string) => `appifya_build_started_${appId}`;
@@ -381,13 +381,22 @@ export default function DashboardPage() {
                 </div>
               )}
               {builds[app.$id]?.status === 'completed' && builds[app.$id]?.downloadUrl && (
-                <a
-                  href={builds[app.$id].downloadUrl}
-                  className="mt-3 flex items-center justify-center gap-2 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl"
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  <span>{getTxt('downloadApk')}</span>
-                </a>
+                <div className="mt-3 flex flex-col gap-2">
+                  <a
+                    href={builds[app.$id].downloadUrl}
+                    className="flex items-center justify-center gap-2 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    <span>{getTxt('downloadApk')}</span>
+                  </a>
+                  <Link
+                    href="/guide"
+                    className="flex items-center justify-center gap-1.5 py-1.5 border border-slate-700 bg-slate-800/60 hover:bg-slate-700 text-slate-300 text-[11px] font-medium rounded-xl transition-colors"
+                  >
+                    <HelpCircle className="h-3 w-3 text-indigo-400" />
+                    <span>{lang === 'ar' ? 'كيف أثبّت التطبيق؟' : lang === 'fr' ? 'Comment installer l\'APK ?' : 'How to install?'}</span>
+                  </Link>
+                </div>
               )}
             </div>
           ))}
