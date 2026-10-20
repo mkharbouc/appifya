@@ -1,0 +1,2 @@
+- [Appifya AdMob setup wizard](delightful-purring-platypus.md) — plan for /admob page
+- [Feedback testing guidance](feedback_testing.md) — guidance for updating test expectations after production code changes
