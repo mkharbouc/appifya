@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { LanguageProvider, useLanguage, type Language } from "./lib/i18n";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { Globe, Sparkles, LayoutDashboard, LogOut, User, Moon, Sun, FileCode, ChevronDown } from "lucide-react";
+import { Globe, Sparkles, LayoutDashboard, LogOut, User, Moon, Sun, FileCode, ChevronDown, ImageIcon } from "lucide-react";
 
 function AppifyaLogoIcon() {
   return (
@@ -100,6 +100,23 @@ function NavigationBar() {
                       </p>
                     </div>
                   </Link>
+                  <Link
+                    href="/tools/icon-generator"
+                    onClick={() => setToolsOpen(false)}
+                    className="flex items-start gap-3 px-4 py-3 hover:bg-slate-800/70 transition-colors group"
+                  >
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-purple-500/15 border border-purple-500/20 group-hover:bg-purple-500/25">
+                      <ImageIcon className="h-3.5 w-3.5 text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-white leading-tight">
+                        {lang === 'ar' ? 'مولد أيقونات التطبيق' : lang === 'fr' ? 'Générateur d\'icônes' : 'Icon Generator'}
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                        {lang === 'ar' ? 'جميع أحجام PWA من صورة واحدة' : lang === 'fr' ? 'Toutes les tailles PWA en un clic' : 'All PWA sizes from one image'}
+                      </p>
+                    </div>
+                  </Link>
                 </div>
               </div>
             )}
@@ -185,6 +202,7 @@ function SiteFooter() {
         <Link href="/guide" className="hover:text-white">{lang === 'ar' ? 'دليل التثبيت' : lang === 'fr' ? 'Guide' : 'Install Guide'}</Link>
         <Link href="/admob" className="hover:text-white">{lang === 'ar' ? 'إعداد AdMob' : lang === 'fr' ? 'Config. AdMob' : 'AdMob Setup'}</Link>
         <Link href="/tools/manifest-generator" className="hover:text-white">{lang === 'ar' ? 'مولد Manifest' : lang === 'fr' ? 'Générateur Manifest' : 'Manifest Generator'}</Link>
+        <Link href="/tools/icon-generator" className="hover:text-white">{lang === 'ar' ? 'مولد الأيقونات' : lang === 'fr' ? 'Générateur d\'icônes' : 'Icon Generator'}</Link>
         <Link href="/contact" className="hover:text-white">{t('navContact')}</Link>
         <Link href="/privacy" className="hover:text-white">{lang === 'ar' ? 'سياسة الخصوصية' : lang === 'fr' ? 'Confidentialité' : 'Privacy Policy'}</Link>
         <Link href="/terms" className="hover:text-white">{lang === 'ar' ? 'شروط الخدمة' : lang === 'fr' ? 'Conditions' : 'Terms of Service'}</Link>
