@@ -1,7 +1,6 @@
-﻿import "./globals.css";
+import "./globals.css";
 import React from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import ClientLayoutWrapper from "./ClientLayoutWrapper";
 
 export const metadata: Metadata = {
@@ -30,10 +29,16 @@ export const metadata: Metadata = {
   creator: "Appifya",
   alternates: {
     canonical: "https://appifya.app",
+    languages: {
+      ar: "https://appifya.app",
+      en: "https://appifya.app",
+      fr: "https://appifya.app",
+      "x-default": "https://appifya.app",
+    },
   },
   openGraph: {
     type: "website",
-    locale: "en_US",
+    locale: "ar_SA",
     url: "https://appifya.app",
     siteName: "Appifya",
     title: "Appifya - Turn Any Website or Store into a Mobile App",
@@ -72,42 +77,96 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
-    name: 'Appifya',
-    applicationCategory: 'DeveloperApplication',
-    operatingSystem: 'Web, Android',
-    url: 'https://appifya.app',
-    description: metadata.description,
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'Appifya',
+      url: 'https://appifya.app',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: 'https://appifya.app/?q={search_term_string}',
+        },
+        'query-input': 'required name=search_term_string',
+      },
     },
-  };
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Appifya',
+      url: 'https://appifya.app',
+      logo: 'https://appifya.app/logo.jpg.jpeg',
+      sameAs: [
+        'https://twitter.com/appifya',
+        'https://github.com/appifya',
+      ],
+      contactPoint: {
+        '@type': 'ContactPoint',
+        telephone: '+1-000-000-0000',
+        contactType: 'customer service',
+        availableLanguage: ['Arabic', 'English', 'French'],
+      },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      name: 'Appifya',
+      applicationCategory: 'DeveloperApplication',
+      operatingSystem: 'Web, Android',
+      url: 'https://appifya.app',
+      description: metadata.description,
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+        availability: 'https://schema.org/InStock',
+      },
+      featureList: [
+        'Convert any HTTPS website to PWA',
+        'Generate installable Android APK',
+        'Custom app name, icon, theme color',
+        'Optional AdMob integration for monetization',
+        'Push notification simulator',
+        'Multi-language support (AR/EN/FR)',
+        'RTL support for Arabic',
+        'Free tier available',
+      ],
+    },
+  ];
 
   return (
     <html lang="ar" dir="rtl" className="scroll-smooth" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <link rel="preload" as="image" href="/logo.jpg.jpeg" />
         <script
           dangerouslySetInnerHTML={{
             __html: `(() => {
-              const saved = localStorage.getItem('app_theme');
-              const theme = saved === 'light' || saved === 'dark'
-                ? saved
-                : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-              document.documentElement.dataset.theme = theme;
+              try {
+                const saved = localStorage.getItem('app_theme');
+                const theme = saved === 'light' || saved === 'dark'
+                  ? saved
+                  : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.dataset.theme = theme;
+                const sb = localStorage.getItem('sidebar_expanded');
+                if (sb === 'false') {
+                  document.documentElement.style.setProperty('--sidebar-w', '64px');
+                }
+              } catch {}
             })();`,
           }}
         />
       </head>
       <body className="site-body antialiased bg-slate-950 text-slate-100 flex flex-col min-h-screen">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-        />
+        {structuredData.map((data, index) => (
+          <script
+            key={index}
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+          />
+        ))}
         <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
       </body>
     </html>

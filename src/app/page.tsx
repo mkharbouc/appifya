@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -27,6 +27,94 @@ import {
   Play,
   ArrowUpRight,
 } from 'lucide-react';
+
+const faqSchema = (lang: 'ar' | 'en' | 'fr') => ({
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: lang === 'ar' ? 'هل التحويل الأساسي مجاني؟' : lang === 'fr' ? 'L\'export de base est-il gratuit ?' : 'Is the basic export free?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: lang === 'ar' ? 'نعم، التحويل الأساسي بدون إعلانات مجاني حالياً. أي خدمة مدفوعة مستقبلية ستظهر بوضوح قبل الدفع.' : lang === 'fr' ? 'Oui, l\'export de base sans publicité est actuellement gratuit. Tout futur service payant sera affiché avant le paiement.' : 'Yes. The basic export without ads is currently free. Any future paid service will be shown before payment.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: lang === 'ar' ? 'هل أحتاج إلى Android Studio؟' : lang === 'fr' ? 'Ai-je besoin d\'Android Studio ?' : 'Do I need Android Studio?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: lang === 'ar' ? 'لا، المنصة تتولى إنشاء APK عبر خدمة بناء آلية. ستحتاج فقط إلى حسابك وبيانات تطبيقك.' : lang === 'fr' ? 'Non, la plateforme lance une compilation automatisée.' : 'No. The platform starts an automated build for you.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: lang === 'ar' ? 'هل أملك أرباح AdMob؟' : lang === 'fr' ? 'Qui possède les revenus AdMob ?' : 'Who owns AdMob revenue?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: lang === 'ar' ? 'نعم. عند استخدام إعدادات AdMob الخاصة بك، يبقى الحساب والأرباح ملكاً لك وتبقى مسؤولاً عن سياسات Google.' : lang === 'fr' ? 'Les paramètres et revenus restent les vôtres, sous votre responsabilité vis-à-vis de Google.' : 'Your settings and revenue remain yours, and you are responsible for Google policies.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: lang === 'ar' ? 'لماذا لا تظهر بعض المواقع داخل المعاينة؟' : lang === 'fr' ? 'Pourquoi certains sites ne s\'affichent-ils pas dans l\'aperçu ?' : 'Why do some sites not appear in preview?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: lang === 'ar' ? 'بعض المواقع تمنع التضمين داخل iframe لأسباب أمنية. في هذه الحالة استخدم زر الفتح خارجياً، ولا يمنع ذلك إنشاء التطبيق.' : lang === 'fr' ? 'Certains sites bloquent les iframe pour des raisons de sécurité. Ouvrez-les dans un nouvel onglet.' : 'Some sites block iframe embedding for security. Use the external preview link; this does not prevent app creation.',
+      },
+    },
+  ],
+});
+
+const howToSchema = (lang: 'ar' | 'en' | 'fr') => ({
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: lang === 'ar' ? 'كيف تحول متجرك إلى تطبيق PWA' : lang === 'fr' ? 'Comment transformer votre boutique en PWA' : 'How to convert your store to a PWA',
+  description: lang === 'ar' ? 'دليل خطوة بخطوة لتحويل أي متجر أو موقع إلى تطبيق ويب تقدمي قابل للتثبيت' : lang === 'fr' ? 'Guide étape par étape pour convertir n\'importe quel magasin ou site en Progressive Web App installable' : 'Step-by-step guide to convert any store or website into an installable Progressive Web App',
+  step: [
+    {
+      '@type': 'HowToStep',
+      name: lang === 'ar' ? 'أضف رابط موقعك' : lang === 'fr' ? 'Ajoutez votre URL' : 'Add your URL',
+      text: lang === 'ar' ? 'أدخل رابط متجرك أو صفحة الهبوط التي تعمل عبر HTTPS. المنصة تقبل جميع أنواع المواقع والمتاجر الإلكترونية.' : lang === 'fr' ? 'Entrez l\'URL de votre boutique ou page de destination servie via HTTPS. La plateforme accepte tous types de sites et boutiques.' : 'Enter your store or landing page URL served over HTTPS. The platform accepts all types of websites and online stores.',
+      url: 'https://appifya.app/#builder',
+    },
+    {
+      '@type': 'HowToStep',
+      name: lang === 'ar' ? 'خصص التطبيق' : lang === 'fr' ? 'Personnalisez' : 'Customize it',
+      text: lang === 'ar' ? 'اختر اسم التطبيق، لون الهوية، والأيقونة التي تمثل علامتك التجارية. يمكنك أيضاً إضافة معرّفات AdMob لتحقيق الأرباح (اختياري، أندرويد فقط).' : lang === 'fr' ? 'Choisissez le nom, la couleur et l\'icône de votre marque. Vous pouvez aussi ajouter vos identifiants AdMob pour la monétisation (optionnel, Android seulement).' : 'Choose the name, color, and icon for your brand. You can also add AdMob IDs for monetization (optional, Android only).',
+      url: 'https://appifya.app/#builder',
+    },
+    {
+      '@type': 'HowToStep',
+      name: lang === 'ar' ? 'صدّر وتابع' : lang === 'fr' ? 'Exportez et suivez' : 'Export and track',
+      text: lang === 'ar' ? 'اضغط على زر الحفظ والتصدير. ستتم إعادة توجيهك إلى لوحة التحكم حيث يمكنك تتبع حالة بناء APK وتنزيل الملف عند جاهزيته.' : lang === 'fr' ? 'Cliquez sur enregistrer et exporter. Vous serez redirigé vers le tableau de bord pour suivre la compilation et télécharger le fichier prêt.' : 'Click save and export. You\'ll be redirected to the dashboard to track the APK build status and download the file when ready.',
+      url: 'https://appifya.app/dashboard',
+    },
+  ],
+  totalTime: 'PT5M',
+  supply: [
+    {
+      '@type': 'HowToSupply',
+      name: 'Store URL (HTTPS)',
+    },
+    {
+      '@type': 'HowToSupply',
+      name: 'App name',
+    },
+    {
+      '@type': 'HowToSupply',
+      name: 'App icon (optional)',
+    },
+  ],
+  tool: [
+    {
+      '@type': 'HowToTool',
+      name: 'Appifya PWA Builder',
+      url: 'https://appifya.app',
+    },
+  ],
+});
 
 export default function HomePage() {
   const router = useRouter();
@@ -89,7 +177,6 @@ export default function HomePage() {
       setNotificationTitle(notificationDefaults.title);
     }
     if (defaultMessages.includes(notificationMessage)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setNotificationMessage(notificationDefaults.message);
     }
   }, [lang, notificationDefaults.message, notificationDefaults.title, notificationMessage, notificationTitle]);
@@ -288,6 +375,10 @@ export default function HomePage() {
               <a href="#builder" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-indigo-950 shadow-lg transition hover:bg-indigo-50">
                 <Play className="h-3.5 w-3.5 fill-current" />
                 {lang === 'ar' ? 'ابدأ التجربة' : lang === 'fr' ? 'Commencer' : 'Start building'}
+              </a>
+              <a href="/guide" className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/10">
+                {lang === 'ar' ? 'دليل التثبيت الكامل' : lang === 'fr' ? 'Guide d\'installation complet' : 'Full Installation Guide'}
+                <ArrowUpRight className="h-3.5 w-3.5" />
               </a>
               <a href="/about" className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/10">
                 {lang === 'ar' ? 'اكتشف الطريقة' : lang === 'fr' ? 'Découvrir' : 'Discover how it works'}
@@ -645,26 +736,39 @@ export default function HomePage() {
               title: lang === 'ar' ? 'إطلاق سريع' : lang === 'fr' ? 'Lancement rapide' : 'Fast launch',
               text: lang === 'ar' ? 'حوّل رابطاً جاهزاً إلى تجربة قابلة للتثبيت دون البدء من مشروع Android معقد.' : lang === 'fr' ? 'Transformez un site existant sans démarrer un projet Android complexe.' : 'Turn an existing site into an installable experience without starting a complex Android project.',
               color: 'bg-indigo-500/10 text-indigo-400',
+              link: '/guide',
+              linkText: lang === 'ar' ? 'دليل التثبيت' : lang === 'fr' ? 'Guide d\'installation' : 'Installation Guide',
             },
             {
               icon: ShieldCheck,
               title: lang === 'ar' ? 'وضوح وملكية' : lang === 'fr' ? 'Clarté et propriété' : 'Clear ownership',
               text: lang === 'ar' ? 'إعداداتك وبياناتك الإعلانية تبقى لك، ونوضح دائماً ما هو مجاني وما هو اختياري.' : lang === 'fr' ? 'Vos paramètres restent les vôtres, avec une distinction claire entre les fonctions gratuites et optionnelles.' : 'Your settings remain yours, with a clear distinction between free and optional features.',
               color: 'bg-emerald-500/10 text-emerald-400',
+              link: '/admob',
+              linkText: lang === 'ar' ? 'إعداد AdMob' : lang === 'fr' ? 'Config AdMob' : 'AdMob Setup',
             },
             {
               icon: Layers3,
               title: lang === 'ar' ? 'تجربة متكاملة' : lang === 'fr' ? 'Expérience complète' : 'Complete workflow',
               text: lang === 'ar' ? 'معاينة، تخصيص، بناء APK، وتنزيل من مكان واحد مع متابعة حالة العملية.' : lang === 'fr' ? 'Prévisualisez, personnalisez, compilez et téléchargez depuis un seul endroit.' : 'Preview, customize, build, and download from one place with visible progress.',
               color: 'bg-pink-500/10 text-pink-400',
+              link: '/dashboard',
+              linkText: lang === 'ar' ? 'لوحة التحكم' : lang === 'fr' ? 'Tableau de bord' : 'Dashboard',
             },
-          ].map(({ icon: Icon, title, text, color }) => (
+          ].map(({ icon: Icon, title, text, color, link, linkText }) => (
             <article key={title} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
               <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl ${color}`}>
                 <Icon className="h-5 w-5" />
               </div>
               <h3 className="mb-2 text-base font-bold text-white">{title}</h3>
-              <p className="text-xs leading-6 text-slate-400">{text}</p>
+              <p className="text-xs leading-6 text-slate-400 mb-4">{text}</p>
+              <a
+                href={link}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
+              >
+                {linkText}
+                <ArrowUpRight className="h-3 w-3" />
+              </a>
             </article>
           ))}
         </div>
@@ -678,16 +782,25 @@ export default function HomePage() {
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {[
-            [ '01', lang === 'ar' ? 'أضف رابط موقعك' : lang === 'fr' ? 'Ajoutez votre URL' : 'Add your URL', lang === 'ar' ? 'نقبل المواقع والمتاجر التي تعمل عبر HTTPS.' : lang === 'fr' ? 'Nous acceptons les sites et boutiques en HTTPS.' : 'We support websites and stores served over HTTPS.' ],
-            [ '02', lang === 'ar' ? 'خصص التطبيق' : lang === 'fr' ? 'Personnalisez' : 'Customize it', lang === 'ar' ? 'اختر الاسم واللون والأيقونة التي تمثل علامتك.' : lang === 'fr' ? 'Choisissez le nom, la couleur et l’icône de votre marque.' : 'Choose the name, color, and icon for your brand.' ],
-            [ '03', lang === 'ar' ? 'صدّر وتابع' : lang === 'fr' ? 'Exportez et suivez' : 'Export and track', lang === 'ar' ? 'تابع حالة بناء APK ونزّل الملف عند جاهزيته.' : lang === 'fr' ? 'Suivez la compilation et téléchargez le fichier prêt.' : 'Track the build and download the ready file.' ],
-          ].map(([number, title, text]) => (
-            <div key={number} className="flex gap-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
-              <span className="text-2xl font-black text-indigo-400">{number}</span>
-              <div>
-                <h3 className="mb-1 font-bold text-white">{title}</h3>
-                <p className="text-xs leading-6 text-slate-400">{text}</p>
+            [ '01', lang === 'ar' ? 'أضف رابط موقعك' : lang === 'fr' ? 'Ajoutez votre URL' : 'Add your URL', lang === 'ar' ? 'نقبل المواقع والمتاجر التي تعمل عبر HTTPS.' : lang === 'fr' ? 'Nous acceptons les sites et boutiques en HTTPS.' : 'We support websites and stores served over HTTPS.', '/guide', lang === 'ar' ? 'اقرأ الدليل الكامل' : lang === 'fr' ? 'Lire le guide complet' : 'Read full guide' ],
+            [ '02', lang === 'ar' ? 'خصص التطبيق' : lang === 'fr' ? 'Personnalisez' : 'Customize it', lang === 'ar' ? 'اختر الاسم واللون والأيقونة التي تمثل علامتك.' : lang === 'fr' ? 'Choisissez le nom, la couleur et l’icône de votre marque.' : 'Choose the name, color, and icon for your brand.', '/admob', lang === 'ar' ? 'إعداد AdMob' : lang === 'fr' ? 'Config AdMob' : 'AdMob Setup' ],
+            [ '03', lang === 'ar' ? 'صدّر وتابع' : lang === 'fr' ? 'Exportez et suivez' : 'Export and track', lang === 'ar' ? 'تابع حالة بناء APK ونزّل الملف عند جاهزيته.' : lang === 'fr' ? 'Suivez la compilation et téléchargez le fichier prêt.' : 'Track the build and download the ready file.', '/dashboard', lang === 'ar' ? 'لوحة التحكم' : lang === 'fr' ? 'Tableau de bord' : 'Dashboard' ],
+          ].map(([number, title, text, link, linkText]) => (
+            <div key={number} className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
+              <div className="flex gap-4">
+                <span className="text-2xl font-black text-indigo-400">{number}</span>
+                <div>
+                  <h3 className="mb-1 font-bold text-white">{title}</h3>
+                  <p className="text-xs leading-6 text-slate-400">{text}</p>
+                </div>
               </div>
+              <a
+                href={link}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors mt-2"
+              >
+                {linkText}
+                <ArrowUpRight className="h-3 w-3" />
+              </a>
             </div>
           ))}
         </div>
@@ -727,6 +840,16 @@ export default function HomePage() {
           {lang === 'ar' ? 'ابدأ الآن' : lang === 'fr' ? 'Commencer' : 'Get started'}
         </a>
       </section>
+
+      {/* Schema.org structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(lang)) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema(lang)) }}
+      />
     </main>
   );
 }

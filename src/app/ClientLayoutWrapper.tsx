@@ -1,222 +1,405 @@
-﻿'use client';
+'use client';
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, Suspense } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LanguageProvider, useLanguage, type Language } from "./lib/i18n";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { Globe, Sparkles, LayoutDashboard, LogOut, User, Moon, Sun, FileCode, ChevronDown, ImageIcon, Gauge } from "lucide-react";
+import {
+  Globe, Sparkles, LayoutDashboard, LogOut, User, Moon, Sun,
+  FileCode, ChevronDown, ImageIcon, Gauge, Home, Info, BookOpen,
+  DollarSign, Mail, ShieldCheck, FileText, PanelLeftClose, PanelLeftOpen, Wrench, X,
+} from "lucide-react";
 
-function AppifyaLogoIcon() {
+// ─── Logo ──────────────────────────────────────────────────────────────────────
+
+function AppifyaLogoIcon({ small = false }: { small?: boolean }) {
+  const size = small ? "h-8 w-8" : "h-10 w-10";
+  const imgSize = small ? "h-6 w-6" : "h-8 w-8";
   return (
-    <div className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-500/30 bg-slate-950 shadow-lg shadow-indigo-500/20 transition-all group-hover:border-pink-500/50">
-      <img src="/icon.svg" alt="Appifya" className="h-8 w-8 rounded-lg" />
+    <div className={`relative flex ${size} items-center justify-center rounded-xl border border-indigo-500/30 bg-slate-950 shadow-lg shadow-indigo-500/20 transition-all group-hover:border-pink-500/50 shrink-0`}>
+      <img src="/icon.svg" alt="Appifya" className={`${imgSize} rounded-lg`} />
     </div>
   );
 }
 
-function NavigationBar() {
+// ─── Nav item definitions ──────────────────────────────────────────────────────
+
+type NavItem =
+  | { kind: 'link'; href: string; labelKey: string; labelAr: string; labelFr: string; labelEn: string; icon: React.ReactNode }
+  | { kind: 'group'; labelKey: string; labelAr: string; labelFr: string; labelEn: string; icon: React.ReactNode; children: NavChild[] };
+
+type NavChild = { href: string; labelAr: string; labelFr: string; labelEn: string; icon: React.ReactNode; descAr: string; descFr: string; descEn: string };
+
+const NAV_ITEMS: NavItem[] = [
+  { kind: 'link', href: '/', labelKey: 'home', labelAr: 'الرئيسية', labelFr: 'Accueil', labelEn: 'Home', icon: <Home className="h-4 w-4" /> },
+  { kind: 'link', href: '/about', labelKey: 'navAbout', labelAr: 'من نحن', labelFr: 'À propos', labelEn: 'About', icon: <Info className="h-4 w-4" /> },
+  { kind: 'link', href: '/guide', labelKey: 'guide', labelAr: 'دليل التثبيت', labelFr: 'Guide', labelEn: 'Install Guide', icon: <BookOpen className="h-4 w-4" /> },
+  { kind: 'link', href: '/admob', labelKey: 'admob', labelAr: 'إعداد AdMob', labelFr: 'Config. AdMob', labelEn: 'AdMob Setup', icon: <DollarSign className="h-4 w-4" /> },
+  {
+    kind: 'group',
+    labelKey: 'tools',
+    labelAr: 'أدوات',
+    labelFr: 'Outils',
+    labelEn: 'Tools',
+    icon: <Wrench className="h-4 w-4" />,
+    children: [
+      { href: '/tools/manifest-generator', labelAr: 'مولد Manifest', labelFr: 'Générateur Manifest', labelEn: 'Manifest Generator', icon: <FileCode className="h-3.5 w-3.5 text-indigo-400" />, descAr: 'أنشئ manifest.json لتطبيقك', descFr: 'Créer un fichier manifest.json', descEn: 'Build your PWA manifest.json' },
+      { href: '/tools/icon-generator', labelAr: 'مولد أيقونات التطبيق', labelFr: 'Générateur d\'icônes', labelEn: 'Icon Generator', icon: <ImageIcon className="h-3.5 w-3.5 text-purple-400" />, descAr: 'جميع أحجام PWA من صورة واحدة', descFr: 'Toutes les tailles PWA en un clic', descEn: 'All PWA sizes from one image' },
+      { href: '/tools/pwa-checker', labelAr: 'فاحص جاهزية PWA', labelFr: 'Vérificateur PWA', labelEn: 'PWA Checker', icon: <Gauge className="h-3.5 w-3.5 text-emerald-400" />, descAr: 'اختبر موقعك في ثوانٍ', descFr: 'Testez votre site en quelques secondes', descEn: 'Test your site in seconds' },
+      { href: '/tools', labelAr: 'جميع الأدوات', labelFr: 'Tous les outils', labelEn: 'All Tools', icon: <Wrench className="h-3.5 w-3.5 text-slate-400" />, descAr: 'تصفح كل الأدوات المتاحة', descFr: 'Parcourir tous les outils disponibles', descEn: 'Browse every available tool' },
+    ],
+  },
+  { kind: 'link', href: '/contact', labelKey: 'navContact', labelAr: 'تواصل معنا', labelFr: 'Contact', labelEn: 'Contact', icon: <Mail className="h-4 w-4" /> },
+];
+
+const FOOTER_LINKS = [
+  { href: '/privacy', labelAr: 'سياسة الخصوصية', labelFr: 'Confidentialité', labelEn: 'Privacy', icon: <ShieldCheck className="h-3.5 w-3.5" /> },
+  { href: '/terms', labelAr: 'شروط الخدمة', labelFr: 'Conditions', labelEn: 'Terms', icon: <FileText className="h-3.5 w-3.5" /> },
+];
+
+// ─── Sidebar ───────────────────────────────────────────────────────────────────
+
+const SIDEBAR_EXPANDED_W = 240;
+const SIDEBAR_COLLAPSED_W = 64;
+
+function SidebarNav({ onClose }: { onClose?: () => void }) {
   const { lang, setLang, t } = useLanguage();
   const { user, openAuthModal, logout } = useAuth();
+  const pathname = usePathname();
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [expanded, setExpanded] = useState(true);
   const [toolsOpen, setToolsOpen] = useState(false);
+  const isMobileDrawer = !!onClose;
 
+  // Restore sidebar state from localStorage and sync CSS variable
   useEffect(() => {
-    const savedTheme = localStorage.getItem('app_theme');
-    const initialTheme = savedTheme === 'light' || savedTheme === 'dark'
-      ? savedTheme
-      : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-
-    // Hydrate the theme after the browser becomes available.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTheme(initialTheme);
-    document.documentElement.dataset.theme = initialTheme;
+    try {
+      const saved = localStorage.getItem('sidebar_expanded');
+      const isExpanded = saved !== null ? saved === 'true' : true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setExpanded(isExpanded);
+      document.documentElement.style.setProperty(
+        '--sidebar-w',
+        isExpanded ? `${SIDEBAR_EXPANDED_W}px` : `${SIDEBAR_COLLAPSED_W}px`
+      );
+    } catch { /* ignore */ }
   }, []);
 
-  const toggleTheme = () => {
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem('app_theme');
+      const initialTheme = savedTheme === 'light' || savedTheme === 'dark'
+        ? savedTheme
+        : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTheme(initialTheme);
+      document.documentElement.dataset.theme = initialTheme;
+    } catch { /* ignore */ }
+  }, []);
+
+  const toggleSidebar = useCallback(() => {
+    setExpanded((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('sidebar_expanded', String(next));
+        document.documentElement.style.setProperty(
+          '--sidebar-w',
+          next ? `${SIDEBAR_EXPANDED_W}px` : `${SIDEBAR_COLLAPSED_W}px`
+        );
+      } catch { /* ignore */ }
+      return next;
+    });
+  }, []);
+
+  const toggleTheme = useCallback(() => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);
-    localStorage.setItem('app_theme', nextTheme);
-    document.documentElement.dataset.theme = nextTheme;
-  };
+    try {
+      localStorage.setItem('app_theme', nextTheme);
+      document.documentElement.dataset.theme = nextTheme;
+    } catch { /* ignore */ }
+  }, [theme]);
+
+  const labelOf = (item: { labelAr: string; labelFr: string; labelEn: string }) =>
+    lang === 'ar' ? item.labelAr : lang === 'fr' ? item.labelFr : item.labelEn;
+
+  const isActive = (href: string) =>
+    href === '/' ? pathname === '/' : pathname.startsWith(href);
+
+  // Auto-open Tools group when on a tools route or when user toggles it
+  const isToolsRoute = pathname.startsWith('/tools');
+  const isToolsExpanded = toolsOpen || isToolsRoute;
+
+  const width = isMobileDrawer ? SIDEBAR_EXPANDED_W : (expanded ? SIDEBAR_EXPANDED_W : SIDEBAR_COLLAPSED_W);
 
   return (
-    <header className="site-header border-b border-slate-800/80 px-6 py-3.5 flex items-center justify-between backdrop-blur-md sticky top-0 z-50 bg-slate-950/80">
-      <div className="flex items-center gap-6">
-        <Link href="/" className="flex items-center gap-3 group">
-          <AppifyaLogoIcon />
-          <span className="font-extrabold text-2xl tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-slate-400">
+    <aside
+      className="site-sidebar flex flex-col h-full select-none"
+      style={{ width }}
+      aria-label={lang === 'ar' ? 'القائمة الجانبية' : lang === 'fr' ? 'Navigation latérale' : 'Sidebar navigation'}
+    >
+      {/* ── Logo + toggle ── */}
+      <div className="flex items-center justify-between px-3 py-4 shrink-0">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 group min-w-0"
+          onClick={onClose}
+          style={{ opacity: expanded || isMobileDrawer ? 1 : 0, pointerEvents: expanded || isMobileDrawer ? 'auto' : 'none', transition: 'opacity 150ms' }}
+        >
+          <AppifyaLogoIcon small />
+          <span className="font-extrabold text-lg tracking-tight truncate bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-slate-400 sidebar-brand-text">
             Appifya
           </span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-5 text-sm font-medium text-slate-400">
-          <Link href="/" className="hover:text-white transition-colors">
-            {lang === 'ar' ? 'الرئيسية' : lang === 'fr' ? 'Accueil' : 'Home'}
+        {/* Logo icon when collapsed (no text) */}
+        {!expanded && !isMobileDrawer && (
+          <Link href="/" className="group mx-auto">
+            <AppifyaLogoIcon small />
           </Link>
-          <Link href="/about" className="hover:text-white transition-colors">
-            {t('navAbout')}
-          </Link>
-          <Link href="/guide" className="hover:text-white transition-colors">
-            {lang === 'ar' ? 'دليل التثبيت' : lang === 'fr' ? 'Guide' : 'Install Guide'}
-          </Link>
-          <Link href="/admob" className="hover:text-white transition-colors">
-            {lang === 'ar' ? 'إعداد AdMob' : lang === 'fr' ? 'Config. AdMob' : 'AdMob Setup'}
-          </Link>
-          {/* Tools dropdown */}
-          <div
-            className="relative"
-            onMouseEnter={() => setToolsOpen(true)}
-            onMouseLeave={() => setToolsOpen(false)}
-          >
-            <button
-              type="button"
-              onClick={() => setToolsOpen((o) => !o)}
-              className="flex items-center gap-1 hover:text-white transition-colors cursor-pointer"
-              aria-haspopup="true"
-              aria-expanded={toolsOpen}
-            >
-              <FileCode className="h-3.5 w-3.5" />
-              <span>{lang === 'ar' ? 'أدوات' : lang === 'fr' ? 'Outils' : 'Tools'}</span>
-              <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${toolsOpen ? 'rotate-180' : ''}`} />
-            </button>
+        )}
 
-            {toolsOpen && (
-              <div className="absolute top-full pt-2 z-50" style={lang === 'ar' ? { right: 0 } : { left: 0 }}>
-                <div className="w-56 rounded-2xl border border-slate-700/60 bg-slate-900/95 backdrop-blur-md shadow-2xl shadow-black/40 py-1.5 overflow-hidden">
-                  <Link
-                    href="/tools/manifest-generator"
-                    onClick={() => setToolsOpen(false)}
-                    className="flex items-start gap-3 px-4 py-3 hover:bg-slate-800/70 transition-colors group"
-                  >
-                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/15 border border-indigo-500/20 group-hover:bg-indigo-500/25">
-                      <FileCode className="h-3.5 w-3.5 text-indigo-400" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-white leading-tight">
-                        {lang === 'ar' ? 'مولد Manifest' : lang === 'fr' ? 'Générateur Manifest' : 'Manifest Generator'}
-                      </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
-                        {lang === 'ar' ? 'أنشئ manifest.json لتطبيقك' : lang === 'fr' ? 'Créer un fichier manifest.json' : 'Build your PWA manifest.json'}
-                      </p>
-                    </div>
-                  </Link>
-                  <Link
-                    href="/tools/icon-generator"
-                    onClick={() => setToolsOpen(false)}
-                    className="flex items-start gap-3 px-4 py-3 hover:bg-slate-800/70 transition-colors group"
-                  >
-                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-purple-500/15 border border-purple-500/20 group-hover:bg-purple-500/25">
-                      <ImageIcon className="h-3.5 w-3.5 text-purple-400" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-white leading-tight">
-                        {lang === 'ar' ? 'مولد أيقونات التطبيق' : lang === 'fr' ? 'Générateur d\'icônes' : 'Icon Generator'}
-                      </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
-                        {lang === 'ar' ? 'جميع أحجام PWA من صورة واحدة' : lang === 'fr' ? 'Toutes les tailles PWA en un clic' : 'All PWA sizes from one image'}
-                      </p>
-                    </div>
-                  </Link>
-                  <Link
-                    href="/tools/pwa-checker"
-                    onClick={() => setToolsOpen(false)}
-                    className="flex items-start gap-3 px-4 py-3 hover:bg-slate-800/70 transition-colors group"
-                  >
-                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 border border-emerald-500/20 group-hover:bg-emerald-500/25">
-                      <Gauge className="h-3.5 w-3.5 text-emerald-400" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-white leading-tight">
-                        {lang === 'ar' ? 'فاحص جاهزية PWA' : lang === 'fr' ? 'Vérificateur PWA' : 'PWA Checker'}
-                      </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
-                        {lang === 'ar' ? 'اختبر موقعك في ثوانٍ' : lang === 'fr' ? 'Testez votre site en quelques secondes' : 'Test your site in seconds'}
-                      </p>
-                    </div>
-                  </Link>
-                  <div className="mx-4 my-1.5 border-t border-slate-800" />
-                  <Link
-                    href="/tools"
-                    onClick={() => setToolsOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2.5 hover:bg-slate-800/70 transition-colors text-slate-400 hover:text-white"
-                  >
-                    <span className="text-[11px] font-semibold">
-                      {lang === 'ar' ? 'عرض جميع الأدوات ←' : lang === 'fr' ? 'Voir tous les outils →' : 'View all tools →'}
-                    </span>
-                  </Link>
-                </div>
-              </div>
+        {!isMobileDrawer ? (
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="sidebar-toggle-btn shrink-0 rounded-lg p-1.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            aria-label={expanded
+              ? (lang === 'ar' ? 'طي القائمة' : lang === 'fr' ? 'Réduire' : 'Collapse sidebar')
+              : (lang === 'ar' ? 'توسيع القائمة' : lang === 'fr' ? 'Développer' : 'Expand sidebar')}
+          >
+            {expanded ? (
+              <PanelLeftClose className="h-4 w-4 rtl:rotate-180" />
+            ) : (
+              <PanelLeftOpen className="h-4 w-4 rtl:rotate-180" />
             )}
-          </div>
-          <Link href="/contact" className="hover:text-white transition-colors">
-            {t('navContact')}
-          </Link>
-          {user && (
-            <Link href="/dashboard" className="text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1.5">
-              <LayoutDashboard className="h-4 w-4" />
-              <span>{lang === 'ar' ? 'تطبيقاتي' : 'Dashboard'}</span>
-            </Link>
-          )}
-        </nav>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onClose}
+            className="sidebar-toggle-btn shrink-0 rounded-lg p-1.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            aria-label={lang === 'ar' ? 'إغلاق القائمة' : lang === 'fr' ? 'Fermer' : 'Close menu'}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="mx-3 border-t border-slate-800/60 mb-2 shrink-0" />
+
+      {/* ── Nav links ── */}
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 space-y-0.5 min-h-0">
+        {NAV_ITEMS.map((item) => {
+          if (item.kind === 'link') {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onClose}
+                className={`sidebar-nav-link flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors group
+                  ${active ? 'sidebar-nav-active' : 'text-slate-400 hover:text-white'}`}
+                title={!expanded && !isMobileDrawer ? labelOf(item) : undefined}
+              >
+                <span className="shrink-0">{item.icon}</span>
+                {(expanded || isMobileDrawer) && (
+                  <span className="truncate">{item.kind === 'link' && item.labelKey === 'navAbout' ? t('navAbout') : item.kind === 'link' && item.labelKey === 'navContact' ? t('navContact') : labelOf(item)}</span>
+                )}
+              </Link>
+            );
+          }
+
+          // Group (Tools)
+          return (
+            <div key={item.labelKey}>
+              <button
+                type="button"
+                onClick={() => { if (expanded || isMobileDrawer) setToolsOpen((o) => !o); }}
+                className={`sidebar-nav-link w-full flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors cursor-pointer
+                  ${isToolsExpanded && (expanded || isMobileDrawer) ? 'sidebar-nav-active' : 'text-slate-400 hover:text-white'}`}
+                aria-expanded={isToolsExpanded}
+                title={!expanded && !isMobileDrawer ? labelOf(item) : undefined}
+              >
+                <span className="shrink-0">{item.icon}</span>
+                {(expanded || isMobileDrawer) && (
+                  <>
+                    <span className="flex-1 text-start truncate">{labelOf(item)}</span>
+                    <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${isToolsExpanded ? 'rotate-180' : ''}`} />
+                  </>
+                )}
+              </button>
+
+              {/* Sub-items */}
+              {isToolsExpanded && (expanded || isMobileDrawer) && (
+                <div className="mt-0.5 ms-3 ps-3 border-s border-slate-700/50 space-y-0.5">
+                  {item.children.map((child) => {
+                    const active = isActive(child.href);
+                    return (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        onClick={onClose}
+                        className={`sidebar-nav-link flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors
+                          ${active ? 'sidebar-nav-active' : 'text-slate-400 hover:text-white'}`}
+                      >
+                        <span className="shrink-0">{child.icon}</span>
+                        <span className="truncate">{labelOf(child)}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Dashboard (auth-gated) */}
+        {user && (
+          <Link
+            href="/dashboard"
+            onClick={onClose}
+            className={`sidebar-nav-link flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors
+              ${isActive('/dashboard') ? 'sidebar-nav-active' : 'text-indigo-400 hover:text-indigo-300'}`}
+            title={!expanded && !isMobileDrawer ? (lang === 'ar' ? 'تطبيقاتي' : 'Dashboard') : undefined}
+          >
+            <LayoutDashboard className="h-4 w-4 shrink-0" />
+            {(expanded || isMobileDrawer) && (
+              <span className="truncate">{lang === 'ar' ? 'تطبيقاتي' : 'Dashboard'}</span>
+            )}
+          </Link>
+        )}
+      </nav>
+
+      <div className="mx-3 border-t border-slate-800/60 mt-2 shrink-0" />
+
+      {/* ── Bottom controls ── */}
+      <div className="px-2 py-3 space-y-1 shrink-0">
+
+        {/* Theme toggle */}
         <button
           type="button"
           onClick={toggleTheme}
-          className="theme-toggle rounded-xl border border-slate-800 bg-slate-900 p-2 text-slate-300 transition-colors hover:text-white"
+          className={`theme-toggle sidebar-nav-link w-full flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors text-slate-400 hover:text-white`}
           aria-label={theme === 'dark'
-            ? (lang === 'ar' ? 'تفعيل الوضع الفاتح' : lang === 'fr' ? 'Activer le mode clair' : 'Enable light mode')
-            : (lang === 'ar' ? 'تفعيل الوضع المظلم' : lang === 'fr' ? 'Activer le mode sombre' : 'Enable dark mode')}
-          title={theme === 'dark'
-            ? (lang === 'ar' ? 'الوضع الفاتح' : lang === 'fr' ? 'Mode clair' : 'Light mode')
-            : (lang === 'ar' ? 'الوضع المظلم' : lang === 'fr' ? 'Mode sombre' : 'Dark mode')}
+            ? (lang === 'ar' ? 'تفعيل الوضع الفاتح' : lang === 'fr' ? 'Mode clair' : 'Light mode')
+            : (lang === 'ar' ? 'تفعيل الوضع المظلم' : lang === 'fr' ? 'Mode sombre' : 'Dark mode')}
+          title={!expanded && !isMobileDrawer ? (theme === 'dark' ? 'Light mode' : 'Dark mode') : undefined}
         >
-          {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          <span className="shrink-0">
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </span>
+          {(expanded || isMobileDrawer) && (
+            <span>{theme === 'dark'
+              ? (lang === 'ar' ? 'الوضع الفاتح' : lang === 'fr' ? 'Mode clair' : 'Light mode')
+              : (lang === 'ar' ? 'الوضع المظلم' : lang === 'fr' ? 'Mode sombre' : 'Dark mode')}
+            </span>
+          )}
         </button>
-        <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-2.5 py-1.5 rounded-xl text-xs text-slate-300">
-          <Globe className="h-3.5 w-3.5 text-indigo-400" />
-          <select
-            value={lang}
-            onChange={(e) => setLang(e.target.value as Language)}
-            className="bg-transparent border-0 text-xs text-slate-200 focus:outline-none cursor-pointer"
-          >
-            <option value="ar" className="bg-slate-900 text-white">العربية</option>
-            <option value="en" className="bg-slate-900 text-white">English</option>
-            <option value="fr" className="bg-slate-900 text-white">Français</option>
-          </select>
-        </div>
 
+        {/* Language selector */}
+        {(expanded || isMobileDrawer) && (
+          <div className="sidebar-nav-link flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-slate-400">
+            <Globe className="h-4 w-4 shrink-0 text-indigo-400" />
+            <select
+              value={lang}
+              onChange={(e) => setLang(e.target.value as Language)}
+              className="sidebar-lang-select flex-1 bg-transparent border-0 text-sm text-slate-200 focus:outline-none cursor-pointer min-w-0"
+            >
+              <option value="ar" className="bg-slate-900 text-white">العربية</option>
+              <option value="en" className="bg-slate-900 text-white">English</option>
+              <option value="fr" className="bg-slate-900 text-white">Français</option>
+            </select>
+          </div>
+        )}
+        {/* Language icon only when collapsed */}
+        {!expanded && !isMobileDrawer && (
+          <div className="sidebar-nav-link flex justify-center rounded-xl px-2.5 py-2 text-slate-400" title="Language">
+            <Globe className="h-4 w-4 text-indigo-400" />
+          </div>
+        )}
+
+        {/* Auth */}
         {user ? (
-          <div className="flex items-center gap-2">
+          <div className={`flex ${expanded || isMobileDrawer ? 'items-center gap-2' : 'flex-col items-center gap-1'}`}>
             <Link
               href="/dashboard"
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-200 rounded-xl"
+              onClick={onClose}
+              className="sidebar-nav-link flex-1 flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-slate-200 hover:text-white transition-colors min-w-0"
+              title={!expanded && !isMobileDrawer ? (user.name || user.email.split('@')[0]) : undefined}
             >
-              <User className="h-3.5 w-3.5 text-indigo-400" />
-              <span className="hidden sm:inline font-medium">{user.name || user.email.split('@')[0]}</span>
+              <User className="h-4 w-4 shrink-0 text-indigo-400" />
+              {(expanded || isMobileDrawer) && (
+                <span className="truncate text-xs font-medium">{user.name || user.email.split('@')[0]}</span>
+              )}
             </Link>
             <button
               onClick={() => logout()}
               title={lang === 'ar' ? 'تسجيل الخروج' : lang === 'fr' ? 'Se déconnecter' : 'Sign out'}
-              className="p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-900 transition-colors"
+              className="sidebar-nav-link rounded-lg p-1.5 text-slate-400 hover:text-red-400 transition-colors"
             >
               <LogOut className="h-4 w-4" />
             </button>
           </div>
         ) : (
           <button
-            onClick={() => openAuthModal()}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
+            onClick={() => { openAuthModal(); onClose?.(); }}
+            className={`w-full flex items-center gap-2 px-2.5 py-2 bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-500/20 transition-all cursor-pointer ${expanded || isMobileDrawer ? 'justify-start' : 'justify-center'}`}
+            title={!expanded && !isMobileDrawer ? 'Sign In' : undefined}
           >
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>{lang === 'ar' ? 'تسجيل الدخول' : 'Sign In'}</span>
+            <Sparkles className="h-4 w-4 shrink-0" />
+            {(expanded || isMobileDrawer) && (
+              <span>{lang === 'ar' ? 'تسجيل الدخول' : 'Sign In'}</span>
+            )}
           </button>
         )}
+
+        {/* Footer links */}
+        {(expanded || isMobileDrawer) && (
+          <div className="flex gap-3 pt-1 ps-1">
+            {FOOTER_LINKS.map((fl) => (
+              <Link
+                key={fl.href}
+                href={fl.href}
+                onClick={onClose}
+                className="text-[11px] text-slate-500 hover:text-slate-300 transition-colors"
+              >
+                {lang === 'ar' ? fl.labelAr : lang === 'fr' ? fl.labelFr : fl.labelEn}
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
+    </aside>
+  );
+}
+
+// ─── Mobile top bar ────────────────────────────────────────────────────────────
+
+function MobileTopBar({ onMenuOpen }: { onMenuOpen: () => void }) {
+  const { lang } = useLanguage();
+  return (
+    <header className="site-mobile-topbar flex items-center justify-between px-4 py-3 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md sticky top-0 z-40">
+      <Link href="/" className="flex items-center gap-2.5 group">
+        <AppifyaLogoIcon small />
+        <span className="font-extrabold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-slate-400 sidebar-brand-text">
+          Appifya
+        </span>
+      </Link>
+      <button
+        type="button"
+        onClick={onMenuOpen}
+        aria-label={lang === 'ar' ? 'فتح القائمة' : lang === 'fr' ? 'Ouvrir le menu' : 'Open menu'}
+        className="sidebar-toggle-btn rounded-lg p-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+      >
+        <PanelLeftOpen className="h-5 w-5 rtl:rotate-180" />
+      </button>
     </header>
   );
 }
+
+// ─── Footer ────────────────────────────────────────────────────────────────────
 
 function SiteFooter() {
   const { lang, t } = useLanguage();
@@ -240,7 +423,11 @@ function SiteFooter() {
   );
 }
 
+// ─── Root wrapper ──────────────────────────────────────────────────────────────
+
 export default function ClientLayoutWrapper({ children }: { children: React.ReactNode }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch((error: unknown) => {
@@ -249,12 +436,53 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
     }
   }, []);
 
+  // Close drawer on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
+
   return (
     <AuthProvider>
       <LanguageProvider>
-        <NavigationBar />
-        <div className="flex-1 flex flex-col">{children}</div>
-        <SiteFooter />
+        {/* Desktop: fixed sidebar */}
+        <div className="site-sidebar-desktop">
+          <Suspense fallback={null}>
+            <SidebarNav />
+          </Suspense>
+        </div>
+
+        {/* Mobile: top bar */}
+        <MobileTopBar onMenuOpen={() => setMobileOpen(true)} />
+
+        {/* Mobile drawer overlay */}
+        {mobileOpen && (
+          <div
+            className="fixed inset-0 z-50 flex"
+            role="dialog"
+            aria-modal="true"
+          >
+            {/* Scrim */}
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setMobileOpen(false)}
+              aria-hidden="true"
+            />
+            {/* Drawer panel */}
+            <div className="relative z-10 site-sidebar-drawer site-sidebar-wrapper h-full overflow-y-auto max-w-[85vw]">
+              <Suspense fallback={null}>
+                <SidebarNav onClose={() => setMobileOpen(false)} />
+              </Suspense>
+            </div>
+          </div>
+        )}
+
+        {/* Main content — offset by sidebar width on desktop using logical padding */}
+        <div className="site-content-wrapper flex flex-col min-h-screen">
+          <div className="flex-1 flex flex-col">{children}</div>
+          <SiteFooter />
+        </div>
       </LanguageProvider>
     </AuthProvider>
   );

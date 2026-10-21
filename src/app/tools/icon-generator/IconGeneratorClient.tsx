@@ -445,7 +445,7 @@ export default function IconGeneratorClient() {
   // -------------------------------------------------------------------------
   const L = {
     headline: lang === 'ar' ? <>مولّد أيقونات <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">تطبيقات PWA</span></> :
-               lang === 'fr' ? <>Générateur d'<span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">icônes PWA</span></> :
+               lang === 'fr' ? <>Générateur d&apos;<span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">icônes PWA</span></> :
                <>Free PWA <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">Icon Generator</span></>,
     sub: lang === 'ar' ? 'ارفع صورة واحدة واحصل على جميع أحجام أيقونات PWA المطلوبة فوراً — 192، 512، maskable، Apple touch icon، وfavicon — جاهزة للتحميل كملف ZIP.'
        : lang === 'fr' ? 'Téléchargez une seule image et obtenez instantanément toutes les tailles d\'icônes PWA nécessaires — 192, 512, maskable, Apple touch icon, favicon — dans un ZIP prêt à l\'emploi.'
