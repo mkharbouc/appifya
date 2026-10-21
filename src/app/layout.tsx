@@ -159,7 +159,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="site-body antialiased bg-slate-950 text-slate-100 flex flex-col min-h-screen">
+      <body className="site-body antialiased bg-[#090a0d] text-zinc-100 flex flex-col min-h-screen">
         {structuredData.map((data, index) => (
           <script
             key={index}

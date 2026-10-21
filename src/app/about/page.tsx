@@ -80,13 +80,13 @@ export default function AboutPage() {
       </div>
 
       {/* CTA Box */}
-      <div className="bg-gradient-to-r from-indigo-900/30 to-pink-900/30 border border-indigo-500/30 rounded-3xl p-8 text-center space-y-4">
+      <div className="bg-gradient-to-r from-indigo-950/40 via-zinc-900/60 to-violet-950/30 border border-zinc-800 rounded-3xl p-8 text-center space-y-4 shadow-xl">
         <h2 className="text-xl md:text-2xl font-bold text-white">
           {lang === 'ar' ? 'جاهز لتحويل متجرك اليوم؟' : lang === 'fr' ? 'Prêt à propulser votre boutique ?' : 'Ready to launch your mobile app?'}
         </h2>
         <Link
           href="/"
-          className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-500 to-pink-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/25 transition-all hover:opacity-95"
+          className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/25 ring-1 ring-white/10 transition-all hover:opacity-95"
         >
           {lang === 'ar' ? 'ابدأ الآن مجاناً' : lang === 'fr' ? 'Commencer Gratuitement' : 'Get Started for Free'}
         </Link>

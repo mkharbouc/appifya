@@ -336,14 +336,14 @@ export default function HomePage() {
       <div className="text-center max-w-3xl mx-auto mb-10">
         <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-4">
           {lang === 'ar' ? (
-            <>حوّل متجرك أو صفحة الهبوط إلى <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">تطبيق PWA فائق السرعة</span></>
+            <>حوّل متجرك أو صفحة الهبوط إلى <span className="bg-gradient-to-r from-indigo-400 via-indigo-300 to-violet-400 bg-clip-text text-transparent">تطبيق PWA فائق السرعة</span></>
           ) : lang === 'fr' ? (
-            <>Transformez votre boutique en une <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">PWA Mobile Ultra-Rapide</span></>
+            <>Transformez votre boutique en une <span className="bg-gradient-to-r from-indigo-400 via-indigo-300 to-violet-400 bg-clip-text text-transparent">PWA Mobile Ultra-Rapide</span></>
           ) : (
-            <>Convert Your Store or Landing Page into a <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">Fast Mobile PWA</span></>
+            <>Convert Your Store or Landing Page into a <span className="bg-gradient-to-r from-indigo-400 via-indigo-300 to-violet-400 bg-clip-text text-transparent">Fast Mobile PWA</span></>
           )}
         </h1>
-        <p className="text-sm sm:text-base text-slate-400 leading-relaxed max-w-2xl mx-auto">
+        <p className="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-2xl mx-auto">
           {lang === 'ar'
             ? 'أنشئ تطبيق ويب تقدمي قابل للتثبيت بضغطة زر، مدمج بحزم إعلانية متوافقة ومربوط سحابياً مع لوحة تحكمك.'
             : lang === 'fr'
@@ -352,9 +352,9 @@ export default function HomePage() {
         </p>
       </div>
 
-      <section className="showcase-panel relative isolate mb-12 overflow-hidden rounded-[2rem] border border-indigo-500/20 bg-gradient-to-br from-indigo-950 via-slate-950 to-pink-950 p-5 shadow-2xl shadow-indigo-950/30 sm:p-8" aria-labelledby="showcase-title">
-        <div className="pointer-events-none absolute -left-20 -top-24 -z-10 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -right-16 -z-10 h-64 w-64 rounded-full bg-pink-500/15 blur-3xl" />
+      <section className="showcase-panel relative isolate mb-12 overflow-hidden rounded-[2rem] border border-zinc-800/80 bg-gradient-to-b from-zinc-900/80 via-zinc-900/50 to-zinc-950/90 p-5 shadow-2xl shadow-black/60 sm:p-8" aria-labelledby="showcase-title">
+        <div className="pointer-events-none absolute -left-20 -top-24 -z-10 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -right-16 -z-10 h-64 w-64 rounded-full bg-violet-500/10 blur-3xl" />
         <div className="grid items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]">
           <div className={isRtl ? 'text-right' : 'text-left'}>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-indigo-300/20 bg-white/5 px-3 py-1.5 text-[11px] font-bold text-indigo-200">
@@ -604,7 +604,7 @@ export default function HomePage() {
                   onClick={() => setPlatform(p)}
                   className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                     platform === p
-                      ? 'bg-gradient-to-r from-indigo-500/20 to-pink-500/20 border-indigo-500 text-white shadow-md'
+                      ? 'bg-indigo-500/15 border-indigo-500/60 text-white shadow-sm ring-1 ring-indigo-500/20'
                       : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
                   }`}
                 >
@@ -689,7 +689,7 @@ export default function HomePage() {
               type="button"
               onClick={handleCreateOrExport}
               disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white font-extrabold text-sm sm:text-base rounded-2xl shadow-xl shadow-indigo-500/25 flex items-center justify-center gap-3 transition-all cursor-pointer disabled:opacity-50"
+              className="w-full py-4 bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-extrabold text-sm sm:text-base rounded-2xl shadow-xl shadow-indigo-500/25 ring-1 ring-white/10 flex items-center justify-center gap-3 transition-all cursor-pointer disabled:opacity-50"
             >
               {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />

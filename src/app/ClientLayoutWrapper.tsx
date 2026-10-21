@@ -17,7 +17,7 @@ function AppifyaLogoIcon({ small = false }: { small?: boolean }) {
   const size = small ? "h-8 w-8" : "h-10 w-10";
   const imgSize = small ? "h-6 w-6" : "h-8 w-8";
   return (
-    <div className={`relative flex ${size} items-center justify-center rounded-xl border border-indigo-500/30 bg-slate-950 shadow-lg shadow-indigo-500/20 transition-all group-hover:border-pink-500/50 shrink-0`}>
+    <div className={`relative flex ${size} items-center justify-center rounded-xl border border-white/10 bg-zinc-900 shadow-md shadow-black/40 transition-all group-hover:border-indigo-500/40 shrink-0`}>
       <img src="/icon.svg" alt="Appifya" className={`${imgSize} rounded-lg`} />
     </div>
   );
@@ -345,7 +345,7 @@ function SidebarNav({ onClose }: { onClose?: () => void }) {
         ) : (
           <button
             onClick={() => { openAuthModal(); onClose?.(); }}
-            className={`w-full flex items-center gap-2 px-2.5 py-2 bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-500/20 transition-all cursor-pointer ${expanded || isMobileDrawer ? 'justify-start' : 'justify-center'}`}
+            className={`w-full flex items-center gap-2 px-2.5 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-500/25 transition-all cursor-pointer ${expanded || isMobileDrawer ? 'justify-start' : 'justify-center'}`}
             title={!expanded && !isMobileDrawer ? 'Sign In' : undefined}
           >
             <Sparkles className="h-4 w-4 shrink-0" />

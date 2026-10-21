@@ -159,7 +159,7 @@ export default function ToolsPage() {
           </div>
           <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-4">
             PWA{' '}
-            <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-indigo-400 via-indigo-300 to-violet-400 bg-clip-text text-transparent">
               Developer Tools
             </span>
           </h1>
@@ -209,7 +209,7 @@ export default function ToolsPage() {
         </div>
 
         {/* Bottom CTA */}
-        <div className="mt-20 rounded-3xl border border-indigo-500/25 bg-gradient-to-br from-indigo-950 via-slate-950 to-pink-950 p-10 text-center relative overflow-hidden">
+        <div className="mt-20 rounded-3xl border border-zinc-800/80 bg-gradient-to-b from-zinc-900/80 via-zinc-900/50 to-zinc-950/90 p-10 text-center relative overflow-hidden shadow-2xl shadow-black/60">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent" />
           <div className="relative">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-indigo-300/20 bg-white/5 px-3 py-1 text-xs font-bold text-indigo-200">
@@ -226,7 +226,7 @@ export default function ToolsPage() {
             </p>
             <Link
               href="/"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 px-6 py-3 text-sm font-bold text-white shadow-xl shadow-indigo-500/25 transition-all"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 px-6 py-3 text-sm font-bold text-white shadow-xl shadow-indigo-500/25 ring-1 ring-white/10 transition-all"
             >
               <span>Start building for free</span>
               <ArrowRight className="h-4 w-4" />

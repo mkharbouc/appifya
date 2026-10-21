@@ -412,7 +412,7 @@ export default function AdMobPage() {
         <div className="flex flex-wrap gap-3 justify-center">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-pink-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/25 hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/25 ring-1 ring-white/10 hover:opacity-90 transition-all"
           >
             <LayoutDashboard className="h-4 w-4" />
             {t('لوحة التحكم', 'Tableau de bord', 'Go to Dashboard')}
@@ -587,7 +587,7 @@ export default function AdMobPage() {
             type="button"
             onClick={handleNextStep1}
             disabled={apps.length === 0}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-indigo-500 to-pink-500 hover:opacity-90 disabled:opacity-40 text-white font-bold text-sm rounded-xl transition-opacity shadow-lg shadow-indigo-500/20"
+            className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 hover:opacity-90 disabled:opacity-40 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-indigo-500/20 ring-1 ring-white/10"
           >
             {t('التالي: رفع الملف', 'Suivant : téléverser le fichier', 'Next: upload file')}
             <ArrowRight className={`h-4 w-4 ${isRtl ? 'rotate-180' : ''}`} />
@@ -720,7 +720,7 @@ export default function AdMobPage() {
               type="button"
               onClick={() => setStep(3)}
               disabled={uploading}
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-indigo-500 to-pink-500 hover:opacity-90 disabled:opacity-40 text-white font-bold text-sm rounded-xl transition-opacity shadow-lg shadow-indigo-500/20"
+              className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 hover:opacity-90 disabled:opacity-40 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-indigo-500/20 ring-1 ring-white/10"
             >
               {t('التالي: المراجعة', 'Suivant : révision', 'Next: review')}
               <ArrowRight className={`h-4 w-4 ${isRtl ? 'rotate-180' : ''}`} />

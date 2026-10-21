@@ -109,7 +109,7 @@ export default function ContactPage() {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 font-bold text-sm text-white rounded-xl shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                className="w-full py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 font-bold text-sm text-white rounded-xl shadow-lg shadow-indigo-500/25 ring-1 ring-white/10 flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <Send className="h-4 w-4" />
                 <span>{lang === 'ar' ? 'إرسال الرسالة' : lang === 'fr' ? 'Envoyer le message' : 'Send Message'}</span>

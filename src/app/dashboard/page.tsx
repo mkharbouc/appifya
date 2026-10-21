@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -257,7 +257,7 @@ export default function DashboardPage() {
             >
               <X className="h-5 w-5" />
             </button>
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-pink-500 shadow-lg shadow-indigo-500/30">
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
               <Hammer className="h-8 w-8 animate-pulse text-white" />
             </div>
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-indigo-300">{getTxt('buildNoticeStatus')}</p>
@@ -286,7 +286,7 @@ export default function DashboardPage() {
         </div>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-500/20 transition-all self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-500/20 ring-1 ring-white/10 transition-all self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
           <span>{getTxt('newApp')}</span>

@@ -451,7 +451,7 @@ export default function GuidePage() {
           onClick={() => setTab('android')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold border transition-all ${
             tab === 'android'
-              ? 'bg-gradient-to-r from-indigo-500/20 to-pink-500/20 border-indigo-500 text-white shadow-md'
+              ? 'bg-indigo-500/15 border-indigo-500/60 text-white shadow-sm ring-1 ring-indigo-500/20'
               : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
           }`}
         >
@@ -466,7 +466,7 @@ export default function GuidePage() {
           onClick={() => setTab('ios')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold border transition-all ${
             tab === 'ios'
-              ? 'bg-gradient-to-r from-indigo-500/20 to-pink-500/20 border-indigo-500 text-white shadow-md'
+              ? 'bg-indigo-500/15 border-indigo-500/60 text-white shadow-sm ring-1 ring-indigo-500/20'
               : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
           }`}
         >
@@ -533,7 +533,7 @@ export default function GuidePage() {
       </section>
 
       {/* CTA */}
-      <div className="bg-gradient-to-r from-indigo-900/30 to-pink-900/30 border border-indigo-500/30 rounded-3xl p-8 text-center space-y-4">
+      <div className="bg-gradient-to-r from-indigo-950/40 via-zinc-900/60 to-violet-950/30 border border-zinc-800 rounded-3xl p-8 text-center space-y-4 shadow-xl">
         <h2 className="text-xl font-bold text-white">
           {lang === 'ar'
             ? 'هل أنجزت التثبيت بنجاح؟'
@@ -551,7 +551,7 @@ export default function GuidePage() {
         <div className="flex flex-wrap justify-center gap-3">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-pink-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/25 hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/25 ring-1 ring-white/10 hover:opacity-90 transition-all"
           >
             <LayoutDashboard className="h-4 w-4" />
             {lang === 'ar'
