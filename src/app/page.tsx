@@ -352,72 +352,77 @@ export default function HomePage() {
         </p>
       </div>
 
-      <section className="showcase-panel relative isolate mb-12 overflow-hidden rounded-[2rem] border border-zinc-800/80 bg-gradient-to-b from-zinc-900/80 via-zinc-900/50 to-zinc-950/90 p-5 shadow-2xl shadow-black/60 sm:p-8" aria-labelledby="showcase-title">
-        <div className="pointer-events-none absolute -left-20 -top-24 -z-10 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -right-16 -z-10 h-64 w-64 rounded-full bg-violet-500/10 blur-3xl" />
-        <div className="grid items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className={isRtl ? 'text-right' : 'text-left'}>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-indigo-300/20 bg-white/5 px-3 py-1.5 text-[11px] font-bold text-indigo-200">
-              <Sparkles className="h-3.5 w-3.5" />
-              {lang === 'ar' ? 'شاهد كيف تتحول فكرتك إلى تطبيق' : lang === 'fr' ? 'Voyez votre idée devenir une application' : 'See your idea become an app'}
-            </div>
-            <h2 id="showcase-title" className="max-w-xl text-2xl font-black leading-tight text-white sm:text-4xl">
-              {lang === 'ar' ? 'تجربة عصرية تبدأ من رابط واحد' : lang === 'fr' ? 'Une expérience moderne à partir d’un seul lien' : 'A modern experience from one simple link'}
-            </h2>
-            <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">
-              {lang === 'ar'
-                ? 'أدخل رابط متجرك، خصص مظهر التطبيق، ثم شاهد المعاينة الفورية قبل النشر. كل خطوة واضحة ومصممة لتكسب ثقة زوارك.'
-                : lang === 'fr'
-                  ? 'Ajoutez votre lien, personnalisez l’apparence et prévisualisez votre application avant de la publier.'
-                  : 'Add your store link, customize the look, and preview your app before publishing. Every step is clear and built to earn trust.'}
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <a href="#builder" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-indigo-950 shadow-lg transition hover:bg-indigo-50">
-                <Play className="h-3.5 w-3.5 fill-current" />
-                {lang === 'ar' ? 'ابدأ التجربة' : lang === 'fr' ? 'Commencer' : 'Start building'}
-              </a>
-              <a href="/guide" className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/10">
-                {lang === 'ar' ? 'دليل التثبيت الكامل' : lang === 'fr' ? 'Guide d\'installation complet' : 'Full Installation Guide'}
-                <ArrowUpRight className="h-3.5 w-3.5" />
-              </a>
-              <a href="/about" className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/10">
-                {lang === 'ar' ? 'اكتشف الطريقة' : lang === 'fr' ? 'Découvrir' : 'Discover how it works'}
-                <ArrowUpRight className="h-3.5 w-3.5" />
-              </a>
-            </div>
-          </div>
-
-          <div className="relative mx-auto w-full max-w-md">
-            <div className="showcase-window overflow-hidden rounded-2xl border border-white/15 bg-slate-900/80 shadow-2xl backdrop-blur">
-              <div className="flex items-center gap-1.5 border-b border-white/10 px-4 py-3">
-                <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                <span className="ml-2 truncate rounded-md bg-white/5 px-3 py-1 text-[9px] text-slate-400">appifya.app/preview</span>
+      {/* Neon Purple Animated Border Beam around Showcase Card */}
+      <div className="neon-border-wrapper mb-12">
+        <div className="neon-border-glow" aria-hidden="true" />
+        <div className="neon-border-beam" aria-hidden="true" />
+        <section className="showcase-panel relative isolate overflow-hidden rounded-[calc(2rem-2px)] bg-gradient-to-b from-zinc-900/90 via-zinc-900/60 to-zinc-950/95 p-5 shadow-2xl shadow-black/80 sm:p-8" aria-labelledby="showcase-title">
+          <div className="pointer-events-none absolute -left-20 -top-24 -z-10 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -right-16 -z-10 h-64 w-64 rounded-full bg-violet-500/10 blur-3xl" />
+          <div className="grid items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className={isRtl ? 'text-right' : 'text-left'}>
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-indigo-300/20 bg-white/5 px-3 py-1.5 text-[11px] font-bold text-indigo-200">
+                <Sparkles className="h-3.5 w-3.5" />
+                {lang === 'ar' ? 'شاهد كيف تتحول فكرتك إلى تطبيق' : lang === 'fr' ? 'Voyez votre idée devenir une application' : 'See your idea become an app'}
               </div>
-              <div className="relative aspect-[16/10] overflow-hidden">
-                <img src="/logo.jpg.jpeg" alt="Appifya platform preview" className="h-full w-full object-cover opacity-35" />
-                <div className="absolute inset-0 bg-gradient-to-tr from-indigo-950/95 via-indigo-950/40 to-transparent" />
-                <div className="absolute inset-x-5 bottom-5">
-                  <div className="mb-3 h-2 w-20 rounded-full bg-indigo-300/60" />
-                  <div className="h-3 w-4/5 rounded-full bg-white/80" />
-                  <div className="mt-2 h-2 w-3/5 rounded-full bg-white/30" />
-                  <div className="mt-5 flex gap-2">
-                    <span className="h-7 w-20 rounded-lg bg-white/90" />
-                    <span className="h-7 w-14 rounded-lg bg-white/20" />
+              <h2 id="showcase-title" className="max-w-xl text-2xl font-black leading-tight text-white sm:text-4xl">
+                {lang === 'ar' ? 'تجربة عصرية تبدأ من رابط واحد' : lang === 'fr' ? 'Une expérience moderne à partir d’un seul lien' : 'A modern experience from one simple link'}
+              </h2>
+              <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">
+                {lang === 'ar'
+                  ? 'أدخل رابط متجرك، خصص مظهر التطبيق، ثم شاهد المعاينة الفورية قبل النشر. كل خطوة واضحة ومصممة لتكسب ثقة زوارك.'
+                  : lang === 'fr'
+                    ? 'Ajoutez votre lien, personnalisez l’apparence et prévisualisez votre application avant de la publier.'
+                    : 'Add your store link, customize the look, and preview your app before publishing. Every step is clear and built to earn trust.'}
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <a href="#builder" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-indigo-950 shadow-lg transition hover:bg-indigo-50">
+                  <Play className="h-3.5 w-3.5 fill-current" />
+                  {lang === 'ar' ? 'ابدأ التجربة' : lang === 'fr' ? 'Commencer' : 'Start building'}
+                </a>
+                <a href="/guide" className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/10">
+                  {lang === 'ar' ? 'دليل التثبيت الكامل' : lang === 'fr' ? 'Guide d\'installation complet' : 'Full Installation Guide'}
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </a>
+                <a href="/about" className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/10">
+                  {lang === 'ar' ? 'اكتشف الطريقة' : lang === 'fr' ? 'Découvrir' : 'Discover how it works'}
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            </div>
+
+            <div className="relative mx-auto w-full max-w-md">
+              <div className="showcase-window overflow-hidden rounded-2xl border border-purple-500/25 bg-slate-900/80 shadow-2xl shadow-purple-500/10 backdrop-blur">
+                <div className="flex items-center gap-1.5 border-b border-white/10 px-4 py-3">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                  <span className="ml-2 truncate rounded-md bg-white/5 px-3 py-1 text-[9px] text-slate-400">appifya.app/preview</span>
+                </div>
+                <div className="relative aspect-[16/10] overflow-hidden">
+                  <img src="/logo.jpg.jpeg" alt="Appifya platform preview" className="h-full w-full object-cover opacity-35" />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-950/95 via-indigo-950/40 to-transparent" />
+                  <div className="absolute inset-x-5 bottom-5">
+                    <div className="mb-3 h-2 w-20 rounded-full bg-indigo-300/60" />
+                    <div className="h-3 w-4/5 rounded-full bg-white/80" />
+                    <div className="mt-2 h-2 w-3/5 rounded-full bg-white/30" />
+                    <div className="mt-5 flex gap-2">
+                      <span className="h-7 w-20 rounded-lg bg-white/90" />
+                      <span className="h-7 w-14 rounded-lg bg-white/20" />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="showcase-step absolute -bottom-4 -left-3 rounded-xl border border-indigo-300/20 bg-slate-900/95 px-3 py-2 shadow-xl sm:-left-6">
-              <div className="flex items-center gap-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-400/15 text-emerald-300"><Check className="h-4 w-4" /></span>
-                <span className="text-[10px] font-bold text-white">{lang === 'ar' ? 'جاهز للنشر' : lang === 'fr' ? 'Prêt à publier' : 'Ready to publish'}</span>
+              <div className="showcase-step absolute -bottom-4 -left-3 rounded-xl border border-indigo-300/20 bg-slate-900/95 px-3 py-2 shadow-xl sm:-left-6">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-400/15 text-emerald-300"><Check className="h-4 w-4" /></span>
+                  <span className="text-[10px] font-bold text-white">{lang === 'ar' ? 'جاهز للنشر' : lang === 'fr' ? 'Prêt à publier' : 'Ready to publish'}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       {statusMsg && (
         <div
