@@ -12,8 +12,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/guide',
     '/admob',
     '/dashboard',
+    '/tools',
     '/tools/manifest-generator',
     '/tools/icon-generator',
+    '/tools/pwa-checker',
   ];
 
   return routes.map((route) => ({

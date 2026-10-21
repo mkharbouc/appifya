@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { LanguageProvider, useLanguage, type Language } from "./lib/i18n";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { Globe, Sparkles, LayoutDashboard, LogOut, User, Moon, Sun, FileCode, ChevronDown, ImageIcon } from "lucide-react";
+import { Globe, Sparkles, LayoutDashboard, LogOut, User, Moon, Sun, FileCode, ChevronDown, ImageIcon, Gauge } from "lucide-react";
 
 function AppifyaLogoIcon() {
   return (
@@ -117,6 +117,33 @@ function NavigationBar() {
                       </p>
                     </div>
                   </Link>
+                  <Link
+                    href="/tools/pwa-checker"
+                    onClick={() => setToolsOpen(false)}
+                    className="flex items-start gap-3 px-4 py-3 hover:bg-slate-800/70 transition-colors group"
+                  >
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 border border-emerald-500/20 group-hover:bg-emerald-500/25">
+                      <Gauge className="h-3.5 w-3.5 text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-white leading-tight">
+                        {lang === 'ar' ? 'فاحص جاهزية PWA' : lang === 'fr' ? 'Vérificateur PWA' : 'PWA Checker'}
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                        {lang === 'ar' ? 'اختبر موقعك في ثوانٍ' : lang === 'fr' ? 'Testez votre site en quelques secondes' : 'Test your site in seconds'}
+                      </p>
+                    </div>
+                  </Link>
+                  <div className="mx-4 my-1.5 border-t border-slate-800" />
+                  <Link
+                    href="/tools"
+                    onClick={() => setToolsOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2.5 hover:bg-slate-800/70 transition-colors text-slate-400 hover:text-white"
+                  >
+                    <span className="text-[11px] font-semibold">
+                      {lang === 'ar' ? 'عرض جميع الأدوات ←' : lang === 'fr' ? 'Voir tous les outils →' : 'View all tools →'}
+                    </span>
+                  </Link>
                 </div>
               </div>
             )}
@@ -203,6 +230,7 @@ function SiteFooter() {
         <Link href="/admob" className="hover:text-white">{lang === 'ar' ? 'إعداد AdMob' : lang === 'fr' ? 'Config. AdMob' : 'AdMob Setup'}</Link>
         <Link href="/tools/manifest-generator" className="hover:text-white">{lang === 'ar' ? 'مولد Manifest' : lang === 'fr' ? 'Générateur Manifest' : 'Manifest Generator'}</Link>
         <Link href="/tools/icon-generator" className="hover:text-white">{lang === 'ar' ? 'مولد الأيقونات' : lang === 'fr' ? 'Générateur d\'icônes' : 'Icon Generator'}</Link>
+        <Link href="/tools/pwa-checker" className="hover:text-white">{lang === 'ar' ? 'فاحص PWA' : lang === 'fr' ? 'Vérificateur PWA' : 'PWA Checker'}</Link>
         <Link href="/contact" className="hover:text-white">{t('navContact')}</Link>
         <Link href="/privacy" className="hover:text-white">{lang === 'ar' ? 'سياسة الخصوصية' : lang === 'fr' ? 'Confidentialité' : 'Privacy Policy'}</Link>
         <Link href="/terms" className="hover:text-white">{lang === 'ar' ? 'شروط الخدمة' : lang === 'fr' ? 'Conditions' : 'Terms of Service'}</Link>
