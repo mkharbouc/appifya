@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { LanguageProvider, useLanguage, type Language } from "./lib/i18n";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { Globe, Sparkles, LayoutDashboard, LogOut, User, Moon, Sun } from "lucide-react";
+import { Globe, Sparkles, LayoutDashboard, LogOut, User, Moon, Sun, FileCode, ChevronDown } from "lucide-react";
 
 function AppifyaLogoIcon() {
   return (
@@ -18,6 +18,7 @@ function NavigationBar() {
   const { lang, setLang, t } = useLanguage();
   const { user, openAuthModal, logout } = useAuth();
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [toolsOpen, setToolsOpen] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('app_theme');
@@ -61,6 +62,48 @@ function NavigationBar() {
           <Link href="/admob" className="hover:text-white transition-colors">
             {lang === 'ar' ? 'إعداد AdMob' : lang === 'fr' ? 'Config. AdMob' : 'AdMob Setup'}
           </Link>
+          {/* Tools dropdown */}
+          <div
+            className="relative"
+            onMouseEnter={() => setToolsOpen(true)}
+            onMouseLeave={() => setToolsOpen(false)}
+          >
+            <button
+              type="button"
+              onClick={() => setToolsOpen((o) => !o)}
+              className="flex items-center gap-1 hover:text-white transition-colors cursor-pointer"
+              aria-haspopup="true"
+              aria-expanded={toolsOpen}
+            >
+              <FileCode className="h-3.5 w-3.5" />
+              <span>{lang === 'ar' ? 'أدوات' : lang === 'fr' ? 'Outils' : 'Tools'}</span>
+              <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${toolsOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {toolsOpen && (
+              <div className="absolute top-full pt-2 z-50" style={lang === 'ar' ? { right: 0 } : { left: 0 }}>
+                <div className="w-56 rounded-2xl border border-slate-700/60 bg-slate-900/95 backdrop-blur-md shadow-2xl shadow-black/40 py-1.5 overflow-hidden">
+                  <Link
+                    href="/tools/manifest-generator"
+                    onClick={() => setToolsOpen(false)}
+                    className="flex items-start gap-3 px-4 py-3 hover:bg-slate-800/70 transition-colors group"
+                  >
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/15 border border-indigo-500/20 group-hover:bg-indigo-500/25">
+                      <FileCode className="h-3.5 w-3.5 text-indigo-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-white leading-tight">
+                        {lang === 'ar' ? 'مولد Manifest' : lang === 'fr' ? 'Générateur Manifest' : 'Manifest Generator'}
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                        {lang === 'ar' ? 'أنشئ manifest.json لتطبيقك' : lang === 'fr' ? 'Créer un fichier manifest.json' : 'Build your PWA manifest.json'}
+                      </p>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
           <Link href="/contact" className="hover:text-white transition-colors">
             {t('navContact')}
           </Link>
@@ -141,6 +184,7 @@ function SiteFooter() {
         <Link href="/about" className="hover:text-white">{t('navAbout')}</Link>
         <Link href="/guide" className="hover:text-white">{lang === 'ar' ? 'دليل التثبيت' : lang === 'fr' ? 'Guide' : 'Install Guide'}</Link>
         <Link href="/admob" className="hover:text-white">{lang === 'ar' ? 'إعداد AdMob' : lang === 'fr' ? 'Config. AdMob' : 'AdMob Setup'}</Link>
+        <Link href="/tools/manifest-generator" className="hover:text-white">{lang === 'ar' ? 'مولد Manifest' : lang === 'fr' ? 'Générateur Manifest' : 'Manifest Generator'}</Link>
         <Link href="/contact" className="hover:text-white">{t('navContact')}</Link>
         <Link href="/privacy" className="hover:text-white">{lang === 'ar' ? 'سياسة الخصوصية' : lang === 'fr' ? 'Confidentialité' : 'Privacy Policy'}</Link>
         <Link href="/terms" className="hover:text-white">{lang === 'ar' ? 'شروط الخدمة' : lang === 'fr' ? 'Conditions' : 'Terms of Service'}</Link>
