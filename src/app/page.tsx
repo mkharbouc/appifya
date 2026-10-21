@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from './lib/i18n';
 import { databases, storage } from '@/lib/appwrite';
@@ -26,6 +27,8 @@ import {
   Send,
   Play,
   ArrowUpRight,
+  ArrowRight,
+  DollarSign,
 } from 'lucide-react';
 
 const faqSchema = (lang: 'ar' | 'en' | 'fr') => ({
@@ -129,6 +132,7 @@ export default function HomePage() {
   const [iconPreview, setIconPreview] = useState('');
   const [admobAppId, setAdmobAppId] = useState('');
   const [admobBannerUnitId, setAdmobBannerUnitId] = useState('');
+  const [showManualAdmob, setShowManualAdmob] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
   const [notificationTitle, setNotificationTitle] = useState('عرض خاص من متجرك');
   const [notificationMessage, setNotificationMessage] = useState('خصم 50% لفترة محدودة على جميع المنتجات!');
@@ -656,37 +660,87 @@ export default function HomePage() {
             </label>
           </div>
 
-          <div className="border-t border-slate-800 pt-5">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
-              {lang === 'ar' ? 'إعلانات Google AdMob (اختياري)' : lang === 'fr' ? 'Publicités Google AdMob (facultatif)' : 'Google AdMob ads (optional)'}
-            </h2>
-            <p className="text-[11px] text-slate-500 mb-4">
-              {lang === 'ar'
-                ? 'اختياري لنسخة Android فقط. التحويل المجاني لا يحتوي على إعلانات. لن تُستخدم الإعلانات قبل اكتمال إعداد APK المدعوم بـ AdMob.'
-                : lang === 'fr'
-                  ? 'Optionnel et réservé à Android. L’export gratuit est sans publicité. Les annonces ne seront utilisées qu’après la mise en place du APK AdMob.'
-                  : 'Optional and Android-only. The free export has no ads. Ads will only be used after the AdMob-enabled APK builder is ready.'}
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input
-                type="text"
-                value={admobAppId}
-                onChange={(e) => setAdmobAppId(e.target.value)}
-                placeholder="ca-app-pub-...~..."
-                aria-label="AdMob App ID"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
-                dir="ltr"
-              />
-              <input
-                type="text"
-                value={admobBannerUnitId}
-                onChange={(e) => setAdmobBannerUnitId(e.target.value)}
-                placeholder="ca-app-pub-.../..."
-                aria-label="AdMob Banner Ad Unit ID"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
-                dir="ltr"
-              />
+          {/* AdMob Guidance Notice */}
+          <div className="rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-950/30 via-zinc-900/50 to-purple-950/20 p-4 transition-all hover:border-indigo-500/35">
+            <div className="flex items-start gap-3.5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-400/30 text-indigo-300 shadow-inner">
+                <DollarSign className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <span className="text-xs font-bold text-white">
+                    {lang === 'ar' ? 'هل ترغب في تحقيق أرباح عبر Google AdMob؟' : lang === 'fr' ? 'Monétisation Google AdMob' : 'Monetize with Google AdMob'}
+                  </span>
+                  <span className="rounded-full bg-indigo-500/15 border border-indigo-500/25 px-2 py-0.5 text-[10px] font-semibold text-indigo-300">
+                    {lang === 'ar' ? 'أندرويد APK' : lang === 'fr' ? 'Android APK' : 'Android APK'}
+                  </span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-slate-400 mb-2.5">
+                  {lang === 'ar'
+                    ? 'يمكنك ربط وتهيئة إعلاناتك (البنر والشاشات الكاملة) وتوليد ملف APK المخصص بسهولة عبر صفحة إعداد AdMob.'
+                    : lang === 'fr'
+                      ? 'Configurez vos identifiants AdMob et générez votre APK monétisé directement depuis notre page dédiée.'
+                      : 'Configure your AdMob IDs and build a monetized APK anytime through our dedicated setup page.'}
+                </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Link
+                    href="/admob"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors group"
+                  >
+                    <span>{lang === 'ar' ? 'انتقل إلى إعدادات AdMob' : lang === 'fr' ? 'Accéder à la config AdMob' : 'Go to AdMob Setup'}</span>
+                    <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 transition-transform group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
+                  </Link>
+
+                  <span className="text-slate-600 text-xs">•</span>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowManualAdmob(!showManualAdmob)}
+                    className="text-[11px] text-slate-400 hover:text-slate-300 underline underline-offset-4 cursor-pointer"
+                  >
+                    {showManualAdmob
+                      ? (lang === 'ar' ? 'إخفاء الحقول اليدوية' : lang === 'fr' ? 'Masquer la saisie manuelle' : 'Hide manual fields')
+                      : (lang === 'ar' ? 'أو أدخل المعرّفات هنا مباشرة' : lang === 'fr' ? 'Ou saisir manuellement ici' : 'Or enter IDs directly here')}
+                  </button>
+                </div>
+              </div>
             </div>
+
+            {/* Optional Collapsible Manual Input (collapsed by default, 0 clutter) */}
+            {showManualAdmob && (
+              <div className="mt-3.5 pt-3.5 border-t border-white/5 space-y-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-[10px] font-semibold text-slate-400 mb-1">
+                      {lang === 'ar' ? 'معرّف تطبيق AdMob' : lang === 'fr' ? 'ID d’application AdMob' : 'AdMob App ID'}
+                    </label>
+                    <input
+                      type="text"
+                      value={admobAppId}
+                      onChange={(e) => setAdmobAppId(e.target.value)}
+                      placeholder="ca-app-pub-...~..."
+                      aria-label="AdMob App ID"
+                      className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                      dir="ltr"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold text-slate-400 mb-1">
+                      {lang === 'ar' ? 'معرّف إعلان البنر' : lang === 'fr' ? 'ID d’unité bannière' : 'Banner Ad Unit ID'}
+                    </label>
+                    <input
+                      type="text"
+                      value={admobBannerUnitId}
+                      onChange={(e) => setAdmobBannerUnitId(e.target.value)}
+                      placeholder="ca-app-pub-.../..."
+                      aria-label="AdMob Banner Ad Unit ID"
+                      className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                      dir="ltr"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="pt-2">
