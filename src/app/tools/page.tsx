@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { FileCode, ImageIcon, Gauge, ArrowRight, Sparkles, Wrench } from 'lucide-react';
+import { FileCode, ImageIcon, Gauge, QrCode, ArrowRight, Sparkles, Wrench } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Free PWA Developer Tools - Manifest Generator, Icon Generator & More',
@@ -72,6 +72,13 @@ const jsonLd = {
       applicationCategory: 'DeveloperApplication',
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     },
+    {
+      '@type': 'WebApplication',
+      name: 'App & PWA QR Code Generator',
+      url: 'https://appifya.app/tools/qr-generator',
+      applicationCategory: 'DeveloperApplication',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
   ],
 };
 
@@ -87,6 +94,24 @@ interface Tool {
 }
 
 const TOOLS: Tool[] = [
+  {
+    href: '/tools/qr-generator',
+    icon: QrCode,
+    iconColor: 'text-cyan-400',
+    iconBg: 'bg-cyan-500/15 border-cyan-500/25',
+    badge: 'New',
+    title: {
+      ar: 'مولّد رمز QR للتطبيق',
+      en: 'App QR Code Generator',
+      fr: 'Générateur de QR Code',
+    },
+    description: {
+      ar: 'أنشئ رمز QR مخصصاً لتطبيقك أو متجرك مع إضافة شعارك في المنتصف، ألوان هويتك، إطارات الدعوة للتثبيت، والتنزيل بدقة طباعة 300 DPI أو متجه SVG.',
+      en: 'Generate custom, high-resolution QR codes for your PWA or store with center logo, brand colors, scan frames, and vector SVG or 300 DPI PNG export.',
+      fr: 'Créez des QR codes personnalisés avec logo au centre, couleurs de votre marque, bannières d’action et téléchargement en SVG ou PNG 300 DPI.',
+    },
+    cta: { ar: 'توليد رمز QR', en: 'Create QR Code', fr: 'Créer QR Code' },
+  },
   {
     href: '/tools/manifest-generator',
     icon: FileCode,

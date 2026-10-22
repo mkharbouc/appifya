@@ -7,7 +7,7 @@ import { LanguageProvider, useLanguage, type Language } from "./lib/i18n";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import {
   Globe, Sparkles, LayoutDashboard, LogOut, User, Moon, Sun,
-  FileCode, ChevronDown, ImageIcon, Gauge, Home, Info, BookOpen,
+  FileCode, ChevronDown, ImageIcon, Gauge, QrCode, Home, Info, BookOpen,
   DollarSign, Mail, ShieldCheck, FileText, PanelLeftClose, PanelLeftOpen, Wrench, X,
 } from "lucide-react";
 
@@ -46,6 +46,7 @@ const NAV_ITEMS: NavItem[] = [
     children: [
       { href: '/tools/manifest-generator', labelAr: 'مولد Manifest', labelFr: 'Générateur Manifest', labelEn: 'Manifest Generator', icon: <FileCode className="h-3.5 w-3.5 text-indigo-400" />, descAr: 'أنشئ manifest.json لتطبيقك', descFr: 'Créer un fichier manifest.json', descEn: 'Build your PWA manifest.json' },
       { href: '/tools/icon-generator', labelAr: 'مولد أيقونات التطبيق', labelFr: 'Générateur d\'icônes', labelEn: 'Icon Generator', icon: <ImageIcon className="h-3.5 w-3.5 text-purple-400" />, descAr: 'جميع أحجام PWA من صورة واحدة', descFr: 'Toutes les tailles PWA en un clic', descEn: 'All PWA sizes from one image' },
+      { href: '/tools/qr-generator', labelAr: 'مولد رمز QR للتطبيق', labelFr: 'Générateur de QR Code', labelEn: 'App QR Code Generator', icon: <QrCode className="h-3.5 w-3.5 text-cyan-400" />, descAr: 'امسح لتثبيت التطبيق فوراً', descFr: 'Scannez pour installer l\'app', descEn: 'Scan to install & launch app' },
       { href: '/tools/pwa-checker', labelAr: 'فاحص جاهزية PWA', labelFr: 'Vérificateur PWA', labelEn: 'PWA Checker', icon: <Gauge className="h-3.5 w-3.5 text-emerald-400" />, descAr: 'اختبر موقعك في ثوانٍ', descFr: 'Testez votre site en quelques secondes', descEn: 'Test your site in seconds' },
       { href: '/tools', labelAr: 'جميع الأدوات', labelFr: 'Tous les outils', labelEn: 'All Tools', icon: <Wrench className="h-3.5 w-3.5 text-slate-400" />, descAr: 'تصفح كل الأدوات المتاحة', descFr: 'Parcourir tous les outils disponibles', descEn: 'Browse every available tool' },
     ],
