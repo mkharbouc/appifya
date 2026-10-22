@@ -270,7 +270,7 @@ export default function CustomerStoriesShowcase() {
       {/* Section Header */}
       <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-indigo-400/20 bg-indigo-500/10 px-3.5 py-1 text-[11px] font-bold text-indigo-300">
+          <div className="stories-header-badge mb-3 inline-flex items-center gap-2 rounded-full border border-indigo-400/20 bg-indigo-500/10 px-3.5 py-1 text-[11px] font-bold text-indigo-300">
             <Sparkles className="h-3.5 w-3.5" />
             <span>
               {lang === 'ar'
@@ -282,7 +282,7 @@ export default function CustomerStoriesShowcase() {
           </div>
           <h2
             id="customer-stories-title"
-            className="text-2xl font-black tracking-tight text-white sm:text-4xl"
+            className="stories-header-title text-2xl font-black tracking-tight text-white sm:text-4xl"
           >
             {lang === 'ar'
               ? 'تجارب ناجحة تُلهم وتدعم نمو علامتك'
@@ -305,7 +305,7 @@ export default function CustomerStoriesShowcase() {
             type="button"
             onClick={prevSlide}
             aria-label="Previous story"
-            className="group flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-zinc-900/80 backdrop-blur-md text-white shadow-lg transition-all hover:border-white/30 hover:bg-zinc-800 hover:scale-105 active:scale-95 cursor-pointer"
+            className="stories-nav-btn group flex h-11 w-11 items-center justify-center rounded-full border shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
           >
             <ChevronLeft className="h-5 w-5 rtl:rotate-180 transition-transform group-hover:-translate-x-0.5 rtl:group-hover:translate-x-0.5" />
           </button>
@@ -313,7 +313,7 @@ export default function CustomerStoriesShowcase() {
             type="button"
             onClick={nextSlide}
             aria-label="Next story"
-            className="group flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-zinc-900/80 backdrop-blur-md text-white shadow-lg transition-all hover:border-white/30 hover:bg-zinc-800 hover:scale-105 active:scale-95 cursor-pointer"
+            className="stories-nav-btn group flex h-11 w-11 items-center justify-center rounded-full border shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
           >
             <ChevronRight className="h-5 w-5 rtl:rotate-180 transition-transform group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
           </button>
@@ -321,13 +321,13 @@ export default function CustomerStoriesShowcase() {
       </div>
 
       {/* Main Cinematic Showcase Card */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 shadow-2xl min-h-[560px] md:min-h-[620px] flex flex-col justify-between">
+      <div className="customer-stories-card relative overflow-hidden rounded-3xl min-h-[560px] md:min-h-[620px] flex flex-col justify-between">
         {/* Dynamic Background Image */}
         {STORIES.map((story, idx) => (
           <div
             key={story.id}
             className={`absolute inset-0 transition-opacity duration-700 ease-in-out pointer-events-none ${
-              idx === activeIndex ? 'opacity-100 z-0' : 'opacity-0 z-0'
+              idx === activeIndex ? 'opacity-95 z-0' : 'opacity-0 z-0'
             }`}
           >
             <img
@@ -338,29 +338,24 @@ export default function CustomerStoriesShowcase() {
           </div>
         ))}
 
-        {/* Obsidian Cinematic Gradient Overlays */}
-        {/* Directional Overlay: dark on text side, transparent on photo side */}
+        {/* Directional Overlays with Theme Harmony */}
         <div
           className={`absolute inset-0 z-10 pointer-events-none ${
-            isRtl
-              ? 'bg-gradient-to-l from-zinc-950/98 via-zinc-950/88 md:to-transparent/20'
-              : 'bg-gradient-to-r from-zinc-950/98 via-zinc-950/88 md:to-transparent/20'
+            isRtl ? 'stories-gradient-rtl' : 'stories-gradient-ltr'
           }`}
         />
-        {/* Bottom overlay for thumbnail legibility */}
-        <div className="absolute inset-x-0 bottom-0 h-64 z-10 pointer-events-none bg-gradient-to-t from-zinc-950 via-zinc-950/85 to-transparent" />
-        {/* Ambient Top Glow */}
-        <div className="absolute top-0 inset-x-0 h-32 z-10 pointer-events-none bg-gradient-to-b from-zinc-950/60 to-transparent" />
+        <div className="stories-bottom-gradient absolute inset-x-0 bottom-0 h-64 z-10 pointer-events-none" />
+        <div className="stories-top-glow absolute top-0 inset-x-0 h-32 z-10 pointer-events-none" />
 
         {/* Content Area */}
         <div className="relative z-20 p-6 sm:p-10 md:p-12 flex-1 flex flex-col justify-between">
           {/* Top Row: Metric & Mobile Arrows */}
           <div className="flex items-start justify-between gap-4">
             <div>
-              <div className="inline-block rounded-md bg-indigo-500/20 border border-indigo-400/30 px-2.5 py-1 text-[11px] font-bold text-indigo-300 uppercase tracking-wider mb-2">
+              <div className="stories-category-badge inline-block rounded-md px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider mb-2 border">
                 {activeStory.category[lang]}
               </div>
-              <div className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight drop-shadow-md">
+              <div className="stories-metric-text text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight drop-shadow-sm">
                 {activeStory.metric[lang]}
               </div>
             </div>
@@ -371,7 +366,7 @@ export default function CustomerStoriesShowcase() {
                 type="button"
                 onClick={prevSlide}
                 aria-label="Previous story"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-zinc-900/90 text-white cursor-pointer"
+                className="stories-nav-btn flex h-9 w-9 items-center justify-center rounded-full border cursor-pointer"
               >
                 <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
               </button>
@@ -379,7 +374,7 @@ export default function CustomerStoriesShowcase() {
                 type="button"
                 onClick={nextSlide}
                 aria-label="Next story"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-zinc-900/90 text-white cursor-pointer"
+                className="stories-nav-btn flex h-9 w-9 items-center justify-center rounded-full border cursor-pointer"
               >
                 <ChevronRight className="h-4 w-4 rtl:rotate-180" />
               </button>
@@ -388,12 +383,12 @@ export default function CustomerStoriesShowcase() {
 
           {/* Center Story Content & Quote */}
           <div className="max-w-2xl my-6 sm:my-8 space-y-5">
-            <p className="text-xs sm:text-sm leading-relaxed text-slate-300">
+            <p className="stories-summary-text text-xs sm:text-sm leading-relaxed">
               {activeStory.summary[lang]}
             </p>
 
             <blockquote className="border-s-2 border-indigo-500 ps-4 sm:ps-5 my-4">
-              <p className="text-sm sm:text-lg font-medium italic leading-relaxed text-white drop-shadow">
+              <p className="stories-quote-text text-sm sm:text-lg font-medium italic leading-relaxed">
                 “{activeStory.quote[lang]}”
               </p>
             </blockquote>
@@ -403,13 +398,13 @@ export default function CustomerStoriesShowcase() {
               <img
                 src={activeStory.author.avatar}
                 alt={activeStory.author.name[lang]}
-                className="h-11 w-11 sm:h-12 sm:w-12 rounded-full object-cover ring-2 ring-indigo-500/40 border border-white/10 shadow-md"
+                className="h-11 w-11 sm:h-12 sm:w-12 rounded-full object-cover ring-2 ring-indigo-500/40 border border-white/20 shadow-md"
               />
               <div>
-                <div className="text-sm font-bold text-white">
+                <div className="stories-author-name text-sm font-bold">
                   {activeStory.author.name[lang]}
                 </div>
-                <div className="text-xs text-slate-400">
+                <div className="stories-author-role text-xs">
                   {activeStory.author.role[lang]}
                 </div>
               </div>
@@ -420,7 +415,7 @@ export default function CustomerStoriesShowcase() {
               <button
                 type="button"
                 onClick={() => setModalStory(activeStory)}
-                className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-indigo-400 hover:text-indigo-300 transition-colors group cursor-pointer"
+                className="stories-cta-btn inline-flex items-center gap-2 text-xs sm:text-sm font-bold transition-colors group cursor-pointer"
               >
                 <span>
                   {lang === 'ar'
@@ -435,7 +430,7 @@ export default function CustomerStoriesShowcase() {
           </div>
 
           {/* Bottom Thumbnails Navigation Bar (Exact Median Style) */}
-          <div className="pt-6 border-t border-white/10 mt-auto">
+          <div className="stories-thumb-separator pt-6 border-t mt-auto">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
               {STORIES.map((story, idx) => {
                 const isActive = idx === activeIndex;
@@ -444,10 +439,10 @@ export default function CustomerStoriesShowcase() {
                     key={story.id}
                     type="button"
                     onClick={() => setActiveIndex(idx)}
-                    className={`relative h-20 sm:h-24 rounded-2xl overflow-hidden transition-all duration-300 text-start group cursor-pointer ${
+                    className={`relative h-20 sm:h-24 rounded-2xl overflow-hidden transition-all duration-300 text-start group cursor-pointer border ${
                       isActive
-                        ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-zinc-950 scale-[1.02] shadow-xl shadow-indigo-500/20'
-                        : 'opacity-70 hover:opacity-100 hover:border-white/30 border border-white/10'
+                        ? 'stories-thumb-active ring-2 ring-indigo-500 ring-offset-2 ring-offset-zinc-950 scale-[1.02]'
+                        : 'stories-thumb-inactive hover:opacity-100'
                     }`}
                   >
                     {/* Thumbnail Image */}
@@ -456,12 +451,12 @@ export default function CustomerStoriesShowcase() {
                       alt={story.brand}
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
-                    {/* Dark gradient for text readability */}
+                    {/* Gradient for text readability over thumbnail photo */}
                     <div
                       className={`absolute inset-0 ${
                         isActive
-                          ? 'bg-gradient-to-t from-zinc-950/95 via-zinc-950/60 to-transparent'
-                          : 'bg-gradient-to-t from-zinc-950/90 via-zinc-950/70 to-zinc-950/40 group-hover:via-zinc-950/50'
+                          ? 'bg-gradient-to-t from-black/90 via-black/50 to-transparent'
+                          : 'bg-gradient-to-t from-black/85 via-black/60 to-black/30 group-hover:via-black/40'
                       }`}
                     />
 
@@ -492,20 +487,20 @@ export default function CustomerStoriesShowcase() {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn"
           onClick={() => setModalStory(null)}
         >
           <div
-            className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-white/15 bg-zinc-900 shadow-2xl p-6 sm:p-8 space-y-6"
+            className="stories-modal-content relative w-full max-w-2xl overflow-hidden rounded-3xl border border-white/15 bg-zinc-900 shadow-2xl p-6 sm:p-8 space-y-6"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div className="flex items-start justify-between gap-4">
               <div>
-                <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">
+                <span className="stories-category-badge inline-block rounded-md px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider border">
                   {modalStory.category[lang]}
                 </span>
-                <h3 className="text-2xl font-black text-white mt-1">
+                <h3 className="text-2xl font-black text-white mt-2">
                   {modalStory.brand}
                 </h3>
               </div>
@@ -513,17 +508,17 @@ export default function CustomerStoriesShowcase() {
                 type="button"
                 onClick={() => setModalStory(null)}
                 aria-label="Close dialog"
-                className="h-9 w-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                className="stories-modal-close-btn h-9 w-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             {/* Key Metrics Banner */}
-            <div className="grid grid-cols-3 gap-3 rounded-2xl bg-zinc-950/80 border border-white/5 p-4 text-center">
+            <div className="stories-modal-stat-box grid grid-cols-3 gap-3 rounded-2xl bg-zinc-950/80 border border-white/5 p-4 text-center">
               {modalStory.stats.map((stat, i) => (
                 <div key={i}>
-                  <div className="text-xl sm:text-2xl font-black text-indigo-400">
+                  <div className="text-xl sm:text-2xl font-black text-indigo-500">
                     {stat.value}
                   </div>
                   <div className="text-[11px] text-slate-400 mt-1">
@@ -534,7 +529,7 @@ export default function CustomerStoriesShowcase() {
             </div>
 
             {/* Quote block */}
-            <div className="rounded-2xl border border-indigo-500/20 bg-indigo-950/20 p-4">
+            <div className="stories-modal-quote-box rounded-2xl border border-indigo-500/20 bg-indigo-950/20 p-4">
               <p className="text-xs sm:text-sm italic leading-relaxed text-slate-200">
                 “{modalStory.quote[lang]}”
               </p>
@@ -575,11 +570,11 @@ export default function CustomerStoriesShowcase() {
             </div>
 
             {/* Modal Footer CTA */}
-            <div className="pt-2 flex justify-end gap-3 border-t border-white/10">
+            <div className="pt-2 flex justify-end gap-3 border-t border-white/10 stories-thumb-separator">
               <button
                 type="button"
                 onClick={() => setModalStory(null)}
-                className="px-4 py-2 text-xs font-bold text-slate-300 hover:text-white transition-colors cursor-pointer"
+                className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
               >
                 {lang === 'ar' ? 'إغلاق' : lang === 'fr' ? 'Fermer' : 'Close'}
               </button>

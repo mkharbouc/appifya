@@ -619,6 +619,214 @@ html[data-theme="light"] .preview-device textarea {
   color: #ffffff;
 }
 
+/* ── Customer Stories Showcase — Dual-Theme Harmony ────────────────── */
+
+.customer-stories-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  transition: background-color 300ms, border-color 300ms, box-shadow 300ms;
+}
+
+/* Dark Theme */
+html[data-theme="dark"] .customer-stories-card {
+  background-color: #090a0d;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85);
+}
+
+html[data-theme="dark"] .stories-gradient-rtl {
+  background: linear-gradient(to left, rgba(9, 10, 13, 0.94) 0%, rgba(9, 10, 13, 0.78) 45%, rgba(9, 10, 13, 0.2) 75%, transparent 100%);
+}
+
+html[data-theme="dark"] .stories-gradient-ltr {
+  background: linear-gradient(to right, rgba(9, 10, 13, 0.94) 0%, rgba(9, 10, 13, 0.78) 45%, rgba(9, 10, 13, 0.2) 75%, transparent 100%);
+}
+
+html[data-theme="dark"] .stories-bottom-gradient {
+  background: linear-gradient(to top, rgba(9, 10, 13, 0.95) 0%, rgba(9, 10, 13, 0.6) 60%, transparent 100%);
+}
+
+html[data-theme="dark"] .stories-top-glow {
+  background: linear-gradient(to bottom, rgba(9, 10, 13, 0.5) 0%, transparent 100%);
+}
+
+html[data-theme="dark"] .stories-metric-text {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .stories-summary-text {
+  color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] .stories-quote-text {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .stories-author-name {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .stories-author-role {
+  color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .stories-cta-btn {
+  color: #818cf8 !important;
+}
+
+html[data-theme="dark"] .stories-category-badge {
+  background: rgba(99, 102, 241, 0.18) !important;
+  color: #c7d2fe !important;
+  border-color: rgba(129, 140, 248, 0.35) !important;
+}
+
+html[data-theme="dark"] .stories-nav-btn {
+  background: rgba(18, 19, 24, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+html[data-theme="dark"] .stories-nav-btn:hover {
+  background: rgba(30, 32, 40, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+html[data-theme="dark"] .stories-thumb-inactive {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  opacity: 0.75;
+}
+
+html[data-theme="dark"] .stories-thumb-active {
+  ring-color: #6366f1 !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4) !important;
+}
+
+/* Light Theme */
+html[data-theme="light"] .stories-header-badge {
+  background-color: #eef2ff !important;
+  border-color: #c7d2fe !important;
+  color: #4338ca !important;
+}
+
+html[data-theme="light"] .customer-stories-card {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 20px 45px -10px rgba(99, 102, 241, 0.12), 0 4px 15px -3px rgba(0, 0, 0, 0.05) !important;
+}
+
+html[data-theme="light"] .stories-gradient-rtl {
+  background: linear-gradient(to left, rgba(255, 255, 255, 0.97) 0%, rgba(255, 255, 255, 0.88) 45%, rgba(255, 255, 255, 0.3) 75%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .stories-gradient-ltr {
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.97) 0%, rgba(255, 255, 255, 0.88) 45%, rgba(255, 255, 255, 0.3) 75%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .stories-bottom-gradient {
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.7) 60%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .stories-top-glow {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.6) 0%, transparent 100%) !important;
+}
+
+html[data-theme="light"] .stories-metric-text {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .stories-summary-text {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .stories-quote-text {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .stories-author-name {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .stories-author-role {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .stories-cta-btn {
+  color: #4f46e5 !important;
+}
+
+html[data-theme="light"] .stories-category-badge {
+  background: #eef2ff !important;
+  color: #4338ca !important;
+  border-color: #c7d2fe !important;
+}
+
+html[data-theme="light"] .stories-nav-btn {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+}
+html[data-theme="light"] .stories-nav-btn:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+html[data-theme="light"] .stories-thumb-inactive {
+  border-color: #cbd5e1 !important;
+  opacity: 0.88;
+}
+
+html[data-theme="light"] .stories-thumb-active {
+  ring-color: #4f46e5 !important;
+  border-color: #818cf8 !important;
+  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.3) !important;
+}
+
+html[data-theme="light"] .stories-thumb-separator {
+  border-top-color: #e2e8f0 !important;
+}
+
+/* Modal in Light Theme */
+html[data-theme="light"] .stories-modal-content {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.25) !important;
+}
+
+html[data-theme="light"] .stories-modal-content .text-white {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .stories-modal-content .text-slate-300,
+html[data-theme="light"] .stories-modal-content .text-slate-400 {
+  color: #475569 !important;
+}
+
+html[data-theme="light"] .stories-modal-stat-box {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme="light"] .stories-modal-quote-box {
+  background-color: #eef2ff !important;
+  border-color: #c7d2fe !important;
+}
+html[data-theme="light"] .stories-modal-quote-box p {
+  color: #1e1b4b !important;
+}
+
+html[data-theme="light"] .stories-modal-close-btn {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+}
+html[data-theme="light"] .stories-modal-close-btn:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
