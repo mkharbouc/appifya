@@ -4,11 +4,41 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '../lib/i18n';
-import { databases, DB_ID, TABLE_ID } from '@/lib/appwrite';
+import { databases, storage, DB_ID, TABLE_ID, BUCKET_ID } from '@/lib/appwrite';
 import { appwriteConfigMissing } from '@/lib/app-config';
 import { Query } from 'appwrite';
 import type { AppDocument } from '@/lib/types';
-import { Smartphone, ExternalLink, Download, Plus, Loader2, ArrowRight, CheckCircle2, Clock, Play, X, Hammer, HelpCircle } from 'lucide-react';
+import {
+  getUserSubscription,
+  activateUserSubscription,
+  getFileRetentionStatus,
+  PAYPAL_EMAIL,
+  SUBSCRIPTION_PRICE_USD,
+  RETENTION_DAYS,
+  type AdMobSubscription,
+} from '@/lib/subscription';
+import {
+  Smartphone,
+  ExternalLink,
+  Download,
+  Plus,
+  Loader2,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  Play,
+  X,
+  Hammer,
+  Trash2,
+  AlertTriangle,
+  DollarSign,
+  ShieldAlert,
+  Copy,
+  Check,
+  Sparkles,
+  Settings,
+  Upload,
+} from 'lucide-react';
 
 const BUILD_TIMEOUT_MS = 20 * 60 * 1000;
 const buildStartedStorageKey = (appId: string) => `appifya_build_started_${appId}`;
@@ -28,6 +58,26 @@ export default function DashboardPage() {
   const [buildNoticeAppId, setBuildNoticeAppId] = useState<string | null>(null);
   const [builds, setBuilds] = useState<Record<string, { status: 'building' | 'completed' | 'failed'; downloadUrl?: string }>>({});
 
+  // App Deletion State
+  const [appToDelete, setAppToDelete] = useState<AppDocument | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteSuccessMsg, setDeleteSuccessMsg] = useState<string | null>(null);
+
+  // Subscription State
+  const [subscription, setSubscription] = useState<AdMobSubscription>({
+    isActive: false,
+    plan: 'free',
+    expiresAt: null,
+    daysRemaining: 0,
+    isExpiringSoon7d: false,
+    isExpiringSoon3d: false,
+    isExpired: false,
+  });
+  const [showPayModal, setShowPayModal] = useState(false);
+  const [txnInput, setTxnInput] = useState('');
+  const [subActivating, setSubActivating] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
+
   const isRtl = lang === 'ar';
 
   const clearBuildStart = (appId: string) => {
@@ -35,7 +85,6 @@ export default function DashboardPage() {
   };
 
   const markBuildStarted = (appId: string) => {
-    // This runs only after a user starts a build.
     // eslint-disable-next-line react-hooks/purity
     localStorage.setItem(buildStartedStorageKey(appId), String(Date.now()));
   };
@@ -53,11 +102,36 @@ export default function DashboardPage() {
         Query.equal('user_id', user.$id),
         Query.orderDesc('$createdAt'),
       ]);
-      setApps(res.documents);
+      setApps(res.documents as AppDocument[]);
     } catch (err) {
-      console.error('Error:', err);
+      console.error('Error loading apps:', err);
     } finally {
       setLoading(false);
+    }
+  }, [user]);
+
+  // Load subscription & trigger reminders if approaching expiry
+  const refreshSubscription = useCallback(() => {
+    if (!user) return;
+    const sub = getUserSubscription(user.$id);
+    setSubscription(sub);
+
+    // Email trigger when within 7d or 3d window
+    if (sub.isActive && (sub.isExpiringSoon7d || sub.isExpiringSoon3d)) {
+      const storageReminderKey = `appifya_reminder_sent_${user.$id}_${sub.isExpiringSoon3d ? '3d' : '7d'}`;
+      const alreadySent = localStorage.getItem(storageReminderKey);
+      if (!alreadySent) {
+        fetch('/api/subscription/reminder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: user.email,
+            userName: user.name || user.email.split('@')[0],
+            daysRemaining: sub.daysRemaining,
+          }),
+        }).catch(() => {});
+        localStorage.setItem(storageReminderKey, new Date().toISOString());
+      }
     }
   }, [user]);
 
@@ -65,11 +139,11 @@ export default function DashboardPage() {
     if (!authLoading && !user) {
       openAuthModal();
     } else if (user) {
-      // Loading the user's remote documents is an external synchronization effect.
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      loadUserApps();
+      void loadUserApps();
+      void refreshSubscription();
     }
-  }, [user, authLoading, loadUserApps]);
+  }, [user, authLoading, loadUserApps, refreshSubscription, openAuthModal]);
 
   useEffect(() => {
     if (apps.length === 0) return;
@@ -168,6 +242,73 @@ export default function DashboardPage() {
     return () => window.clearInterval(interval);
   }, [builds]);
 
+  // -------------------------------------------------------------------------
+  // Customer Self-Service App Deletion
+  // -------------------------------------------------------------------------
+  const handleConfirmDelete = async () => {
+    if (!appToDelete) return;
+
+    try {
+      setDeleting(true);
+
+      // 1. Delete document from Appwrite Database
+      await databases.deleteDocument(DB_ID, TABLE_ID, appToDelete.$id);
+
+      // 2. Best-effort purge storage files if present
+      if (appToDelete.icon_id && BUCKET_ID) {
+        try { await storage.deleteFile(BUCKET_ID, appToDelete.icon_id); } catch {}
+      }
+      if (appToDelete.uploaded_file_id && BUCKET_ID) {
+        try { await storage.deleteFile(BUCKET_ID, appToDelete.uploaded_file_id); } catch {}
+      }
+
+      // 3. Clear local storage records
+      localStorage.removeItem(buildStartedStorageKey(appToDelete.$id));
+      localStorage.removeItem(`appifya_ad_units_${appToDelete.$id}`);
+
+      // 4. Update UI state
+      setApps((prev) => prev.filter((a) => a.$id !== appToDelete.$id));
+      const deletedName = appToDelete.app_name || 'App';
+      setAppToDelete(null);
+      setDeleteSuccessMsg(
+        lang === 'ar'
+          ? `تم حذف تطبيق "${deletedName}" نهائياً من حسابك.`
+          : `Application "${deletedName}" has been permanently deleted.`
+      );
+      setTimeout(() => setDeleteSuccessMsg(null), 5000);
+    } catch (err) {
+      console.error('Failed to delete app:', err);
+      alert(lang === 'ar' ? 'فشل حذف التطبيق. يرجى المحاولة مرة أخرى.' : 'Failed to delete application.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // -------------------------------------------------------------------------
+  // Subscription Activation via PayPal ($19/mo)
+  // -------------------------------------------------------------------------
+  const handleActivatePayPal = () => {
+    if (!user) return;
+    if (!txnInput.trim()) {
+      alert(lang === 'ar' ? 'يرجى إدخال رقم المعاملة أو بريد PayPal المُرسل منه.' : 'Please enter Transaction ID or PayPal email.');
+      return;
+    }
+    setSubActivating(true);
+    setTimeout(() => {
+      const updated = activateUserSubscription(user.$id, txnInput.trim(), 30);
+      setSubscription(updated);
+      setSubActivating(false);
+      setShowPayModal(false);
+      setTxnInput('');
+    }, 800);
+  };
+
+  const copyPayPalEmail = () => {
+    navigator.clipboard.writeText(PAYPAL_EMAIL);
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 2500);
+  };
+
   const labels = {
     title: { ar: 'لوحة تحكم تطبيقاتي', en: 'My Applications', fr: 'Mes Applications' },
     welcome: {
@@ -245,7 +386,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="theme-page flex-1 max-w-6xl w-full mx-auto px-6 py-10" dir={isRtl ? 'rtl' : 'ltr'}>
+    <main className="theme-page flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-10 space-y-6" dir={isRtl ? 'rtl' : 'ltr'}>
+
+      {/* Build progress modal */}
       {buildNoticeAppId && builds[buildNoticeAppId]?.status === 'building' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-5" role="dialog" aria-modal="true">
           <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-indigo-400/30 bg-slate-900 p-7 text-center shadow-2xl shadow-indigo-950/50">
@@ -277,20 +420,209 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 border-b border-slate-800 pb-6">
+
+      {/* Delete Confirmation Modal */}
+      {appToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" role="dialog" aria-modal="true">
+          <div className="relative w-full max-w-md bg-slate-900 border border-red-500/30 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5" dir={isRtl ? 'rtl' : 'ltr'}>
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center shrink-0">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white">
+                  {lang === 'ar' ? 'تأكيد حذف التطبيق' : 'Confirm App Deletion'}
+                </h3>
+                <p className="text-xs text-slate-400">
+                  {lang === 'ar' ? 'إجراء نهائي لا يمكن التراجع عنه' : 'This action cannot be undone'}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-1.5 text-xs">
+              <p className="text-white font-bold">{appToDelete.app_name || getTxt('noName')}</p>
+              <p className="text-slate-400 font-mono text-[11px] truncate" dir="ltr">{appToDelete.store_url}</p>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              {lang === 'ar'
+                ? 'سيتم حذف التطبيق وجميع سجلاته وملفات الـ APK المرفوعة أو المنشأة من خوادمنا بشكل كامل ودائم.'
+                : 'The application, ad units, and associated APK files will be permanently removed from our cloud servers.'}
+            </p>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setAppToDelete(null)}
+                disabled={deleting}
+                className="flex-1 py-2.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition-colors cursor-pointer"
+              >
+                {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deleting}
+                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-xs font-bold text-white transition-colors flex items-center justify-center gap-2 shadow-lg shadow-red-600/25 cursor-pointer"
+              >
+                {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                <span>{deleting ? (lang === 'ar' ? 'جاري الحذف...' : 'Deleting...') : (lang === 'ar' ? 'تأكيد الحذف النهائي' : 'Delete Permanently')}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Success Toast */}
+      {deleteSuccessMsg && (
+        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-xs font-bold text-emerald-300 flex items-center gap-2">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+          <span>{deleteSuccessMsg}</span>
+        </div>
+      )}
+
+      {/* AdMob Subscription Status Bar */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className={`h-11 w-11 rounded-xl flex items-center justify-center font-bold ${
+            subscription.isActive
+              ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
+              : 'bg-indigo-500/15 border border-indigo-500/30 text-indigo-400'
+          }`}>
+            <DollarSign className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-white">
+                {subscription.isActive
+                  ? (lang === 'ar' ? 'اشتراك إعلانات AdMob (نشط)' : 'AdMob Pro Active')
+                  : (lang === 'ar' ? 'خدمة إعلانات AdMob غير المحدودة' : 'Unlimited AdMob Service')}
+              </span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                subscription.isActive
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  : 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/25'
+              }`}>
+                ${SUBSCRIPTION_PRICE_USD} / {lang === 'ar' ? 'شهرياً' : 'month'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {subscription.isActive ? (
+                <>
+                  {lang === 'ar' ? 'متبقي' : 'Remaining'}:{' '}
+                  <strong className={subscription.isExpiringSoon3d ? 'text-red-400' : subscription.isExpiringSoon7d ? 'text-amber-400' : 'text-emerald-400'}>
+                    {subscription.daysRemaining} {lang === 'ar' ? 'يوماً' : 'days'}
+                  </strong>{' '}
+                  · {lang === 'ar' ? 'إعلانات وتطبيقات غير محدودة طيلة الشهر' : 'Unlimited ad injection across all apps'}
+                </>
+              ) : (
+                lang === 'ar' ? 'فعّل إعلانات AdMob لجميع تطبيقاتك بدون حدود عبر PayPal' : 'Activate unlimited AdMob ads for all apps via PayPal'
+              )}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Link
+            href="/admob"
+            className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-center transition-colors"
+          >
+            {lang === 'ar' ? 'إعداد AdMob' : 'AdMob Setup'}
+          </Link>
+          <button
+            type="button"
+            onClick={() => setShowPayModal(true)}
+            className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer ${
+              subscription.isActive
+                ? 'border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700'
+                : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-emerald-500/20'
+            }`}
+          >
+            {subscription.isActive
+              ? (lang === 'ar' ? 'تجديد الاشتراك' : 'Renew Plan')
+              : (lang === 'ar' ? 'ترقية بـ 19$' : 'Upgrade ($19)')}
+          </button>
+        </div>
+      </div>
+
+      {/* Subscription Warnings (7 days & 3 days) */}
+      {subscription.isActive && subscription.isExpiringSoon3d && (
+        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-300 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <ShieldAlert className="h-5 w-5 text-red-400 shrink-0" />
+            <span>
+              {lang === 'ar'
+                ? `🚨 تنبيه عاجل: بقي ${subscription.daysRemaining} أيام فقط على انتهاء اشتراكك في إعلانات AdMob! يرجى التجديد لتفادي توقف الخدمة.`
+                : `🚨 Urgent: Only ${subscription.daysRemaining} days left on your AdMob subscription! Please renew.`}
+            </span>
+          </div>
+          <button
+            onClick={() => setShowPayModal(true)}
+            className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg text-xs cursor-pointer shrink-0"
+          >
+            {lang === 'ar' ? 'تجديد الآن' : 'Renew Now'}
+          </button>
+        </div>
+      )}
+
+      {subscription.isActive && subscription.isExpiringSoon7d && !subscription.isExpiringSoon3d && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-300 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <Clock className="h-5 w-5 text-amber-400 shrink-0" />
+            <span>
+              {lang === 'ar'
+                ? `⚠️ تذكير: بقي أسبوع (${subscription.daysRemaining} أيام) على انتهاء اشتراك AdMob Pro. يمكنك التجديد الآن لمواصلة إضافة الإعلانات.`
+                : `⚠️ Reminder: 1 week (${subscription.daysRemaining} days) left on your AdMob Pro plan.`}
+            </span>
+          </div>
+          <button
+            onClick={() => setShowPayModal(true)}
+            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg text-xs cursor-pointer shrink-0"
+          >
+            {lang === 'ar' ? 'تجديد' : 'Renew'}
+          </button>
+        </div>
+      )}
+
+      {/* 10-day retention notice banner */}
+      <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5 flex items-start gap-3 text-xs text-slate-400">
+        <Clock className="h-4 w-4 shrink-0 mt-0.5 text-amber-400" />
+        <div>
+          <p className="font-semibold text-slate-300">
+            {lang === 'ar' ? 'سياسة خوادم التخزين المؤقت (حفظ ملفات APK لمدة 10 أيام)' : 'Temporary Cloud Storage Policy (10 Days Retention)'}
+          </p>
+          <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+            {lang === 'ar'
+              ? `يتم الاحتفاظ بملفات الـ APK والتطبيقات المرفوعة على السيرفر لمدة ${RETENTION_DAYS} أيام فقط من تاريخ البناء/الرفع، ثم تُحذف تلقائياً لتوفير المساحة. يرجى تنزيل نسختك والاحتفاظ بها محلياً.`
+              : `Compiled APK packages and uploaded app files are retained for ${RETENTION_DAYS} days only, after which they are automatically purged. Please download and keep your local copies.`}
+          </p>
+        </div>
+      </div>
+
+      {/* Dashboard Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div>
           <h1 className="text-2xl font-extrabold text-white">{getTxt('title')}</h1>
           <p className="text-xs text-slate-400 mt-1">
             <span className="text-indigo-400 font-semibold">{user.name || user.email}</span>, {getTxt('welcome')}
           </p>
         </div>
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-500/20 ring-1 ring-white/10 transition-all self-start sm:self-auto"
-        >
-          <Plus className="h-4 w-4" />
-          <span>{getTxt('newApp')}</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admob"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-700 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-xl transition-all"
+          >
+            <DollarSign className="h-3.5 w-3.5 text-emerald-400" />
+            <span>{lang === 'ar' ? 'إعداد إعلانات AdMob' : 'AdMob Setup'}</span>
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-500/20 ring-1 ring-white/10 transition-all"
+          >
+            <Plus className="h-4 w-4" />
+            <span>{getTxt('newApp')}</span>
+          </Link>
+        </div>
       </div>
 
       {loading ? (
@@ -302,106 +634,261 @@ export default function DashboardPage() {
           <Smartphone className="h-12 w-12 text-slate-600 mx-auto mb-4" />
           <h3 className="text-base font-bold text-white mb-1">{getTxt('emptyTitle')}</h3>
           <p className="text-xs text-slate-400 mb-6">{getTxt('emptyDesc')}</p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs"
-          >
-            <span>{getTxt('createFirst')}</span>
-            <ArrowRight className={`h-3.5 w-3.5 ${isRtl ? 'rotate-180' : ''}`} />
-          </Link>
+          <div className="flex flex-wrap gap-2 justify-center">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-xs"
+            >
+              <span>{getTxt('createFirst')}</span>
+              <ArrowRight className={`h-3.5 w-3.5 ${isRtl ? 'rotate-180' : ''}`} />
+            </Link>
+            <Link
+              href="/admob"
+              className="inline-flex items-center gap-2 px-5 py-2.5 border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-xs"
+            >
+              <Upload className="h-3.5 w-3.5 text-indigo-400" />
+              <span>{lang === 'ar' ? 'رفع تطبيق وإضافة AdMob' : 'Upload App with AdMob'}</span>
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {apps.map((app) => (
-            <div
-              key={app.$id}
-              className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div
-                    className="h-11 w-11 rounded-xl flex items-center justify-center font-bold text-white shadow-md text-sm"
-                    style={{ backgroundColor: app.theme_color || '#6366f1' }}
-                  >
-                    {app.app_name ? app.app_name.substring(0, 2).toUpperCase() : 'AP'}
+          {apps.map((app) => {
+            const retention = getFileRetentionStatus(app.$createdAt);
+            return (
+              <div
+                key={app.$id}
+                className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all flex flex-col justify-between relative group"
+              >
+                <div>
+                  {/* Top card bar with logo and Delete button */}
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className="h-11 w-11 rounded-xl flex items-center justify-center font-bold text-white shadow-md text-sm shrink-0"
+                        style={{ backgroundColor: app.theme_color || '#6366f1' }}
+                      >
+                        {app.app_name ? app.app_name.substring(0, 2).toUpperCase() : 'AP'}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-white text-sm leading-tight truncate">
+                          {app.app_name || getTxt('noName')}
+                        </h3>
+                        <p className="text-[11px] text-slate-400 truncate max-w-[170px] mt-0.5" dir="ltr">
+                          {app.store_url}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Customer Self-Service Delete Button */}
+                    <button
+                      type="button"
+                      onClick={() => setAppToDelete(app)}
+                      className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer shrink-0"
+                      title={lang === 'ar' ? 'حذف التطبيق نهائياً' : 'Delete Application'}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-white text-sm leading-tight">{app.app_name || getTxt('noName')}</h3>
-                    <p className="text-[11px] text-slate-400 truncate max-w-[200px] mt-0.5" dir="ltr">
-                      {app.store_url}
-                    </p>
+
+                  {/* Status badges & Retention countdown */}
+                  <div className="space-y-1.5 mb-4 text-[11px]">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                        {getTxt('active')}
+                      </span>
+                      {app.admob_app_id && (
+                        <span className="px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium flex items-center gap-1">
+                          <DollarSign className="h-3 w-3" />
+                          <span>AdMob</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* 10-Day File Retention Countdown Badge */}
+                    <div className="flex items-center gap-1.5 text-slate-500 text-[10px]">
+                      <Clock className="h-3 w-3 text-amber-400/80 shrink-0" />
+                      <span>
+                        {retention.isExpired
+                          ? (lang === 'ar' ? 'انتهت مدة حفظ الملف على الخادم (10 أيام)' : 'Server 10-day retention expired')
+                          : (lang === 'ar' ? `حفظ الملف بالسيرفر: متبقي ${retention.daysLeft} أيام` : `Server retention: ${retention.daysLeft} days left`)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 mb-4 text-[11px]">
-                  <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
-                    {getTxt('active')}
-                  </span>
-                  <span className="text-slate-500">
-                    {new Date(app.$createdAt).toLocaleDateString(lang === 'ar' ? 'ar-EG' : lang === 'fr' ? 'fr-FR' : 'en-US')}
-                  </span>
-                </div>
-              </div>
+                {/* Action buttons */}
+                <div>
+                  <div className="flex items-center gap-2 pt-3 border-t border-slate-800/80">
+                    <a
+                      href={app.store_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-xl transition-colors"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      <span>{getTxt('preview')}</span>
+                    </a>
 
-              <div className="flex items-center gap-2 pt-4 border-t border-slate-800/80">
-                <a
-                  href={app.store_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-xl transition-colors"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  <span>{getTxt('preview')}</span>
-                </a>
+                    <Link
+                      href="/admob"
+                      className="p-2 border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition-colors"
+                      title={lang === 'ar' ? 'تعديل إعلانات AdMob' : 'Configure AdMob'}
+                    >
+                      <Settings className="h-3.5 w-3.5" />
+                    </Link>
 
-                <button
-                  onClick={() => handleTriggerBuild(app)}
-                  disabled={buildingAppId === app.$id}
-                  className="flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors shadow-md shadow-indigo-600/20 cursor-pointer"
-                  title={getTxt('buildApk')}
-                >
-                  {buildingAppId === app.$id ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <Play className="h-3.5 w-3.5 fill-current" />
+                    <button
+                      onClick={() => handleTriggerBuild(app)}
+                      disabled={buildingAppId === app.$id}
+                      className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors shadow-md shadow-indigo-600/20 cursor-pointer"
+                      title={getTxt('buildApk')}
+                    >
+                      {buildingAppId === app.$id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Play className="h-3.5 w-3.5 fill-current" />
+                      )}
+                      <span>{buildingAppId === app.$id ? getTxt('buildStarting') : getTxt('buildApk')}</span>
+                    </button>
+                  </div>
+
+                  {builds[app.$id]?.status === 'building' && (
+                    <div className="mt-2.5 flex items-center gap-2 text-[11px] text-indigo-300">
+                      <Clock className="h-3.5 w-3.5 animate-pulse" />
+                      <span>{lang === 'ar' ? 'يتم تجهيز APK في الخلفية...' : 'APK is being prepared in the background...'}</span>
+                    </div>
                   )}
-                  <span>{buildingAppId === app.$id ? getTxt('buildStarting') : getTxt('buildApk')}</span>
-                </button>
+
+                  {builds[app.$id]?.status === 'failed' && (
+                    <div className="mt-2.5 flex items-center gap-2 text-[11px] text-rose-500">
+                      <X className="h-3.5 w-3.5" />
+                      <span>{getTxt('buildStuck')}</span>
+                    </div>
+                  )}
+
+                  {builds[app.$id]?.status === 'completed' && builds[app.$id]?.downloadUrl && (
+                    <div className="mt-2.5 flex flex-col gap-1.5">
+                      <a
+                        href={builds[app.$id].downloadUrl}
+                        className="flex items-center justify-center gap-2 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-emerald-600/20"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        <span>{getTxt('downloadApk')}</span>
+                      </a>
+                    </div>
+                  )}
+                </div>
               </div>
-              {builds[app.$id]?.status === 'building' && (
-                <div className="mt-3 flex items-center gap-2 text-[11px] text-indigo-300">
-                  <Clock className="h-3.5 w-3.5 animate-pulse" />
-                  <span>{lang === 'ar' ? 'يتم تجهيز APK في الخلفية...' : lang === 'fr' ? 'APK en cours de préparation en arrière-plan...' : 'APK is being prepared in the background...'}</span>
-                </div>
-              )}
-              {builds[app.$id]?.status === 'failed' && (
-                <div className="mt-3 flex items-center gap-2 text-[11px] text-rose-500">
-                  <X className="h-3.5 w-3.5" />
-                  <span>{getTxt('buildStuck')}</span>
-                </div>
-              )}
-              {builds[app.$id]?.status === 'completed' && builds[app.$id]?.downloadUrl && (
-                <div className="mt-3 flex flex-col gap-2">
-                  <a
-                    href={builds[app.$id].downloadUrl}
-                    className="flex items-center justify-center gap-2 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    <span>{getTxt('downloadApk')}</span>
-                  </a>
-                  <Link
-                    href="/guide"
-                    className="flex items-center justify-center gap-1.5 py-1.5 border border-slate-700 bg-slate-800/60 hover:bg-slate-700 text-slate-300 text-[11px] font-medium rounded-xl transition-colors"
-                  >
-                    <HelpCircle className="h-3 w-3 text-indigo-400" />
-                    <span>{lang === 'ar' ? 'كيف أثبّت التطبيق؟' : lang === 'fr' ? 'Comment installer l\'APK ?' : 'How to install?'}</span>
-                  </Link>
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
+
+      {/* PAYPAL SUBSCRIPTION ACTIVATION MODAL ($19/MO) */}
+      {showPayModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto" role="dialog" aria-modal="true">
+          <div className="relative w-full max-w-lg bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6" dir={isRtl ? 'rtl' : 'ltr'}>
+            <button
+              type="button"
+              onClick={() => setShowPayModal(false)}
+              className="absolute top-5 left-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="text-center space-y-2">
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25 mb-1">
+                <DollarSign className="h-7 w-7" />
+              </div>
+              <h3 className="text-2xl font-black text-white">
+                {lang === 'ar' ? 'اشتراك إعلانات AdMob غير المحدود' : 'Unlimited AdMob Subscription'}
+              </h3>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+                {lang === 'ar'
+                  ? 'أضف وحدث إعلانات Google AdMob لجميع تطبيقاتك بدون حدود طيلة الشهر مقابل 19$ فقط.'
+                  : 'Add and update Google AdMob ads for all your apps without limits for just $19/month.'}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center">
+              <span className="text-3xl font-black text-white">$19</span>
+              <span className="text-xs text-emerald-400 font-bold ms-1.5">/ {lang === 'ar' ? 'شهرياً (30 يوماً)' : 'per month'}</span>
+              <p className="text-[11px] text-slate-400 mt-1">
+                {lang === 'ar' ? 'يشمل جميع وحدات الإعلانات وبناء تطبيقات غير محدودة' : 'All ad formats and unlimited builds included'}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-400">{lang === 'ar' ? 'حساب PayPal المعتمد للتحويل:' : 'Official PayPal Account:'}</span>
+                <span className="text-[11px] font-bold text-emerald-400">Verified</span>
+              </div>
+
+              <div className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5" dir="ltr">
+                <span className="font-mono text-sm text-indigo-300 font-bold select-all">{PAYPAL_EMAIL}</span>
+                <button
+                  type="button"
+                  onClick={copyPayPalEmail}
+                  className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                  title="Copy email"
+                >
+                  {copiedEmail ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                </button>
+              </div>
+
+              <a
+                href={`https://www.paypal.com/paypalme/`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow transition-all"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                <span>{lang === 'ar' ? 'فتح تطبيق PayPal للتحويل' : 'Open PayPal App'}</span>
+              </a>
+            </div>
+
+            <div className="space-y-3">
+              <label className="block text-xs font-semibold text-slate-300">
+                {lang === 'ar' ? 'رقم المعاملة (Transaction ID) أو بريد PayPal المُرسل منه:' : 'Transaction ID or Sender PayPal Email:'}
+              </label>
+              <input
+                type="text"
+                value={txnInput}
+                onChange={(e) => setTxnInput(e.target.value)}
+                placeholder="PP-123456789 or your-paypal@gmail.com"
+                dir="ltr"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs sm:text-sm font-mono text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500"
+              />
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                {lang === 'ar'
+                  ? 'سيتم تفعيل الاشتراك فوراً لمدة 30 يوماً وإرسال إشعارات التجديد إلى بريدك قبل أسبوع ثم قبل 3 أيام من الانتهاء.'
+                  : 'Your plan will activate for 30 days immediately with renewal reminders sent 7 days and 3 days prior to expiry.'}
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowPayModal(false)}
+                className="flex-1 py-3 border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-xs rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={handleActivatePayPal}
+                disabled={subActivating}
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/25 transition-all cursor-pointer"
+              >
+                {subActivating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                <span>{subActivating ? (lang === 'ar' ? 'جاري التفعيل...' : 'Activating...') : (lang === 'ar' ? 'تأكيد وتفعيل الاشتراك' : 'Confirm & Activate')}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </main>
   );
 }

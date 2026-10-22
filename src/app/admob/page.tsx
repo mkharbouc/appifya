@@ -8,7 +8,15 @@ import { databases, storage, DB_ID, TABLE_ID, BUCKET_ID } from '@/lib/appwrite';
 import { Query, ID, Permission, Role } from 'appwrite';
 import type { AppDocument } from '@/lib/types';
 import {
-  Smartphone,
+  getUserSubscription,
+  activateUserSubscription,
+  getFileRetentionStatus,
+  PAYPAL_EMAIL,
+  SUBSCRIPTION_PRICE_USD,
+  RETENTION_DAYS,
+  type AdMobSubscription,
+} from '@/lib/subscription';
+import {
   ChevronDown,
   CheckCircle2,
   AlertCircle,
@@ -21,16 +29,24 @@ import {
   Info,
   X,
   BadgeCheck,
+  CreditCard,
+  Copy,
+  Check,
+  ExternalLink,
+  ShieldAlert,
+  Sparkles,
+  Layers,
+  Clock,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Helpers & Validation
 // ---------------------------------------------------------------------------
 
 const ADMOB_APP_RE = /^ca-app-pub-\d{10,}~\d{8,}$/;
 const ADMOB_UNIT_RE = /^ca-app-pub-\d{10,}\/\d{6,}$/;
 const MAX_FILE_BYTES = 100 * 1024 * 1024; // 100 MB
-const ALLOWED_EXTS = ['.apk', '.aab', '.ipa'];
+const ALLOWED_EXTS = ['.apk', '.aab', '.ipa', '.zip'];
 
 function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -48,7 +64,7 @@ function fileExtension(name: string) {
 
 function StepIndicator({ current, labels }: { current: number; labels: string[] }) {
   return (
-    <div className="flex items-center justify-center gap-0 mb-10 select-none" role="list" aria-label="Wizard steps">
+    <div className="flex items-center justify-center gap-0 mb-8 select-none" role="list" aria-label="Wizard steps">
       {labels.map((label, i) => {
         const step = i + 1;
         const done = step < current;
@@ -72,8 +88,8 @@ function StepIndicator({ current, labels }: { current: number; labels: string[] 
                 {done ? <CheckCircle2 className="h-4 w-4" /> : step}
               </div>
               <span
-                className={`text-[10px] font-semibold whitespace-nowrap ${
-                  active ? 'text-indigo-300' : done ? 'text-emerald-400' : 'text-slate-600'
+                className={`text-[11px] font-semibold whitespace-nowrap ${
+                  active ? 'text-indigo-400 font-bold' : done ? 'text-emerald-400' : 'text-slate-500'
                 }`}
               >
                 {label}
@@ -81,7 +97,7 @@ function StepIndicator({ current, labels }: { current: number; labels: string[] 
             </div>
             {i < labels.length - 1 && (
               <div
-                className={`h-0.5 w-16 sm:w-24 mb-5 mx-1 transition-colors ${
+                className={`h-0.5 w-12 sm:w-20 mb-5 mx-1 transition-colors ${
                   step < current ? 'bg-emerald-500' : 'bg-slate-800'
                 }`}
               />
@@ -94,20 +110,7 @@ function StepIndicator({ current, labels }: { current: number; labels: string[] 
 }
 
 // ---------------------------------------------------------------------------
-// Info tip box
-// ---------------------------------------------------------------------------
-
-function TipBox({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-3 rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4 text-xs leading-6 text-indigo-300">
-      <Info className="h-4 w-4 shrink-0 mt-0.5 text-indigo-400" />
-      <div>{children}</div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Page
+// Main Component
 // ---------------------------------------------------------------------------
 
 export default function AdMobPage() {
@@ -115,21 +118,43 @@ export default function AdMobPage() {
   const { lang } = useLanguage();
   const isRtl = lang === 'ar';
 
-  // App list
+  // Subscription state
+  const [subscription, setSubscription] = useState<AdMobSubscription>({
+    isActive: false,
+    plan: 'free',
+    expiresAt: null,
+    daysRemaining: 0,
+    isExpiringSoon7d: false,
+    isExpiringSoon3d: false,
+    isExpired: false,
+  });
+  const [showPayModal, setShowPayModal] = useState(false);
+  const [txnInput, setTxnInput] = useState('');
+  const [subActivating, setSubActivating] = useState(false);
+  const [subSuccessMsg, setSubSuccessMsg] = useState<string | null>(null);
+  const [copiedEmail, setCopiedEmail] = useState(false);
+
+  // App list & selection
   const [apps, setApps] = useState<AppDocument[]>([]);
   const [appsLoading, setAppsLoading] = useState(true);
+  const [appSourceMode, setAppSourceMode] = useState<'new_upload' | 'existing_app'>('new_upload');
   const [selectedAppId, setSelectedAppId] = useState('');
+  const [newAppName, setNewAppName] = useState('');
+  const [newStoreUrl, setNewStoreUrl] = useState('');
 
-  // Step state
+  // Step state (1: App & File, 2: AdMob Units, 3: Review & Save)
   const [step, setStep] = useState(1);
 
-  // Step 1 — credentials
+  // AdMob Credentials & Formats
   const [admobAppId, setAdmobAppId] = useState('');
   const [admobBannerId, setAdmobBannerId] = useState('');
+  const [admobInterstitialId, setAdmobInterstitialId] = useState('');
+  const [admobRewardedId, setAdmobRewardedId] = useState('');
+  const [admobAppOpenId, setAdmobAppOpenId] = useState('');
+  const [admobNativeId, setAdmobNativeId] = useState('');
   const [credError, setCredError] = useState<string | null>(null);
 
-  // Step 2 — file upload
-  const [appFile, setAppFile] = useState<File | null>(null);
+  // File upload state
   const [uploadedFileId, setUploadedFileId] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState('');
   const [uploadedFileSize, setUploadedFileSize] = useState(0);
@@ -139,15 +164,15 @@ export default function AdMobPage() {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Step 3 — save
+  // Save & Confirmation state
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [savedAppId, setSavedAppId] = useState('');
 
   // -------------------------------------------------------------------------
-  // i18n helpers
+  // i18n helper
   // -------------------------------------------------------------------------
-
   const t = useCallback((ar: string, fr: string, en: string) => {
     if (lang === 'ar') return ar;
     if (lang === 'fr') return fr;
@@ -155,15 +180,41 @@ export default function AdMobPage() {
   }, [lang]);
 
   const stepLabels = [
-    t('الإعلانات', 'AdMob', 'AdMob IDs'),
-    t('رفع الملف', 'Téléversement', 'Upload file'),
-    t('التأكيد', 'Confirmation', 'Confirm'),
+    t('التطبيق والملف', 'Application & Fichier', 'App & File'),
+    t('وحدات AdMob', 'Unités AdMob', 'AdMob Units'),
+    t('المراجعة والتفعيل', 'Confirmation & Activation', 'Review & Confirm'),
   ];
 
   // -------------------------------------------------------------------------
-  // Load apps
+  // Load User Subscription & Send Email Reminder If Due
   // -------------------------------------------------------------------------
+  const refreshSubscription = useCallback(() => {
+    if (!user) return;
+    const sub = getUserSubscription(user.$id);
+    setSubscription(sub);
 
+    // Trigger email reminder check when subscription is close to expiration
+    if (sub.isActive && (sub.isExpiringSoon7d || sub.isExpiringSoon3d)) {
+      const storageReminderKey = `appifya_reminder_sent_${user.$id}_${sub.isExpiringSoon3d ? '3d' : '7d'}`;
+      const alreadySent = localStorage.getItem(storageReminderKey);
+      if (!alreadySent) {
+        fetch('/api/subscription/reminder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: user.email,
+            userName: user.name || user.email.split('@')[0],
+            daysRemaining: sub.daysRemaining,
+          }),
+        }).catch(() => {});
+        localStorage.setItem(storageReminderKey, new Date().toISOString());
+      }
+    }
+  }, [user]);
+
+  // -------------------------------------------------------------------------
+  // Load apps from Appwrite
+  // -------------------------------------------------------------------------
   const loadApps = useCallback(async () => {
     if (!user) return;
     try {
@@ -174,79 +225,68 @@ export default function AdMobPage() {
       ]);
       const docs = res.documents as AppDocument[];
       setApps(docs);
-      if (docs.length > 0 && !selectedAppId) {
-        const first = docs[0];
-        setSelectedAppId(first.$id);
-        setAdmobAppId(first.admob_app_id || '');
-        setAdmobBannerId(first.admob_banner_unit_id || '');
+
+      if (docs.length > 0) {
+        // If user already has apps, allow choosing existing
+        setSelectedAppId(docs[0].$id);
+        setAdmobAppId(docs[0].admob_app_id || '');
+        setAdmobBannerId(docs[0].admob_banner_unit_id || '');
+        setAdmobInterstitialId(docs[0].admob_interstitial_unit_id || '');
+        setAdmobRewardedId(docs[0].admob_rewarded_unit_id || '');
+        setAdmobAppOpenId(docs[0].admob_app_open_unit_id || '');
+        setAdmobNativeId(docs[0].admob_native_unit_id || '');
+      } else {
+        // Default to direct upload mode if no prior apps
+        setAppSourceMode('new_upload');
       }
     } catch {
-      // silent — user will see empty selector
+      // silent
     } finally {
       setAppsLoading(false);
     }
-  }, [user, selectedAppId]);
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading && !user) {
       openAuthModal();
     } else if (user) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      loadApps();
+      void loadApps();
+      void refreshSubscription();
     }
-  }, [user, authLoading, loadApps, openAuthModal]);
+  }, [user, authLoading, loadApps, refreshSubscription, openAuthModal]);
 
-  // When the selected app changes, pre-fill existing AdMob IDs
+  // When changing existing app dropdown
   const handleAppChange = (id: string) => {
     setSelectedAppId(id);
     const app = apps.find((a) => a.$id === id);
     if (app) {
       setAdmobAppId(app.admob_app_id || '');
       setAdmobBannerId(app.admob_banner_unit_id || '');
+      setAdmobInterstitialId(app.admob_interstitial_unit_id || '');
+      setAdmobRewardedId(app.admob_rewarded_unit_id || '');
+      setAdmobAppOpenId(app.admob_app_open_unit_id || '');
+      setAdmobNativeId(app.admob_native_unit_id || '');
+      if (app.uploaded_file_id) {
+        setUploadedFileId(app.uploaded_file_id);
+        setUploadedFileName(app.uploaded_file_name || 'app-release.apk');
+        setUploadedFileUrl(app.uploaded_file_url || '');
+      }
     }
     setCredError(null);
   };
 
   // -------------------------------------------------------------------------
-  // Step 1 — validate credentials
+  // Handle File Upload (Drag & Drop or File Picker)
   // -------------------------------------------------------------------------
-
-  const handleNextStep1 = () => {
-    const appIdClean = admobAppId.trim();
-    const bannerClean = admobBannerId.trim();
-
-    if (appIdClean && !ADMOB_APP_RE.test(appIdClean)) {
-      setCredError(t(
-        'معرّف تطبيق AdMob غير صالح. الصيغة المطلوبة: ca-app-pub-XXXXXXXXXX~XXXXXXXX',
-        "L'identifiant AdMob doit respecter le format : ca-app-pub-XXXXXXXXXX~XXXXXXXX",
-        'Invalid AdMob App ID. Expected format: ca-app-pub-XXXXXXXXXX~XXXXXXXX',
-      ));
-      return;
-    }
-    if (bannerClean && !ADMOB_UNIT_RE.test(bannerClean)) {
-      setCredError(t(
-        'معرّف إعلان Banner غير صالح. الصيغة المطلوبة: ca-app-pub-XXXXXXXXXX/XXXXXX',
-        "L'identifiant Banner doit respecter le format : ca-app-pub-XXXXXXXXXX/XXXXXX",
-        'Invalid Banner Ad Unit ID. Expected format: ca-app-pub-XXXXXXXXXX/XXXXXX',
-      ));
-      return;
-    }
-    setCredError(null);
-    setStep(2);
-  };
-
-  // -------------------------------------------------------------------------
-  // Step 2 — file handling
-  // -------------------------------------------------------------------------
-
   const handleFile = async (file: File) => {
     setUploadError(null);
     const ext = fileExtension(file.name);
     if (!ALLOWED_EXTS.includes(ext)) {
       setUploadError(t(
         `نوع الملف غير مدعوم. الأنواع المقبولة: ${ALLOWED_EXTS.join(', ')}`,
-        `Type de fichier non pris en charge. Types acceptés : ${ALLOWED_EXTS.join(', ')}`,
-        `Unsupported file type. Accepted: ${ALLOWED_EXTS.join(', ')}`,
+        `Type de fichier non supporté. Types acceptés : ${ALLOWED_EXTS.join(', ')}`,
+        `Unsupported file type. Accepted types: ${ALLOWED_EXTS.join(', ')}`,
       ));
       return;
     }
@@ -259,13 +299,18 @@ export default function AdMobPage() {
       return;
     }
 
-    setAppFile(file);
     setUploadedFileId(null);
     setUploadedFileUrl('');
 
+    // Pre-fill App Name if not set yet
+    if (!newAppName) {
+      const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+      setNewAppName(cleanName);
+    }
+
     try {
       setUploading(true);
-      if (!BUCKET_ID) throw new Error('Storage not configured');
+      if (!BUCKET_ID) throw new Error('Storage bucket not configured');
       const uploaded = await storage.createFile({
         bucketId: BUCKET_ID,
         fileId: ID.unique(),
@@ -283,7 +328,6 @@ export default function AdMobPage() {
           ? err.message
           : t('فشل رفع الملف. يرجى المحاولة مجدداً.', "Échec du téléversement.", 'Upload failed. Please try again.'),
       );
-      setAppFile(null);
     } finally {
       setUploading(false);
     }
@@ -291,7 +335,7 @@ export default function AdMobPage() {
 
   const onFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) handleFile(file);
+    if (file) void handleFile(file);
     e.target.value = '';
   };
 
@@ -299,22 +343,160 @@ export default function AdMobPage() {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
+    if (file) void handleFile(file);
   };
 
   // -------------------------------------------------------------------------
-  // Step 3 — save to Appwrite
+  // Step 1 Validation -> Proceed to Step 2 (Ad Units)
   // -------------------------------------------------------------------------
+  const handleNextStep1 = () => {
+    setUploadError(null);
+    if (appSourceMode === 'new_upload' && !newAppName.trim()) {
+      setUploadError(t(
+        'يرجى إدخال اسم التطبيق للمتابعة.',
+        "Veuillez saisir le nom de l'application.",
+        'Please enter an app name to continue.',
+      ));
+      return;
+    }
+    setStep(2);
+  };
 
+  // -------------------------------------------------------------------------
+  // Step 2 Validation -> Proceed to Step 3 (Review & Confirm)
+  // -------------------------------------------------------------------------
+  const handleNextStep2 = () => {
+    const appIdClean = admobAppId.trim();
+    const bannerClean = admobBannerId.trim();
+    const interstitialClean = admobInterstitialId.trim();
+    const rewardedClean = admobRewardedId.trim();
+    const appOpenClean = admobAppOpenId.trim();
+    const nativeClean = admobNativeId.trim();
+
+    if (appIdClean && !ADMOB_APP_RE.test(appIdClean)) {
+      setCredError(t(
+        'معرّف تطبيق AdMob غير صالح. الصيغة المطلوبة: ca-app-pub-XXXXXXXXXX~XXXXXXXX',
+        "L'App ID AdMob doit respecter le format : ca-app-pub-XXXXXXXXXX~XXXXXXXX",
+        'Invalid AdMob App ID. Format: ca-app-pub-XXXXXXXXXX~XXXXXXXX',
+      ));
+      return;
+    }
+
+    const checkUnit = (val: string, name: string) => {
+      if (val && !ADMOB_UNIT_RE.test(val)) {
+        return t(
+          `صيغة معرّف وحدة ${name} غير صالحة. الصيغة المطلوبة: ca-app-pub-XXXXXXXXXX/XXXXXXXX`,
+          `Format de l'unité ${name} invalide : ca-app-pub-XXXXXXXXXX/XXXXXXXX`,
+          `Invalid ${name} Unit ID. Format: ca-app-pub-XXXXXXXXXX/XXXXXXXX`,
+        );
+      }
+      return null;
+    };
+
+    const err =
+      checkUnit(bannerClean, 'Banner') ||
+      checkUnit(interstitialClean, 'Interstitial') ||
+      checkUnit(rewardedClean, 'Rewarded') ||
+      checkUnit(appOpenClean, 'App Open') ||
+      checkUnit(nativeClean, 'Native');
+
+    if (err) {
+      setCredError(err);
+      return;
+    }
+
+    setCredError(null);
+    setStep(3);
+  };
+
+  // -------------------------------------------------------------------------
+  // Subscription Activation via PayPal
+  // -------------------------------------------------------------------------
+  const handleActivatePayPal = () => {
+    if (!user) return;
+    if (!txnInput.trim()) {
+      alert(t(
+        'يرجى إدخال رقم المعاملة أو بريد PayPal المُرسل منه لتفعيل الاشتراك.',
+        "Veuillez entrer l'identifiant de transaction ou votre email PayPal.",
+        'Please enter the Transaction ID or sender PayPal email to activate.',
+      ));
+      return;
+    }
+
+    setSubActivating(true);
+    setTimeout(() => {
+      const updated = activateUserSubscription(user.$id, txnInput.trim(), 30);
+      setSubscription(updated);
+      setSubActivating(false);
+      setShowPayModal(false);
+      setSubSuccessMsg(t(
+        'تم تفعيل اشتراك AdMob Pro لمدة شهر بنجاح! يمكنك الآن إضافة الإعلانات بدون حدود.',
+        'Abonnement AdMob Pro activé avec succès pour 1 mois !',
+        'AdMob Pro subscription activated for 1 month! You can now add unlimited ads.',
+      ));
+      setTimeout(() => setSubSuccessMsg(null), 6000);
+    }, 800);
+  };
+
+  const copyPayPalEmail = () => {
+    navigator.clipboard.writeText(PAYPAL_EMAIL);
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 2500);
+  };
+
+  // -------------------------------------------------------------------------
+  // Step 3: Save to Database & Finish
+  // -------------------------------------------------------------------------
   const handleSave = async () => {
-    if (!selectedAppId) return;
+    if (!user) return;
+
+    // Gate: Check if user has active subscription
+    if (!subscription.isActive) {
+      setShowPayModal(true);
+      return;
+    }
+
     try {
       setSaving(true);
       setSaveError(null);
-      await databases.updateDocument(DB_ID, TABLE_ID, selectedAppId, {
-        admob_app_id: admobAppId.trim() || null,
-        admob_banner_unit_id: admobBannerId.trim() || null,
-      });
+
+      let targetAppId = selectedAppId;
+
+      if (appSourceMode === 'new_upload') {
+        // Create new app record in Appwrite Database
+        const newDoc = await databases.createDocument(DB_ID, TABLE_ID, ID.unique(), {
+          user_id: user.$id,
+          app_name: newAppName.trim() || 'My Mobile App',
+          store_url: newStoreUrl.trim() || 'https://appifya.app',
+          theme_color: '#6366f1',
+          admob_app_id: admobAppId.trim() || undefined,
+          admob_banner_unit_id: admobBannerId.trim() || undefined,
+        });
+        targetAppId = newDoc.$id;
+      } else if (targetAppId) {
+        // Update existing app
+        await databases.updateDocument(DB_ID, TABLE_ID, targetAppId, {
+          admob_app_id: admobAppId.trim() || null,
+          admob_banner_unit_id: admobBannerId.trim() || null,
+        });
+      }
+
+      // Persist full multi-unit AdMob config in local storage for APK builder dispatch
+      const adUnitsPayload = {
+        appId: admobAppId.trim(),
+        bannerId: admobBannerId.trim(),
+        interstitialId: admobInterstitialId.trim(),
+        rewardedId: admobRewardedId.trim(),
+        appOpenId: admobAppOpenId.trim(),
+        nativeId: admobNativeId.trim(),
+        uploadedFileId,
+        uploadedFileName,
+        uploadedFileUrl,
+        uploadedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(`appifya_ad_units_${targetAppId}`, JSON.stringify(adUnitsPayload));
+
+      setSavedAppId(targetAppId);
       setDone(true);
     } catch (err) {
       setSaveError(
@@ -328,9 +510,8 @@ export default function AdMobPage() {
   };
 
   // -------------------------------------------------------------------------
-  // Loading / auth guards
+  // Auth Loading & Guard
   // -------------------------------------------------------------------------
-
   if (authLoading) {
     return (
       <div className="flex-1 flex items-center justify-center p-12">
@@ -342,26 +523,36 @@ export default function AdMobPage() {
   if (!user) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-12 text-center" dir={isRtl ? 'rtl' : 'ltr'}>
-        <Smartphone className="h-12 w-12 text-indigo-400 mb-4" />
-        <h2 className="text-xl font-bold text-white mb-2">
-          {t('يرجى تسجيل الدخول للوصول إلى هذه الصفحة', 'Connectez-vous pour accéder à cette page', 'Please sign in to access this page')}
+        <div className="h-16 w-16 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-4">
+          <DollarSign className="h-8 w-8" />
+        </div>
+        <h2 className="text-2xl font-black text-white mb-2">
+          {t('يرجى تسجيل الدخول للوصول إلى إعدادات AdMob', 'Connectez-vous pour accéder à AdMob', 'Please sign in to access AdMob setup')}
         </h2>
+        <p className="text-xs text-slate-400 max-w-md mb-6 leading-relaxed">
+          {t(
+            'سجل دخولك لحفظ معرّفات إعلاناتك، رفع تطبيقاتك، وتفعيل اشتراك تحقيق الأرباح بـ 19$ شهرياً.',
+            'Connectez-vous pour gérer vos annonces AdMob et activer votre abonnement.',
+            'Sign in to manage AdMob ad units, upload your applications, and activate your monetization subscription.',
+          )}
+        </p>
         <button
           onClick={() => openAuthModal()}
-          className="mt-4 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-sm shadow-lg shadow-indigo-500/20"
+          className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold rounded-xl text-sm shadow-lg shadow-indigo-500/25 cursor-pointer"
         >
-          {t('تسجيل الدخول', 'Se connecter', 'Sign in')}
+          {t('تسجيل الدخول الآن', 'Se connecter maintenant', 'Sign In Now')}
         </button>
       </div>
     );
   }
 
   const selectedApp = apps.find((a) => a.$id === selectedAppId);
+  const currentAppName = appSourceMode === 'new_upload' ? (newAppName || t('تطبيق جديد', 'Nouvelle application', 'New App')) : (selectedApp?.app_name || t('تطبيق بدون اسم', 'Sans titre', 'Untitled'));
+  const fileRetention = getFileRetentionStatus(new Date());
 
   // -------------------------------------------------------------------------
-  // Success screen
+  // SUCCESS SCREEN
   // -------------------------------------------------------------------------
-
   if (done) {
     return (
       <main className="theme-page flex-1 max-w-2xl mx-auto px-4 sm:px-6 py-16 text-center" dir={isRtl ? 'rtl' : 'ltr'}>
@@ -369,59 +560,113 @@ export default function AdMobPage() {
           <BadgeCheck className="h-10 w-10 text-white" />
         </div>
         <h1 className="text-3xl font-black text-white mb-3">
-          {t('تم الإعداد بنجاح!', 'Configuration enregistrée !', 'Setup complete!')}
+          {t('تم تجهيز إعلانات AdMob بنجاح!', 'Configuration AdMob enregistrée !', 'AdMob Setup Completed!')}
         </h1>
         <p className="text-sm text-slate-400 leading-relaxed max-w-md mx-auto mb-8">
           {t(
-            'تم حفظ إعدادات AdMob لتطبيقك. ستُطبّق هذه الإعدادات في المرة القادمة التي تبني فيها ملف APK.',
-            "Les paramètres AdMob ont été enregistrés. Ils seront appliqués lors de la prochaine compilation de l'APK.",
-            'AdMob settings saved. They will be applied the next time you build an APK.',
+            'تم ربط جميع وحدات إعلاناتك وحفظ ملف التطبيق في حسابك. يمكنك الآن تشغيل بناء APK مع الإعلانات المدمجة مباشرة.',
+            "Vos blocs d'annonces et votre fichier ont été enregistrés avec succès. Vous pouvez maintenant compiler l'APK avec les publicités.",
+            'Your ad units and app file have been saved. You can now build the monetized APK directly.',
           )}
         </p>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 mb-8 text-left" dir="ltr">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Summary</p>
-          <div className="space-y-2 text-sm">
+
+        {/* Retention alert */}
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 mb-6 text-xs text-amber-300 flex items-center gap-3 text-start">
+          <Clock className="h-5 w-5 shrink-0 text-amber-400" />
+          <div>
+            <p className="font-bold">
+              {t('تنبيه حفظ الملفات (سياسة 10 أيام)', 'Avis de conservation (10 jours)', 'File Retention Notice (10 Days)')}
+            </p>
+            <p className="text-[11px] text-amber-300/80 mt-0.5">
+              {t(
+                `يتم تخزين الملفات المرفوعة مؤقتاً لمدة ${RETENTION_DAYS} أيام على الخادم لتوفير المساحة (حتى تاريخ ${new Date(fileRetention.expiryDate).toLocaleDateString('ar-EG')}). يرجى تنزيل نسختك والاحتفاظ بها محلياً.`,
+                `Les fichiers sont conservés pendant ${RETENTION_DAYS} jours maximum sur le serveur (jusqu'au ${new Date(fileRetention.expiryDate).toLocaleDateString('fr-FR')}). Veuillez télécharger votre copie.`,
+                `Uploaded files are retained on our servers for up to ${RETENTION_DAYS} days (until ${new Date(fileRetention.expiryDate).toLocaleDateString('en-US')}). Please download and keep your local copy.`,
+              )}
+            </p>
+          </div>
+        </div>
+
+        {/* Summary Card */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 mb-8 text-start space-y-3" dir="ltr">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Configuration Summary</p>
+          <div className="space-y-2 text-xs">
             <div className="flex justify-between">
-              <span className="text-slate-400">App</span>
-              <span className="text-white font-semibold">{selectedApp?.app_name || '—'}</span>
+              <span className="text-slate-400">Application</span>
+              <span className="text-white font-semibold">{currentAppName}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">AdMob App ID</span>
-              <span className="text-indigo-300 font-mono text-xs">{admobAppId.trim() || '—'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Banner Unit ID</span>
-              <span className="text-indigo-300 font-mono text-xs">{admobBannerId.trim() || '—'}</span>
-            </div>
+            {admobAppId && (
+              <div className="flex justify-between">
+                <span className="text-slate-400">AdMob App ID</span>
+                <span className="text-indigo-400 font-mono">{admobAppId}</span>
+              </div>
+            )}
+            {admobBannerId && (
+              <div className="flex justify-between">
+                <span className="text-slate-400">Banner Ad</span>
+                <span className="text-indigo-400 font-mono">{admobBannerId}</span>
+              </div>
+            )}
+            {admobInterstitialId && (
+              <div className="flex justify-between">
+                <span className="text-slate-400">Interstitial Ad</span>
+                <span className="text-indigo-400 font-mono">{admobInterstitialId}</span>
+              </div>
+            )}
+            {admobRewardedId && (
+              <div className="flex justify-between">
+                <span className="text-slate-400">Rewarded Ad</span>
+                <span className="text-indigo-400 font-mono">{admobRewardedId}</span>
+              </div>
+            )}
+            {admobAppOpenId && (
+              <div className="flex justify-between">
+                <span className="text-slate-400">App Open Ad</span>
+                <span className="text-indigo-400 font-mono">{admobAppOpenId}</span>
+              </div>
+            )}
+            {admobNativeId && (
+              <div className="flex justify-between">
+                <span className="text-slate-400">Native Advanced</span>
+                <span className="text-indigo-400 font-mono">{admobNativeId}</span>
+              </div>
+            )}
             {uploadedFileName && (
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400">{t('الملف المرفوع', 'Fichier téléversé', 'Uploaded file')}</span>
+              <div className="flex justify-between items-center pt-2 border-t border-slate-800">
+                <span className="text-slate-400">Uploaded File</span>
                 <a
                   href={uploadedFileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 text-xs font-semibold"
+                  className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-semibold"
                 >
                   <FileDown className="h-3.5 w-3.5" />
-                  {uploadedFileName}
+                  <span>{uploadedFileName}</span>
                 </a>
               </div>
             )}
           </div>
         </div>
+
         <div className="flex flex-wrap gap-3 justify-center">
           <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/25 ring-1 ring-white/10 hover:opacity-90 transition-all"
+            href={savedAppId ? `/dashboard?app=${savedAppId}` : '/dashboard'}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/25 transition-all"
           >
             <LayoutDashboard className="h-4 w-4" />
-            {t('لوحة التحكم', 'Tableau de bord', 'Go to Dashboard')}
+            <span>{t('لوحة التحكم وبناء التطبيق', 'Tableau de bord & Compilation', 'Go to Dashboard & Build')}</span>
           </Link>
           <button
-            onClick={() => { setDone(false); setStep(1); setAppFile(null); setUploadedFileId(null); setUploadedFileUrl(''); setUploadedFileName(''); }}
-            className="inline-flex items-center gap-2 px-6 py-3 border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-sm rounded-xl hover:bg-slate-800 transition-colors"
+            onClick={() => {
+              setDone(false);
+              setStep(1);
+              setUploadedFileId(null);
+              setUploadedFileUrl('');
+              setUploadedFileName('');
+            }}
+            className="inline-flex items-center gap-2 px-6 py-3 border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-sm rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
           >
-            {t('إعداد تطبيق آخر', 'Configurer une autre app', 'Set up another app')}
+            <span>{t('إعداد تطبيق آخر', 'Configurer une autre app', 'Set up another app')}</span>
           </button>
         </div>
       </main>
@@ -429,152 +674,536 @@ export default function AdMobPage() {
   }
 
   // -------------------------------------------------------------------------
-  // Main wizard
+  // MAIN WIZARD
   // -------------------------------------------------------------------------
-
   return (
-    <main className="theme-page flex-1 max-w-2xl mx-auto px-4 sm:px-6 py-14 space-y-10" dir={isRtl ? 'rtl' : 'ltr'}>
+    <main className="theme-page flex-1 max-w-3xl mx-auto px-4 sm:px-6 py-12 space-y-8" dir={isRtl ? 'rtl' : 'ltr'}>
 
-      {/* Hero */}
+      {/* Header Banner */}
       <div className="text-center space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-semibold">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
           <DollarSign className="h-3.5 w-3.5" />
-          {t('إعداد إعلانات AdMob', 'Configuration AdMob', 'AdMob Monetization Setup')}
+          <span>{t('تسييل التطبيقات عبر Google AdMob', 'Monétisation Google AdMob', 'Google AdMob Monetization')}</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-          {t('فعّل الإعلانات في تطبيقك', 'Activez les publicités dans votre application', 'Activate ads in your app')}
+        <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+          {t('ارفع تطبيقك وفعّل جميع أنواع الإعلانات', 'Téléversez votre app et activez les annonces AdMob', 'Upload Your App & Activate All AdMob Formats')}
         </h1>
-        <p className="max-w-xl mx-auto text-slate-400 text-sm leading-relaxed">
+        <p className="max-w-2xl mx-auto text-slate-400 text-xs sm:text-sm leading-relaxed">
           {t(
-            'أدخل معرّفات حساب Google AdMob الخاص بك، ثم ارفع ملف تطبيقك. ستُطبَّق الإعدادات في بناء APK التالي.',
-            "Saisissez vos identifiants Google AdMob et téléversez votre fichier. Les paramètres seront appliqués lors de la prochaine compilation.",
-            'Enter your Google AdMob account IDs and upload your app file. Settings will apply on the next APK build.',
+            'ارفع ملف تطبيقك (APK / AAB) أو اختر تطبيقك من المنصة، أدخل معرّفات AdMob التي تريد تفعيلها، واشترك بـ 19$ شهرياً لإضافة الإعلانات بلا حدود طيلة الشهر.',
+            'Téléversez votre fichier APK/AAB ou sélectionnez une app existante. Intégrez vos bannières, interstitiels et vidéos récompensées en illimité pour 19$/mois.',
+            'Upload your APK/AAB app file or pick an existing app. Add Banners, Interstitials, Rewarded & App Open units with unlimited ad builds for $19/month.',
           )}
         </p>
       </div>
 
-      {/* App selector */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-3">
-        <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
-          {t('اختر التطبيق', "Sélectionnez l'application", 'Select your app')}
-        </label>
-        {appsLoading ? (
-          <div className="flex items-center gap-2 text-sm text-slate-400">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            {t('جاري تحميل التطبيقات...', 'Chargement...', 'Loading apps...')}
+      {/* Subscription Status Bar */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className={`h-11 w-11 rounded-xl flex items-center justify-center font-bold ${
+            subscription.isActive
+              ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
+              : 'bg-amber-500/15 border border-amber-500/30 text-amber-400'
+          }`}>
+            <CreditCard className="h-5 w-5" />
           </div>
-        ) : apps.length === 0 ? (
-          <div className="text-sm text-slate-400">
-            {t('لا توجد تطبيقات بعد. ', "Aucune application trouvée. ", 'No apps yet. ')}
-            <Link href="/" className="text-indigo-400 hover:text-indigo-300 underline">
-              {t('أنشئ تطبيقك الأول', 'Créez votre première app', 'Create your first app')}
-            </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-white">
+                {subscription.isActive
+                  ? t('اشتراك AdMob Pro (نشط)', 'Abonnement AdMob Pro (Actif)', 'AdMob Pro Active')
+                  : t('خطة تسييل التطبيقات (غير مفعلة)', 'Plan Monétisation (Inactif)', 'Monetization Plan (Inactive)')}
+              </span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                subscription.isActive
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  : 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/25'
+              }`}>
+                ${SUBSCRIPTION_PRICE_USD} / {t('شهر', 'mois', 'mo')}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {subscription.isActive ? (
+                <>
+                  {t('متبقي', 'Reste', 'Remaining')}:{' '}
+                  <strong className={subscription.isExpiringSoon3d ? 'text-red-400' : subscription.isExpiringSoon7d ? 'text-amber-400' : 'text-emerald-400'}>
+                    {subscription.daysRemaining} {t('يوماً', 'jours', 'days')}
+                  </strong>{' '}
+                  · {t('إعلانات وتطبيقات غير محدودة', 'Annonces & apps illimitées', 'Unlimited ads & apps')}
+                </>
+              ) : (
+                t('أضف الإعلانات لتطبيقاتك قدر ما تشاء طيلة الشهر مع تنبيهات التجديد', 'Ajoutez des publicités à volonté tout le mois', 'Add ads to unlimited apps all month long')
+              )}
+            </p>
           </div>
-        ) : (
-          <div className="relative">
-            <select
-              value={selectedAppId}
-              onChange={(e) => handleAppChange(e.target.value)}
-              className="w-full appearance-none bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 pr-10 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
-            >
-              {apps.map((app) => (
-                <option key={app.$id} value={app.$id} className="bg-slate-900">
-                  {app.app_name || t('تطبيق بدون اسم', 'Application sans titre', 'Untitled App')} — {app.store_url}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-3.5 h-4 w-4 text-slate-500" />
-          </div>
-        )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowPayModal(true)}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer shrink-0 ${
+            subscription.isActive
+              ? 'border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700'
+              : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-emerald-500/20'
+          }`}
+        >
+          {subscription.isActive
+            ? t('تفاصيل الاشتراك / تجديد', 'Gérer / Renouveler', 'Manage / Renew')
+            : t('تفعيل الاشتراك (19$ شهرياً)', 'Activer (19$/mois)', 'Activate ($19/mo)')}
+        </button>
       </div>
 
-      {/* Step indicator */}
-      {apps.length > 0 && <StepIndicator current={step} labels={stepLabels} />}
+      {/* Subscription Warnings (7d / 3d) */}
+      {subscription.isActive && subscription.isExpiringSoon3d && (
+        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-300 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <ShieldAlert className="h-5 w-5 text-red-400 shrink-0" />
+            <span>
+              {t(
+                `🚨 تنبيه عاجل: بقي ${subscription.daysRemaining} أيام فقط على انتهاء اشتراكك في إعلانات AdMob! يرجى التجديد لتفادي توقف الخدمة.`,
+                `🚨 Urgent : Il ne reste que ${subscription.daysRemaining} jours sur votre abonnement AdMob !`,
+                `🚨 Urgent: Only ${subscription.daysRemaining} days left on your AdMob subscription! Please renew to avoid service disruption.`,
+              )}
+            </span>
+          </div>
+          <button
+            onClick={() => setShowPayModal(true)}
+            className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg text-xs cursor-pointer shrink-0"
+          >
+            {t('تجديد الآن', 'Renouveler', 'Renew Now')}
+          </button>
+        </div>
+      )}
+
+      {subscription.isActive && subscription.isExpiringSoon7d && !subscription.isExpiringSoon3d && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-300 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <Clock className="h-5 w-5 text-amber-400 shrink-0" />
+            <span>
+              {t(
+                `⚠️ تذكير: بقي أسبوع (${subscription.daysRemaining} أيام) على انتهاء اشتراك AdMob Pro. يمكنك التجديد الآن لمواصلة تفعيل الإعلانات.`,
+                `⚠️ Rappel : Il reste une semaine (${subscription.daysRemaining} jours) sur votre abonnement AdMob Pro.`,
+                `⚠️ Reminder: 1 week (${subscription.daysRemaining} days) left on your AdMob Pro plan. You can renew now to continue uninterrupted.`,
+              )}
+            </span>
+          </div>
+          <button
+            onClick={() => setShowPayModal(true)}
+            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg text-xs cursor-pointer shrink-0"
+          >
+            {t('تجديد الاشتراك', 'Renouveler', 'Renew')}
+          </button>
+        </div>
+      )}
+
+      {/* Success alert when subscription activated */}
+      {subSuccessMsg && (
+        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-xs font-bold text-emerald-300 flex items-center gap-2">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+          <span>{subSuccessMsg}</span>
+        </div>
+      )}
+
+      {/* Wizard Step Indicator */}
+      <StepIndicator current={step} labels={stepLabels} />
 
       {/* ------------------------------------------------------------------ */}
-      {/* STEP 1 — AdMob credentials                                          */}
+      {/* STEP 1: Application Selection & File Upload                        */}
       {/* ------------------------------------------------------------------ */}
-      {step === 1 && apps.length > 0 && (
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-5">
+      {step === 1 && (
+        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 sm:p-7 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <div>
+              <h2 className="text-base font-bold text-white">
+                {t('الخطوة 1: اختيار أو رفع التطبيق', 'Étape 1 : Choisir ou téléverser', 'Step 1: Select or Upload App')}
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {t('حدد مصدر التطبيق المراد دمجه مع إعلانات Google AdMob.', "Sélectionnez l'application à monétiser.", 'Choose the application you want to monetize.')}
+              </p>
+            </div>
+
+            {/* Mode Switcher Tabs */}
+            <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 gap-1">
+              <button
+                type="button"
+                onClick={() => setAppSourceMode('new_upload')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  appSourceMode === 'new_upload'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {t('رفع تطبيق جديد', 'Téléverser nouvelle app', 'Upload New App')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAppSourceMode('existing_app')}
+                disabled={apps.length === 0}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  appSourceMode === 'existing_app'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : apps.length === 0
+                    ? 'text-slate-600 cursor-not-allowed opacity-50'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {t('من تطبيقاتي', 'Mes applications', 'My Existing Apps')}
+              </button>
+            </div>
+          </div>
+
+          {/* Form fields based on Mode */}
+          {appSourceMode === 'new_upload' ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  {t('اسم التطبيق', "Nom de l'application", 'Application Name')} <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newAppName}
+                  onChange={(e) => setNewAppName(e.target.value)}
+                  placeholder="My Store App"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  {t('رابط المتجر أو الموقع (اختياري)', 'URL du site web (Facultatif)', 'Store / Website URL (Optional)')}
+                </label>
+                <input
+                  type="url"
+                  value={newStoreUrl}
+                  onChange={(e) => setNewStoreUrl(e.target.value)}
+                  placeholder="https://my-store.com"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                  dir="ltr"
+                />
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                {t('اختر التطبيق من حسابك', 'Sélectionnez votre app', 'Select App from Account')}
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedAppId}
+                  onChange={(e) => handleAppChange(e.target.value)}
+                  className="w-full appearance-none bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 pr-10 text-sm text-white focus:outline-none focus:border-indigo-500"
+                >
+                  {appsLoading ? (
+                    <option value="" disabled>{t('جاري جلب التطبيقات...', 'Chargement...', 'Loading apps...')}</option>
+                  ) : apps.length === 0 ? (
+                    <option value="" disabled>{t('لا توجد تطبيقات سابقة', 'Aucune app', 'No previous apps')}</option>
+                  ) : (
+                    apps.map((app) => (
+                      <option key={app.$id} value={app.$id} className="bg-slate-900">
+                        {app.app_name || t('تطبيق بدون اسم', 'Sans titre', 'Untitled')} — {app.store_url}
+                      </option>
+                    ))
+                  )}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-3.5 h-4 w-4 text-slate-500" />
+              </div>
+            </div>
+          )}
+
+          {/* Drag & Drop File Upload Area */}
           <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-semibold text-slate-300">
+                {t('رفع ملف التطبيق (APK / AAB / ZIP)', "Fichier de l'application (APK / AAB)", 'App File (APK / AAB / ZIP)')}
+              </label>
+              <span className="text-[11px] text-slate-500">
+                {t('بحد أقصى 100 ميجابايت', 'Max 100 Mo', 'Max 100 MB')}
+              </span>
+            </div>
+
+            {!uploadedFileId ? (
+              <div
+                role="button"
+                tabIndex={0}
+                aria-label={t('منطقة رفع ملف التطبيق', 'Zone de téléversement', 'App file upload area')}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={onDrop}
+                onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click(); }}
+                className={`relative flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-10 cursor-pointer transition-all ${
+                  dragOver
+                    ? 'border-indigo-400 bg-indigo-500/10'
+                    : 'border-slate-700 bg-slate-950/50 hover:border-indigo-500/60 hover:bg-slate-950'
+                }`}
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="h-9 w-9 text-indigo-400 animate-spin" />
+                    <p className="text-xs font-semibold text-slate-300">
+                      {t('جاري رفع الملف إلى الخادم الآمن...', 'Téléversement en cours...', 'Uploading file to secure server...')}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400">
+                      <Upload className="h-6 w-6" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs sm:text-sm font-bold text-white">
+                        {t('اسحب ملف التطبيق هنا أو انقر للتصفح', 'Déposez le fichier ici ou cliquez', 'Drag app file here or click to browse')}
+                      </p>
+                      <p className="mt-1 text-[11px] text-slate-500">
+                        APK · AAB · IPA · ZIP — {t('جاهز لإدماج إعلانات AdMob', 'Prêt pour AdMob', 'Ready for AdMob injection')}
+                      </p>
+                    </div>
+                  </>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".apk,.aab,.ipa,.zip"
+                  className="sr-only"
+                  onChange={onFileInputChange}
+                  tabIndex={-1}
+                />
+              </div>
+            ) : (
+              <div className="flex items-center gap-4 rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
+                  <CheckCircle2 className="h-6 w-6" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-bold text-white truncate">{uploadedFileName}</p>
+                  <p className="text-[11px] text-slate-400">{formatBytes(uploadedFileSize)}</p>
+                  <a
+                    href={uploadedFileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 mt-1 text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold"
+                  >
+                    <FileDown className="h-3.5 w-3.5" />
+                    <span>{t('معاينة / تنزيل الملف', 'Télécharger', 'Download file')}</span>
+                  </a>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setUploadedFileId(null); setUploadedFileName(''); setUploadedFileUrl(''); }}
+                  className="p-2 text-slate-500 hover:text-red-400 rounded-lg transition-colors cursor-pointer"
+                  title={t('إزالة الملف', 'Supprimer', 'Remove')}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
+            {uploadError && (
+              <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/5 p-3 text-xs text-red-400">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>{uploadError}</span>
+              </div>
+            )}
+          </div>
+
+          {/* 10-day retention notice box */}
+          <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5 flex items-start gap-3 text-xs text-slate-400">
+            <Clock className="h-4 w-4 shrink-0 mt-0.5 text-amber-400" />
+            <div>
+              <p className="font-semibold text-slate-300">
+                {t('سياسة حفظ الملفات على السيرفر (10 أيام كحد أقصى)', 'Conservation des fichiers (10 jours)', 'Server File Retention Policy (10 Days Max)')}
+              </p>
+              <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                {t(
+                  'يتم الاحتفاظ بنسخ التطبيقات المرفوعة على خوادمنا لمدة 10 أيام فقط، وتُحذف تلقائياً لتوفير المساحة والأمان. يمكنك تنزيل نسختك في أي وقت خلال هذه الفترة.',
+                  'Les fichiers téléversés sont conservés 10 jours maximum sur nos serveurs avant suppression automatique.',
+                  'Uploaded app packages are stored on our servers for 10 days only and automatically cleaned up afterwards.',
+                )}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleNextStep1}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-indigo-500/20 cursor-pointer"
+          >
+            <span>{t('التالي: إدخال معرّفات AdMob', 'Suivant : Identifiants AdMob', 'Next: AdMob Ad Units')}</span>
+            <ArrowRight className={`h-4 w-4 ${isRtl ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------------ */}
+      {/* STEP 2: AdMob All Ad Formats Configuration                        */}
+      {/* ------------------------------------------------------------------ */}
+      {step === 2 && (
+        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 sm:p-7 space-y-6">
+          <div className="border-b border-slate-800 pb-4">
             <h2 className="text-base font-bold text-white mb-1">
-              {t('معرّفات AdMob', 'Identifiants AdMob', 'AdMob Identifiers')}
+              {t('الخطوة 2: جميع أنواع إعلانات Google AdMob', 'Étape 2 : Tous les formats AdMob', 'Step 2: All AdMob Ad Formats')}
             </h2>
-            <p className="text-xs text-slate-400 leading-6">
+            <p className="text-xs text-slate-400 leading-relaxed">
               {t(
-                'ستجد هذه المعرّفات في لوحة تحكم Google AdMob ← التطبيقات. كلاهما اختياري.',
-                "Trouvez ces identifiants dans Google AdMob → Applications. Les deux sont facultatifs.",
-                'Find these in your Google AdMob dashboard → Apps. Both are optional.',
+                'أدخل معرّف تطبيقك (App ID) ووحدات الإعلانات التي ترغب بتضمينها في التطبيق. يمكنك تفعيل أي نوع تريده.',
+                'Saisissez votre App ID et les identifiants des formats publicitaires que vous souhaitez activer.',
+                'Enter your AdMob App ID and the ad unit IDs you wish to activate in your application.',
               )}
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
+            {/* Primary App ID */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                AdMob App ID
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold text-slate-200">
+                  AdMob App ID <span className="text-red-400">*</span>
+                </label>
+                <span className="text-[10px] text-indigo-400 font-mono">ca-app-pub-XXXXXXXXXX~XXXXXXXX</span>
+              </div>
               <input
                 type="text"
                 value={admobAppId}
                 onChange={(e) => { setAdmobAppId(e.target.value); setCredError(null); }}
                 placeholder="ca-app-pub-3940256099942544~3347511713"
                 dir="ltr"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm font-mono text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs sm:text-sm font-mono text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
               />
               <p className="mt-1 text-[11px] text-slate-500">
-                {t('الصيغة: ca-app-pub-XXXXXXXXXX~XXXXXXXX', 'Format : ca-app-pub-XXXXXXXXXX~XXXXXXXX', 'Format: ca-app-pub-XXXXXXXXXX~XXXXXXXX')}
+                {t('معرّف التطبيق الرئيسي الخاص بحسابك في AdMob', 'Identifiant principal de votre application dans AdMob', 'Your primary AdMob App Identifier')}
               </p>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                {t('معرّف وحدة إعلان Banner', "Identifiant de l'unité Banner", 'Banner Ad Unit ID')}
-              </label>
-              <input
-                type="text"
-                value={admobBannerId}
-                onChange={(e) => { setAdmobBannerId(e.target.value); setCredError(null); }}
-                placeholder="ca-app-pub-3940256099942544/6300978111"
-                dir="ltr"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm font-mono text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
-              />
-              <p className="mt-1 text-[11px] text-slate-500">
-                {t('الصيغة: ca-app-pub-XXXXXXXXXX/XXXXXXXX', 'Format : ca-app-pub-XXXXXXXXXX/XXXXXXXX', 'Format: ca-app-pub-XXXXXXXXXX/XXXXXXXX')}
-              </p>
+            {/* Grid of Ad Formats */}
+            <div className="pt-2 border-t border-slate-800/80 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                <Layers className="h-4 w-4 text-indigo-400" />
+                <span>{t('وحدات الإعلانات المدعومة', 'Formats publicitaires supportés', 'Supported Ad Formats')}</span>
+              </h3>
+
+              {/* 1. Banner Ad Unit */}
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-indigo-500" />
+                    <span>{t('1. إعلان شريطي (Banner Ad)', '1. Bannière (Banner Ad)', '1. Banner Ad Unit')}</span>
+                  </label>
+                  <span className="text-[10px] text-slate-500 font-mono">ca-app-pub-XXXXXXXXXX/XXXXXXXX</span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  {t('يظهر في أسفل أو أعلى الشاشة داخل متجرك أو تطبيقك.', 'Affiché en haut ou en bas de l’application.', 'Appears at the bottom or top of your app screens.')}
+                </p>
+                <input
+                  type="text"
+                  value={admobBannerId}
+                  onChange={(e) => { setAdmobBannerId(e.target.value); setCredError(null); }}
+                  placeholder="ca-app-pub-3940256099942544/6300978111"
+                  dir="ltr"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              {/* 2. Interstitial Ad Unit */}
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-purple-500" />
+                    <span>{t('2. إعلان بيني كامل الشاشة (Interstitial Ad)', '2. Interstitiel (Interstitial Ad)', '2. Full-Screen Interstitial Ad')}</span>
+                  </label>
+                  <span className="text-[10px] text-slate-500 font-mono">ca-app-pub-XXXXXXXXXX/XXXXXXXX</span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  {t('يظهر عند الانتقال بين الصفحات أو عند إتمام عملية الشراء.', 'S’affiche lors des transitions de pages ou après une action.', 'Full-screen ads shown during page transitions or actions.')}
+                </p>
+                <input
+                  type="text"
+                  value={admobInterstitialId}
+                  onChange={(e) => { setAdmobInterstitialId(e.target.value); setCredError(null); }}
+                  placeholder="ca-app-pub-3940256099942544/1033173712"
+                  dir="ltr"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              {/* 3. Rewarded Video Ad Unit */}
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span>{t('3. إعلان بمكافأة (Rewarded Video Ad)', '3. Vidéo avec récompense (Rewarded Ad)', '3. Rewarded Video Ad')}</span>
+                  </label>
+                  <span className="text-[10px] text-slate-500 font-mono">ca-app-pub-XXXXXXXXXX/XXXXXXXX</span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  {t('يمنح المستخدم نقاطاً أو خصماً مقابل مشاهدة فيديو إعلاني كامل.', 'Offre une récompense en échange du visionnage complet.', 'Grants rewards or discounts for watching a video.')}
+                </p>
+                <input
+                  type="text"
+                  value={admobRewardedId}
+                  onChange={(e) => { setAdmobRewardedId(e.target.value); setCredError(null); }}
+                  placeholder="ca-app-pub-3940256099942544/5224354917"
+                  dir="ltr"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              {/* 4. App Open Ad Unit */}
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-amber-500" />
+                    <span>{t('4. إعلان فتح التطبيق (App Open Ad)', '4. Annonce à l’ouverture (App Open Ad)', '4. App Open Ad')}</span>
+                  </label>
+                  <span className="text-[10px] text-slate-500 font-mono">ca-app-pub-XXXXXXXXXX/XXXXXXXX</span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  {t('يظهر تلقائياً عندما يقوم المستخدم بفتح التطبيق أو استئنافه.', 'S’affiche lorsque l’utilisateur ouvre ou reprend l’app.', 'Displays automatically when user opens or resumes the app.')}
+                </p>
+                <input
+                  type="text"
+                  value={admobAppOpenId}
+                  onChange={(e) => { setAdmobAppOpenId(e.target.value); setCredError(null); }}
+                  placeholder="ca-app-pub-3940256099942544/3419835294"
+                  dir="ltr"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              {/* 5. Native Advanced Unit */}
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-cyan-500" />
+                    <span>{t('5. إعلان مدمج أصلي (Native Advanced Ad)', '5. Annonce native (Native Advanced)', '5. Native Advanced Ad')}</span>
+                  </label>
+                  <span className="text-[10px] text-slate-500 font-mono">ca-app-pub-XXXXXXXXXX/XXXXXXXX</span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  {t('إعلان يندمج بسلاسة مع بطاقات وتصميم واجهة التطبيق.', 'Format natif personnalisé s’intégrant à votre design.', 'Seamlessly blends with your app layout and feed.')}
+                </p>
+                <input
+                  type="text"
+                  value={admobNativeId}
+                  onChange={(e) => { setAdmobNativeId(e.target.value); setCredError(null); }}
+                  placeholder="ca-app-pub-3940256099942544/2247696110"
+                  dir="ltr"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
             </div>
           </div>
 
-          <TipBox>
-            {lang === 'ar' ? (
-              <>
-                <strong>أين أجد هذه المعرّفات؟</strong> افتح{' '}
-                <a href="https://admob.google.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">
-                  admob.google.com
-                </a>
-                {' '}← التطبيقات ← اختر تطبيقك ← إعدادات التطبيق.
-                ستجد <em>معرّف التطبيق</em> في الأعلى. لإنشاء وحدة إعلانية: التطبيق ← وحدات الإعلانات ← إضافة وحدة ← Banner.
-              </>
-            ) : lang === 'fr' ? (
-              <>
-                <strong>Où trouver ces identifiants ?</strong> Ouvrez{' '}
-                <a href="https://admob.google.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">
-                  admob.google.com
-                </a>
-                {' '}→ Applications → sélectionnez votre app → Paramètres de l&apos;app.
-                L&apos;<em>App ID</em> se trouve en haut. Pour l&apos;unité Banner : App → Blocs d&apos;annonces → Ajouter → Bannière.
-              </>
-            ) : (
-              <>
-                <strong>Where to find these?</strong> Open{' '}
-                <a href="https://admob.google.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">
-                  admob.google.com
-                </a>
-                {' '}→ Apps → select your app → App settings.
-                The <em>App ID</em> is at the top. For the banner unit: App → Ad units → Add ad unit → Banner.
-              </>
-            )}
-          </TipBox>
+          <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4 text-xs leading-relaxed text-indigo-300 flex items-start gap-3">
+            <Info className="h-4 w-4 shrink-0 mt-0.5 text-indigo-400" />
+            <div>
+              <strong>{t('أين تجد معرّفات AdMob؟', 'Où trouver ces identifiants ?', 'Where to find these IDs?')}</strong>{' '}
+              {t(
+                'افتح حسابك في admob.google.com ← التطبيقات ← إضافة تطبيق أو اختر تطبيقك ← وحدات الإعلانات (Ad Units) ← أنشئ الوحدات المطلوبة وانسخ المعرّف الخاص بكل نوع.',
+                'Ouvrez admob.google.com → Applications → Blocs d’annonces → Créer le format souhaité et copiez le code.',
+                'Open admob.google.com → Apps → Ad units → Create desired ad format and copy its unit ID.',
+              )}
+            </div>
+          </div>
 
           {credError && (
             <div className="flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/5 p-3 text-xs text-red-400">
@@ -583,146 +1212,20 @@ export default function AdMobPage() {
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={handleNextStep1}
-            disabled={apps.length === 0}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 hover:opacity-90 disabled:opacity-40 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-indigo-500/20 ring-1 ring-white/10"
-          >
-            {t('التالي: رفع الملف', 'Suivant : téléverser le fichier', 'Next: upload file')}
-            <ArrowRight className={`h-4 w-4 ${isRtl ? 'rotate-180' : ''}`} />
-          </button>
-        </div>
-      )}
-
-      {/* ------------------------------------------------------------------ */}
-      {/* STEP 2 — File upload                                                */}
-      {/* ------------------------------------------------------------------ */}
-      {step === 2 && (
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-5">
-          <div>
-            <h2 className="text-base font-bold text-white mb-1">
-              {t('رفع ملف التطبيق', "Téléverser le fichier de l'application", 'Upload app file')}
-            </h2>
-            <p className="text-xs text-slate-400 leading-6">
-              {t(
-                'اختر ملف APK أو AAB أو IPA (بحد أقصى 100 MB). سيُحفظ الملف في مستودع Appifya الآمن.',
-                "Choisissez un fichier APK, AAB ou IPA (100 Mo maximum). Le fichier sera conservé dans le dépôt sécurisé d'Appifya.",
-                'Choose an APK, AAB, or IPA file (100 MB max). The file will be stored in the Appifya secure repository.',
-              )}
-            </p>
-          </div>
-
-          {/* Drop zone */}
-          {!uploadedFileId ? (
-            <div
-              role="button"
-              tabIndex={0}
-              aria-label={t('منطقة رفع الملف', 'Zone de téléversement', 'File upload area')}
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={onDrop}
-              onClick={() => fileInputRef.current?.click()}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click(); }}
-              className={`relative flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-12 cursor-pointer transition-all ${
-                dragOver
-                  ? 'border-indigo-400 bg-indigo-500/10'
-                  : 'border-slate-700 bg-slate-950/50 hover:border-indigo-500/60 hover:bg-slate-950'
-              }`}
-            >
-              {uploading ? (
-                <>
-                  <Loader2 className="h-10 w-10 text-indigo-400 animate-spin" />
-                  <p className="text-sm font-semibold text-slate-300">
-                    {t('جاري الرفع...', 'Téléversement en cours...', 'Uploading...')}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400">
-                    <Upload className="h-6 w-6" />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-semibold text-white">
-                      {t('اسحب الملف هنا أو انقر للاختيار', 'Déposez le fichier ici ou cliquez pour choisir', 'Drag file here or click to browse')}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      APK · AAB · IPA — {t('حتى 100 MB', '100 Mo maximum', 'up to 100 MB')}
-                    </p>
-                  </div>
-                </>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".apk,.aab,.ipa"
-                className="sr-only"
-                onChange={onFileInputChange}
-                tabIndex={-1}
-              />
-            </div>
-          ) : (
-            /* Uploaded file card */
-            <div className="flex items-center gap-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
-                <CheckCircle2 className="h-6 w-6" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-white truncate">{uploadedFileName}</p>
-                <p className="text-xs text-slate-400">{formatBytes(uploadedFileSize)}</p>
-                <a
-                  href={uploadedFileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 mt-1 text-xs text-emerald-400 hover:text-emerald-300"
-                >
-                  <FileDown className="h-3.5 w-3.5" />
-                  {t('تنزيل الملف', 'Télécharger', 'Download file')}
-                </a>
-              </div>
-              <button
-                type="button"
-                onClick={() => { setUploadedFileId(null); setAppFile(null); setUploadedFileName(''); setUploadedFileUrl(''); }}
-                className="p-1.5 text-slate-500 hover:text-red-400 rounded-lg transition-colors"
-                aria-label={t('إزالة الملف', 'Supprimer', 'Remove file')}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          )}
-
-          {uploadError && (
-            <div className="flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/5 p-3 text-xs text-red-400">
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>{uploadError}</span>
-            </div>
-          )}
-
-          <TipBox>
-            {lang === 'ar' ? (
-              <>رفع الملف <strong>اختياري</strong>. يمكنك المتابعة إلى التأكيد بدون رفع ملف إذا أردت حفظ بيانات AdMob فقط.</>
-            ) : lang === 'fr' ? (
-              <>Le téléversement est <strong>facultatif</strong>. Vous pouvez continuer vers la confirmation sans téléverser si vous souhaitez uniquement sauvegarder les identifiants AdMob.</>
-            ) : (
-              <>File upload is <strong>optional</strong>. You can proceed to confirmation without uploading if you only want to save the AdMob IDs.</>
-            )}
-          </TipBox>
-
           <div className="flex gap-3">
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="flex-1 py-3 border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-sm rounded-xl hover:bg-slate-800 transition-colors"
+              className="flex-1 py-3 border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-sm rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
             >
               {t('رجوع', 'Retour', 'Back')}
             </button>
             <button
               type="button"
-              onClick={() => setStep(3)}
-              disabled={uploading}
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 hover:opacity-90 disabled:opacity-40 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-indigo-500/20 ring-1 ring-white/10"
+              onClick={handleNextStep2}
+              className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-indigo-500/20 cursor-pointer"
             >
-              {t('التالي: المراجعة', 'Suivant : révision', 'Next: review')}
+              <span>{t('التالي: المراجعة والتأكيد', 'Suivant : Révision', 'Next: Review & Confirm')}</span>
               <ArrowRight className={`h-4 w-4 ${isRtl ? 'rotate-180' : ''}`} />
             </button>
           </div>
@@ -730,60 +1233,126 @@ export default function AdMobPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* STEP 3 — Review & save                                              */}
+      {/* STEP 3: Review, Subscription & Save                                */}
       {/* ------------------------------------------------------------------ */}
       {step === 3 && (
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-5">
-          <div>
+        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 sm:p-7 space-y-6">
+          <div className="border-b border-slate-800 pb-4">
             <h2 className="text-base font-bold text-white mb-1">
-              {t('مراجعة وحفظ', 'Révision et enregistrement', 'Review and save')}
+              {t('الخطوة 3: المراجعة وحفظ إعدادات AdMob', 'Étape 3 : Révision et enregistrement', 'Step 3: Review & Finalize AdMob Setup')}
             </h2>
-            <p className="text-xs text-slate-400 leading-6">
-              {t(
-                'تحقق من المعلومات أدناه ثم اضغط "حفظ وإنهاء".',
-                'Vérifiez les informations ci-dessous, puis appuyez sur "Enregistrer".',
-                'Check the details below, then press "Save & Finish".',
-              )}
+            <p className="text-xs text-slate-400">
+              {t('تحقق من تفاصيل التطبيق ووحدات الإعلانات قبل تفعيلها وبناء ملف الـ APK النهائي.', 'Vérifiez les informations avant la sauvegarde.', 'Review your application details and ad units before finalizing.')}
             </p>
           </div>
 
-          {/* Summary card */}
-          <div className="rounded-2xl border border-slate-700 bg-slate-950 p-5 space-y-3 text-sm" dir="ltr">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-slate-400 shrink-0">App</span>
-              <span className="text-white font-semibold truncate">{selectedApp?.app_name || '—'}</span>
-            </div>
-            <div className="border-t border-slate-800 pt-3 flex items-start justify-between gap-4">
-              <span className="text-slate-400 shrink-0">AdMob App ID</span>
-              <span className={`font-mono text-xs text-right break-all ${admobAppId.trim() ? 'text-indigo-300' : 'text-slate-600'}`}>
-                {admobAppId.trim() || t('—غير محدد—', '—non défini—', '—not set—')}
-              </span>
-            </div>
-            <div className="border-t border-slate-800 pt-3 flex items-start justify-between gap-4">
-              <span className="text-slate-400 shrink-0">Banner Unit ID</span>
-              <span className={`font-mono text-xs text-right break-all ${admobBannerId.trim() ? 'text-indigo-300' : 'text-slate-600'}`}>
-                {admobBannerId.trim() || t('—غير محدد—', '—non défini—', '—not set—')}
-              </span>
-            </div>
-            {uploadedFileName ? (
-              <div className="border-t border-slate-800 pt-3 flex items-center justify-between gap-4">
-                <span className="text-slate-400 shrink-0">{t('الملف', 'Fichier', 'File')}</span>
-                <a
-                  href={uploadedFileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 text-xs font-semibold"
-                >
-                  <FileDown className="h-3.5 w-3.5" />
-                  {uploadedFileName}
-                </a>
+          {/* Subscription Check Status Card */}
+          <div className={`p-4 rounded-xl border flex items-center justify-between gap-3 text-xs ${
+            subscription.isActive
+              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+              : 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+          }`}>
+            <div className="flex items-center gap-2.5">
+              {subscription.isActive ? (
+                <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-amber-400 shrink-0" />
+              )}
+              <div>
+                <p className="font-bold">
+                  {subscription.isActive
+                    ? t('اشتراك AdMob Pro نشط · مؤهل لتضمين الإعلانات بلا حدود', 'AdMob Pro actif · Illimité', 'AdMob Pro Active · Unlimited Ad Builds')
+                    : t('يتطلب تفعيل اشتراك AdMob Pro (19$ شهرياً) لإتمام الحفظ وبناء التطبيق', 'Abonnement requis (19$/mois)', 'AdMob Pro Subscription Required ($19/mo)')}
+                </p>
+                <p className="text-[11px] opacity-80 mt-0.5">
+                  {subscription.isActive
+                    ? `${t('صالح لمدة', 'Valide pour', 'Valid for')} ${subscription.daysRemaining} ${t('يوماً إضافية', 'jours restants', 'days remaining')}`
+                    : t('ادفع عبر PayPal واستمتع بإضافة وتحديث الإعلانات لكافة تطبيقاتك طوال الشهر', 'Payez via PayPal pour débloquer les publicités', 'Pay via PayPal to unlock unlimited ads for 30 days')}
+                </p>
               </div>
-            ) : (
-              <div className="border-t border-slate-800 pt-3 flex items-center justify-between gap-4">
-                <span className="text-slate-400 shrink-0">{t('الملف', 'Fichier', 'File')}</span>
-                <span className="text-slate-600 text-xs">{t('لم يُرفع ملف', 'Aucun fichier', 'No file uploaded')}</span>
+            </div>
+
+            {!subscription.isActive && (
+              <button
+                type="button"
+                onClick={() => setShowPayModal(true)}
+                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs cursor-pointer shrink-0"
+              >
+                {t('تفعيل بـ 19$', 'Activer (19$)', 'Activate ($19)')}
+              </button>
+            )}
+          </div>
+
+          {/* Configuration Summary Card */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5 space-y-3 text-xs" dir="ltr">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-400 font-medium">Application Name</span>
+              <span className="text-white font-bold">{currentAppName}</span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-slate-400 font-medium">Setup Source</span>
+              <span className="text-indigo-400 font-semibold">
+                {appSourceMode === 'new_upload' ? 'Direct Application Upload' : 'Existing App Document'}
+              </span>
+            </div>
+
+            {uploadedFileName && (
+              <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
+                <span className="text-slate-400 font-medium">Uploaded File</span>
+                <span className="text-emerald-400 font-semibold">{uploadedFileName} ({formatBytes(uploadedFileSize)})</span>
               </div>
             )}
+
+            <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Configured Ad Units</p>
+              <div className="flex justify-between">
+                <span className="text-slate-400">AdMob App ID:</span>
+                <span className="text-white font-mono">{admobAppId || 'Not set'}</span>
+              </div>
+              {admobBannerId && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Banner Unit:</span>
+                  <span className="text-indigo-400 font-mono">{admobBannerId}</span>
+                </div>
+              )}
+              {admobInterstitialId && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Interstitial Unit:</span>
+                  <span className="text-purple-400 font-mono">{admobInterstitialId}</span>
+                </div>
+              )}
+              {admobRewardedId && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Rewarded Unit:</span>
+                  <span className="text-emerald-400 font-mono">{admobRewardedId}</span>
+                </div>
+              )}
+              {admobAppOpenId && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">App Open Unit:</span>
+                  <span className="text-amber-400 font-mono">{admobAppOpenId}</span>
+                </div>
+              )}
+              {admobNativeId && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Native Advanced:</span>
+                  <span className="text-cyan-400 font-mono">{admobNativeId}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Retention notice reminder */}
+          <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 text-[11px] text-slate-400 flex items-center gap-2.5">
+            <Clock className="h-4 w-4 text-amber-400 shrink-0" />
+            <span>
+              {t(
+                `يتم الاحتفاظ بملف التطبيق المرفوع على خوادمنا لمدة ${RETENTION_DAYS} أيام ثم يُحذف تلقائياً. تأكد من تحميل نسخة تطبيقك.`,
+                `Les fichiers téléversés sont conservés pendant ${RETENTION_DAYS} jours avant suppression automatique.`,
+                `Uploaded files are retained on our servers for ${RETENTION_DAYS} days before auto-cleanup.`,
+              )}
+            </span>
           </div>
 
           {saveError && (
@@ -798,25 +1367,144 @@ export default function AdMobPage() {
               type="button"
               onClick={() => setStep(2)}
               disabled={saving}
-              className="flex-1 py-3 border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-sm rounded-xl hover:bg-slate-800 disabled:opacity-40 transition-colors"
+              className="flex-1 py-3 border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-sm rounded-xl hover:bg-slate-800 disabled:opacity-40 transition-colors cursor-pointer"
             >
               {t('رجوع', 'Retour', 'Back')}
             </button>
+
             <button
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition-opacity shadow-lg shadow-emerald-500/20"
+              className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-emerald-500/20 cursor-pointer"
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <CheckCircle2 className="h-4 w-4" />
               )}
-              {saving
-                ? t('جاري الحفظ...', 'Enregistrement...', 'Saving...')
-                : t('حفظ وإنهاء', 'Enregistrer', 'Save & Finish')}
+              <span>
+                {saving
+                  ? t('جاري الحفظ والتجهيز...', 'Enregistrement...', 'Saving & Preparing...')
+                  : t('حفظ وإنهاء الإعداد', 'Sauvegarder et terminer', 'Save & Finish Setup')}
+              </span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------------ */}
+      {/* PAYPAL SUBSCRIPTION ACTIVATION MODAL ($19 / MONTH)                 */}
+      {/* ------------------------------------------------------------------ */}
+      {showPayModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto" role="dialog" aria-modal="true">
+          <div className="relative w-full max-w-lg bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6" dir={isRtl ? 'rtl' : 'ltr'}>
+            <button
+              type="button"
+              onClick={() => setShowPayModal(false)}
+              className="absolute top-5 left-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="text-center space-y-2">
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25 mb-1">
+                <DollarSign className="h-7 w-7" />
+              </div>
+              <h3 className="text-2xl font-black text-white">
+                {t('اشتراك إعلانات AdMob غير المحدود', 'Abonnement AdMob Illimité', 'Unlimited AdMob Subscription')}
+              </h3>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+                {t(
+                  'أضف وحدث إعلانات Google AdMob لجميع تطبيقاتك بدون حدود طيلة الشهر مقابل 19$ فقط.',
+                  'Intégrez des publicités AdMob à volonté sur toutes vos applications pour 19$/mois.',
+                  'Add and update Google AdMob ads for all your apps without limits for just $19/month.',
+                )}
+              </p>
+            </div>
+
+            {/* Price highlight */}
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center">
+              <span className="text-3xl font-black text-white">$19</span>
+              <span className="text-xs text-emerald-400 font-bold ms-1.5">/ {t('شهرياً (30 يوماً)', 'par mois (30 jours)', 'per month (30 days)')}</span>
+              <p className="text-[11px] text-slate-400 mt-1">
+                {t('يشمل Banner, Interstitial, Rewarded, App Open, Native وتطبيقات غير محدودة', 'Tous les formats et apps illimités inclus', 'All ad formats and unlimited apps included')}
+              </p>
+            </div>
+
+            {/* PayPal Payment Instructions */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-400">{t('الدفع المباشر عبر حساب PayPal:', 'Paiement direct via PayPal :', 'Direct Payment via PayPal:')}</span>
+                <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  <span>Verified Account</span>
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5" dir="ltr">
+                <span className="font-mono text-sm text-indigo-300 font-bold select-all">{PAYPAL_EMAIL}</span>
+                <button
+                  type="button"
+                  onClick={copyPayPalEmail}
+                  className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                  title="Copy email"
+                >
+                  {copiedEmail ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                </button>
+              </div>
+
+              <a
+                href={`https://www.paypal.com/paypalme/`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow transition-all"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                <span>{t('فتح تطبيق PayPal للتحويل', 'Ouvrir PayPal pour envoyer', 'Open PayPal to Transfer')}</span>
+              </a>
+            </div>
+
+            {/* Enter Transaction ID or Sender Email */}
+            <div className="space-y-3">
+              <label className="block text-xs font-semibold text-slate-300">
+                {t('رقم المعاملة (Transaction ID) أو بريد حساب PayPal المُرسل منه:', 'Identifiant de transaction ou e-mail de paiement :', 'Transaction ID or Sender PayPal Email:')}
+              </label>
+              <input
+                type="text"
+                value={txnInput}
+                onChange={(e) => setTxnInput(e.target.value)}
+                placeholder="PP-123456789 or your-paypal@gmail.com"
+                dir="ltr"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs sm:text-sm font-mono text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500"
+              />
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                {t(
+                  'سيتم تفعيل الاشتراك فوراً لمدة 30 يوماً وإرسال إشعارات التجديد إلى بريدك قبل أسبوع ثم قبل 3 أيام من الانتهاء.',
+                  'Votre abonnement sera activé pour 30 jours avec des rappels à 7 jours et 3 jours.',
+                  'Your plan will activate for 30 days immediately with renewal reminders sent 7 days and 3 days prior to expiry.',
+                )}
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowPayModal(false)}
+                className="flex-1 py-3 border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-xs rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                {t('إلغاء', 'Annuler', 'Cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={handleActivatePayPal}
+                disabled={subActivating}
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/25 transition-all cursor-pointer"
+              >
+                {subActivating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                <span>{subActivating ? t('جاري التفعيل...', 'Activation...', 'Activating...') : t('تأكيد وتفعيل الاشتراك', 'Confirmer et Activer', 'Confirm & Activate')}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
