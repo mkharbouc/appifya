@@ -600,29 +600,76 @@ html[data-theme="light"] .text-emerald-400 {
   color: #047857 !important;
 }
 
-/* 4. Action Buttons & Solid Badges (Strictly preserve crisp white text) */
+/* 4. Action Buttons & Solid Badges (Strictly preserve crisp white text on solid buttons) */
 html[data-theme="light"] button[class*="from-indigo-"],
 html[data-theme="light"] a[class*="from-indigo-"],
-html[data-theme="light"] [class*="from-indigo-"] > *,
-html[data-theme="light"] [class*="from-indigo-"] span,
-html[data-theme="light"] [class*="from-indigo-"] svg,
+html[data-theme="light"] button[class*="from-indigo-"] *,
+html[data-theme="light"] a[class*="from-indigo-"] *,
 html[data-theme="light"] button[class*="bg-indigo-600"],
 html[data-theme="light"] a[class*="bg-indigo-600"],
-html[data-theme="light"] [class*="bg-indigo-600"] > *,
-html[data-theme="light"] [class*="bg-indigo-600"] span,
-html[data-theme="light"] [class*="bg-indigo-600"] svg,
-html[data-theme="light"] [class*="bg-violet-600"],
-html[data-theme="light"] [class*="bg-violet-600"] *,
-html[data-theme="light"] [class*="bg-purple-600"],
-html[data-theme="light"] [class*="bg-purple-600"] *,
-html[data-theme="light"] [class*="bg-emerald-600"],
-html[data-theme="light"] [class*="bg-emerald-600"] *,
-html[data-theme="light"] [class*="bg-emerald-500"],
-html[data-theme="light"] [class*="bg-emerald-500"] *,
-html[data-theme="light"] [class*="bg-red-600"],
-html[data-theme="light"] [class*="bg-red-600"] *,
-html[data-theme="light"] [class*="bg-blue-600"],
-html[data-theme="light"] [class*="bg-blue-600"] * {
+html[data-theme="light"] button[class*="bg-indigo-600"] *,
+html[data-theme="light"] a[class*="bg-indigo-600"] *,
+html[data-theme="light"] button[class*="bg-violet-600"],
+html[data-theme="light"] a[class*="bg-violet-600"],
+html[data-theme="light"] button[class*="bg-violet-600"] *,
+html[data-theme="light"] a[class*="bg-violet-600"] *,
+html[data-theme="light"] button[class*="bg-purple-600"],
+html[data-theme="light"] a[class*="bg-purple-600"],
+html[data-theme="light"] button[class*="bg-purple-600"] *,
+html[data-theme="light"] a[class*="bg-purple-600"] *,
+html[data-theme="light"] button[class*="bg-emerald-600"],
+html[data-theme="light"] a[class*="bg-emerald-600"],
+html[data-theme="light"] button[class*="bg-emerald-600"] *,
+html[data-theme="light"] a[class*="bg-emerald-600"] *,
+html[data-theme="light"] button[class*="bg-emerald-500"],
+html[data-theme="light"] a[class*="bg-emerald-500"],
+html[data-theme="light"] button[class*="bg-emerald-500"] *,
+html[data-theme="light"] a[class*="bg-emerald-500"] *,
+html[data-theme="light"] button[class*="bg-red-600"],
+html[data-theme="light"] a[class*="bg-red-600"],
+html[data-theme="light"] button[class*="bg-red-600"] *,
+html[data-theme="light"] a[class*="bg-red-600"] *,
+html[data-theme="light"] button[class*="bg-blue-600"],
+html[data-theme="light"] a[class*="bg-blue-600"],
+html[data-theme="light"] button[class*="bg-blue-600"] *,
+html[data-theme="light"] a[class*="bg-blue-600"] * {
+  color: #ffffff !important;
+}
+
+/* AdMob guidance card in Light Theme */
+html[data-theme="light"] .admob-guidance-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8faff 50%, #eef2ff 100%) !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 15px -2px rgba(99, 102, 241, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+html[data-theme="light"] .admob-guidance-card .admob-card-title {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .admob-guidance-card .admob-card-desc {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .admob-guidance-card .admob-card-badge {
+  background-color: #e0e7ff !important;
+  border-color: #c7d2fe !important;
+  color: #3730a3 !important;
+}
+
+html[data-theme="light"] .admob-guidance-card .admob-card-icon {
+  background-color: #eef2ff !important;
+  border-color: #c7d2fe !important;
+  color: #4f46e5 !important;
+}
+
+html[data-theme="light"] .admob-guidance-card .admob-card-btn {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
+  color: #ffffff !important;
+  border-color: #4338ca !important;
+}
+
+html[data-theme="light"] .admob-guidance-card .admob-card-btn * {
   color: #ffffff !important;
 }
 
