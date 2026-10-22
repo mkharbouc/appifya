@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import CustomerStoriesShowcase from './CustomerStoriesShowcase';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from './lib/i18n';
 import { databases, storage } from '@/lib/appwrite';
@@ -832,6 +833,9 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Customer Stories & Case Studies (Median-style showcase) */}
+      <CustomerStoriesShowcase />
 
       <section className="mt-24" aria-labelledby="how-it-works">
         <div className="mb-8 text-center">
