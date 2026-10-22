@@ -1075,7 +1075,7 @@ export default function QrGeneratorClient() {
 
         {/* Right Column: Live Sticky Preview & Download Hub (5 Cols) */}
         <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-6">
-          <div className="rounded-3xl border border-indigo-500/25 bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-slate-950/95 p-6 shadow-2xl backdrop-blur relative overflow-hidden">
+          <div className="qr-preview-card rounded-3xl border border-indigo-500/25 bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-slate-950/95 p-6 shadow-2xl backdrop-blur relative overflow-hidden">
             {/* Ambient Corner Glow */}
             <div className="pointer-events-none absolute -top-16 -right-16 h-44 w-44 rounded-full bg-indigo-500/15 blur-3xl" />
 
@@ -1090,7 +1090,7 @@ export default function QrGeneratorClient() {
             </div>
 
             {/* Canvas Container */}
-            <div className="relative mx-auto max-w-[320px] aspect-square rounded-2xl p-4 bg-white/5 border border-white/10 flex items-center justify-center shadow-inner overflow-hidden">
+            <div className="qr-canvas-holder relative mx-auto max-w-[320px] aspect-square rounded-2xl p-4 bg-white/5 border border-white/10 flex items-center justify-center shadow-inner overflow-hidden">
               <canvas
                 ref={canvasRef}
                 className="max-h-full max-w-full object-contain rounded-xl drop-shadow-lg"

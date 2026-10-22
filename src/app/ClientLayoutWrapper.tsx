@@ -126,10 +126,11 @@ function SidebarNav({ onClose }: { onClose?: () => void }) {
     lang === 'ar' ? item.labelAr : lang === 'fr' ? item.labelFr : item.labelEn;
 
   const isActive = (href: string) =>
-    href === '/' ? pathname === '/' : pathname.startsWith(href);
+    href === '/' ? pathname === '/' : href === '/tools' ? pathname === '/tools' : pathname.startsWith(href);
 
   // Auto-open Tools group when on a tools route or when user toggles it
   const isToolsRoute = pathname.startsWith('/tools');
+  const isToolsDirect = pathname === '/tools';
   const isToolsExpanded = toolsOpen || isToolsRoute;
 
   const width = isMobileDrawer ? SIDEBAR_EXPANDED_W : (expanded ? SIDEBAR_EXPANDED_W : SIDEBAR_COLLAPSED_W);
@@ -219,7 +220,7 @@ function SidebarNav({ onClose }: { onClose?: () => void }) {
                 type="button"
                 onClick={() => { if (expanded || isMobileDrawer) setToolsOpen((o) => !o); }}
                 className={`sidebar-nav-link w-full flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors cursor-pointer
-                  ${isToolsExpanded && (expanded || isMobileDrawer) ? 'sidebar-nav-active' : 'text-slate-400 hover:text-white'}`}
+                  ${isToolsDirect ? 'sidebar-nav-active' : isToolsRoute ? 'text-indigo-400 dark:text-indigo-400 font-semibold' : 'text-slate-400 hover:text-white'}`}
                 aria-expanded={isToolsExpanded}
                 title={!expanded && !isMobileDrawer ? labelOf(item) : undefined}
               >
@@ -414,6 +415,7 @@ function SiteFooter() {
         <Link href="/admob" className="hover:text-white">{lang === 'ar' ? 'إعداد AdMob' : lang === 'fr' ? 'Config. AdMob' : 'AdMob Setup'}</Link>
         <Link href="/tools/manifest-generator" className="hover:text-white">{lang === 'ar' ? 'مولد Manifest' : lang === 'fr' ? 'Générateur Manifest' : 'Manifest Generator'}</Link>
         <Link href="/tools/icon-generator" className="hover:text-white">{lang === 'ar' ? 'مولد الأيقونات' : lang === 'fr' ? 'Générateur d\'icônes' : 'Icon Generator'}</Link>
+        <Link href="/tools/qr-generator" className="hover:text-white">{lang === 'ar' ? 'مولد رمز QR' : lang === 'fr' ? 'Générateur QR' : 'QR Generator'}</Link>
         <Link href="/tools/pwa-checker" className="hover:text-white">{lang === 'ar' ? 'فاحص PWA' : lang === 'fr' ? 'Vérificateur PWA' : 'PWA Checker'}</Link>
         <Link href="/contact" className="hover:text-white">{t('navContact')}</Link>
         <Link href="/privacy" className="hover:text-white">{lang === 'ar' ? 'سياسة الخصوصية' : lang === 'fr' ? 'Confidentialité' : 'Privacy Policy'}</Link>
