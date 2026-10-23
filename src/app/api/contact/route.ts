@@ -6,7 +6,7 @@ const DEFAULT_DESTINATION = 'mohamedkharbouch.km@gmail.com';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, message, subject } = body;
+    const { name, email, message, subject, lang, clientTimezone } = body;
 
     // 1. Validation
     if (!name || typeof name !== 'string' || name.trim().length < 2) {
@@ -38,56 +38,139 @@ export async function POST(req: NextRequest) {
       process.env.CONTACT_DESTINATION_EMAIL ||
       process.env.SMTP_USER ||
       DEFAULT_DESTINATION;
-    const emailSubject = subject?.trim() || `📬 رسالة جديدة من صفحة اتصل بنا: ${cleanName}`;
 
-    // HTML email template
+    // Detect Visitor Language (from body or Accept-Language header)
+    const acceptLang = req.headers.get('accept-language')?.toLowerCase() || '';
+    const rawLang = (typeof lang === 'string' ? lang.toLowerCase() : '');
+    const effectiveLang: 'ar' | 'fr' | 'en' =
+      rawLang === 'fr' || rawLang === 'en' || rawLang === 'ar'
+        ? rawLang
+        : acceptLang.startsWith('fr')
+        ? 'fr'
+        : acceptLang.startsWith('ar')
+        ? 'ar'
+        : 'en';
+
+    const localeMap = {
+      ar: 'ar-EG',
+      fr: 'fr-FR',
+      en: 'en-US',
+    };
+
+    let formattedDate: string;
+    try {
+      formattedDate = new Intl.DateTimeFormat(localeMap[effectiveLang], {
+        dateStyle: 'full',
+        timeStyle: 'short',
+        timeZone: typeof clientTimezone === 'string' ? clientTimezone : undefined,
+      }).format(new Date());
+    } catch {
+      formattedDate = new Date().toLocaleString(localeMap[effectiveLang]);
+    }
+
+    const i18n = {
+      ar: {
+        dir: 'rtl',
+        langName: 'العربية (Arabic)',
+        subject: `📬 رسالة جديدة من: ${cleanName} (${cleanEmail})`,
+        headerTitle: 'رسالة جديدة من زائر عبر موقع Appifya',
+        headerSubtitle: `نموذج التواصل الرسمي - ${destinationEmail}`,
+        labelSenderName: 'اسم المرسل',
+        labelSenderEmail: 'البريد الإلكتروني للمرسل',
+        labelDate: 'تاريخ ووقت الإرسال',
+        labelSiteLanguage: 'لغة الموقع / المتصفح',
+        labelMessage: 'نص الرسالة والاستفسار',
+        replyButtonText: 'الرد على المرسل مباشرة',
+        replySubject: 'رد بخصوص استفسارك على Appifya',
+        footerText: 'تم استلام هذه الرسالة تلقائياً عبر صفحة اتصل بنا في منصة Appifya.',
+      },
+      fr: {
+        dir: 'ltr',
+        langName: 'Français (French)',
+        subject: `📬 Nouveau message de contact : ${cleanName} (${cleanEmail})`,
+        headerTitle: `Nouveau message d'un visiteur sur Appifya`,
+        headerSubtitle: `Formulaire de contact officiel - ${destinationEmail}`,
+        labelSenderName: `Nom de l'expéditeur`,
+        labelSenderEmail: `Adresse e-mail de l'expéditeur`,
+        labelDate: `Date et heure d'envoi`,
+        labelSiteLanguage: `Langue du site / navigateur`,
+        labelMessage: `Message & demande`,
+        replyButtonText: `Répondre directement à l'expéditeur`,
+        replySubject: `Réponse concernant votre demande sur Appifya`,
+        footerText: `Ce message a été envoyé automatiquement via la page Contact du site Appifya.`,
+      },
+      en: {
+        dir: 'ltr',
+        langName: 'English',
+        subject: `📬 New Contact Inquiry from: ${cleanName} (${cleanEmail})`,
+        headerTitle: `New Contact Inquiry on Appifya`,
+        headerSubtitle: `Official contact form - ${destinationEmail}`,
+        labelSenderName: `Sender Name`,
+        labelSenderEmail: `Sender Email Address`,
+        labelDate: `Date and Time of Submission`,
+        labelSiteLanguage: `Website / Browser Language`,
+        labelMessage: `Message & Inquiry`,
+        replyButtonText: `Reply Directly to Sender`,
+        replySubject: `Re: Your inquiry on Appifya`,
+        footerText: `This message was automatically submitted via the Contact page on Appifya.`,
+      },
+    }[effectiveLang];
+
+    const emailSubject = subject?.trim() || i18n.subject;
+
+    // HTML email template adapted to visitor's language and direction
     const htmlContent = `
       <!DOCTYPE html>
-      <html dir="rtl" lang="ar">
+      <html dir="${i18n.dir}" lang="${effectiveLang}">
       <head>
         <meta charset="utf-8">
         <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 24px; margin: 0; }
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 24px; margin: 0; direction: ${i18n.dir}; }
           .container { max-width: 600px; margin: 0 auto; background: #1e293b; border-radius: 16px; border: 1px solid #334155; overflow: hidden; }
           .header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 24px; text-align: center; color: #ffffff; }
           .content { padding: 24px; line-height: 1.6; }
           .field { margin-bottom: 16px; }
           .label { font-size: 12px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; }
           .value { font-size: 15px; color: #ffffff; font-weight: 500; }
+          .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; background: #4f46e5; color: #ffffff; }
           .message-box { background: #0f172a; border-radius: 12px; border: 1px solid #334155; padding: 16px; white-space: pre-wrap; font-size: 14px; color: #e2e8f0; margin-top: 8px; line-height: 1.7; }
           .footer { padding: 16px 24px; background: #0f172a; border-top: 1px solid #334155; font-size: 12px; color: #64748b; text-align: center; }
-          .reply-btn { display: inline-block; background: #6366f1; color: #ffffff !important; padding: 10px 22px; border-radius: 10px; text-decoration: none; font-weight: bold; margin-top: 16px; }
+          .reply-btn { display: inline-block; background: #6366f1; color: #ffffff !important; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: bold; margin-top: 16px; }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
-            <h2 style="margin: 0; font-size: 20px;">رسالة جديدة من زائر عبر موقع Appifya</h2>
-            <p style="margin: 6px 0 0; opacity: 0.9; font-size: 13px;">نموذج التواصل الرسمي - ${destinationEmail}</p>
+            <h2 style="margin: 0; font-size: 20px;">${i18n.headerTitle}</h2>
+            <p style="margin: 6px 0 0; opacity: 0.9; font-size: 13px;">${i18n.headerSubtitle}</p>
           </div>
           <div class="content">
             <div class="field">
-              <div class="label">اسم المرسل</div>
+              <div class="label">${i18n.labelSenderName}</div>
               <div class="value">${cleanName}</div>
             </div>
             <div class="field">
-              <div class="label">البريد الإلكتروني للمرسل</div>
+              <div class="label">${i18n.labelSenderEmail}</div>
               <div class="value"><a href="mailto:${cleanEmail}" style="color: #818cf8;">${cleanEmail}</a></div>
             </div>
             <div class="field">
-              <div class="label">تاريخ ووقت الإرسال</div>
-              <div class="value" dir="ltr" style="text-align: right;">${new Date().toLocaleString('ar-EG')}</div>
+              <div class="label">${i18n.labelSiteLanguage}</div>
+              <div class="value"><span class="badge">${i18n.langName}</span></div>
             </div>
             <div class="field">
-              <div class="label">نص الرسالة</div>
+              <div class="label">${i18n.labelDate}</div>
+              <div class="value" dir="${i18n.dir}">${formattedDate}</div>
+            </div>
+            <div class="field">
+              <div class="label">${i18n.labelMessage}</div>
               <div class="message-box">${cleanMessage}</div>
             </div>
             <div style="text-align: center; margin-top: 24px;">
-              <a href="mailto:${cleanEmail}?subject=رد بخصوص استفسارك على Appifya" class="reply-btn">الرد على المرسل مباشرة</a>
+              <a href="mailto:${cleanEmail}?subject=${encodeURIComponent(i18n.replySubject)}" class="reply-btn">${i18n.replyButtonText}</a>
             </div>
           </div>
           <div class="footer">
-            تم استلام هذه الرسالة تلقائياً عبر صفحة اتصل بنا في منصة Appifya.
+            ${i18n.footerText}
           </div>
         </div>
       </body>
@@ -95,16 +178,17 @@ export async function POST(req: NextRequest) {
     `;
 
     const textContent = `
-رسالة جديدة من صفحة اتصل بنا - Appifya
+${i18n.headerTitle} - Appifya
 ==========================================
-اسم المرسل: ${cleanName}
-البريد الإلكتروني: ${cleanEmail}
-التاريخ: ${new Date().toISOString()}
+${i18n.labelSenderName}: ${cleanName}
+${i18n.labelSenderEmail}: ${cleanEmail}
+${i18n.labelSiteLanguage}: ${i18n.langName}
+${i18n.labelDate}: ${formattedDate}
 
-نص الرسالة:
+${i18n.labelMessage}:
 ${cleanMessage}
 ==========================================
-الرد المباشر: mailto:${cleanEmail}
+${i18n.replyButtonText}: mailto:${cleanEmail}
     `;
 
     // 2. Delivery Strategy A: SMTP (Nodemailer)
