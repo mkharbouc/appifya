@@ -34,7 +34,10 @@ export async function POST(req: NextRequest) {
     const cleanName = name.trim();
     const cleanEmail = email.trim();
     const cleanMessage = message.trim();
-    const destinationEmail = process.env.CONTACT_DESTINATION_EMAIL || DEFAULT_DESTINATION;
+    const destinationEmail =
+      process.env.CONTACT_DESTINATION_EMAIL ||
+      process.env.SMTP_USER ||
+      DEFAULT_DESTINATION;
     const emailSubject = subject?.trim() || `📬 رسالة جديدة من صفحة اتصل بنا: ${cleanName}`;
 
     // HTML email template
