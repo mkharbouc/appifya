@@ -2,6 +2,7 @@ import "./globals.css";
 import React from "react";
 import type { Metadata } from "next";
 import ClientLayoutWrapper from "./ClientLayoutWrapper";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://appifya.app"),
@@ -168,6 +169,7 @@ export default function RootLayout({
           />
         ))}
         <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
+        <Analytics />
       </body>
     </html>
   );

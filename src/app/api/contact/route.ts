@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
-const DEFAULT_DESTINATION = 'support@appifya.app';
+const DEFAULT_DESTINATION = 'mohamedkharbouch.km@gmail.com';
 
 export async function POST(req: NextRequest) {
   try {
