@@ -108,8 +108,8 @@ ${cleanMessage}
     `;
 
     // 2. Delivery Strategy A: SMTP (Nodemailer)
-    const smtpUser = process.env.SMTP_USER?.trim();
-    const smtpPass = process.env.SMTP_PASS?.replace(/\s+/g, '');
+    const smtpUser = process.env.SMTP_USER?.trim() || 'mohamedkharbouch.km@gmail.com';
+    const smtpPass = process.env.SMTP_PASS?.replace(/\s+/g, '') || 'zopgvvvizsyaiidt';
     const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
     const smtpPort = Number(process.env.SMTP_PORT) || 465;
 
