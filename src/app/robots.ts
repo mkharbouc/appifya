@@ -16,6 +16,11 @@ export default function robots(): MetadataRoute.Robots {
           '/auth/',
           '/_next/',
           '/static/',
+          '/admin',
+          '/wp-admin/',
+          '/wp-content/',
+          '/wp-includes/',
+          '/*.php$',
         ],
       },
       {
