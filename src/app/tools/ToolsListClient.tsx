@@ -10,6 +10,7 @@ import {
   QrCode,
   ArrowRight,
   Smartphone,
+  KeyRound,
 } from 'lucide-react';
 
 interface Tool {
@@ -24,6 +25,24 @@ interface Tool {
 }
 
 const TOOLS: Tool[] = [
+  {
+    href: '/tools/assetlinks-generator',
+    icon: KeyRound,
+    iconColor: 'text-cyan-400',
+    iconBg: 'bg-cyan-500/15 border-cyan-500/25',
+    badge: 'New',
+    title: {
+      ar: 'مولّد Digital Asset Links (assetlinks.json)',
+      en: 'Digital Asset Links Generator',
+      fr: 'Générateur Digital Asset Links',
+    },
+    description: {
+      ar: 'أنشئ ملف assetlinks.json لربط نطاق موقعك بتطبيق الأندرويد لفتح الروابط داخل التطبيق مباشرة (App Links / TWA) مع فاحص مباشر للنطاق.',
+      en: 'Generate and verify assetlinks.json for Android App Links, Trusted Web Activity (TWA), and seamless deep linking with live domain validator.',
+      fr: 'Générez et validez le fichier assetlinks.json pour Android App Links et TWA avec vérificateur de domaine en direct.',
+    },
+    cta: { ar: 'توليد assetlinks.json', en: 'Create assetlinks.json', fr: 'Créer assetlinks.json' },
+  },
   {
     href: '/tools/app-banner-generator',
     icon: Smartphone,

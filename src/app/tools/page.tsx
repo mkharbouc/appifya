@@ -87,6 +87,13 @@ const jsonLd = {
       applicationCategory: 'DeveloperApplication',
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     },
+    {
+      '@type': 'WebApplication',
+      name: 'Digital Asset Links Generator',
+      url: 'https://appifya.app/tools/assetlinks-generator',
+      applicationCategory: 'DeveloperApplication',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
   ],
 };
 

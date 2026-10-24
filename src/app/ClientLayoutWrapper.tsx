@@ -8,7 +8,7 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import {
   Globe, Sparkles, LayoutDashboard, LogOut, User, Moon, Sun,
   FileCode, ChevronDown, ImageIcon, Gauge, QrCode, Home, Info, BookOpen,
-  DollarSign, Mail, ShieldCheck, FileText, PanelLeftClose, PanelLeftOpen, Wrench, X, Smartphone,
+  DollarSign, Mail, ShieldCheck, FileText, PanelLeftClose, PanelLeftOpen, Wrench, X, Smartphone, KeyRound,
 } from "lucide-react";
 
 // ─── Logo ──────────────────────────────────────────────────────────────────────
@@ -44,6 +44,7 @@ const NAV_ITEMS: NavItem[] = [
     labelEn: 'Tools',
     icon: <Wrench className="h-4 w-4" />,
     children: [
+      { href: '/tools/assetlinks-generator', labelAr: 'مولد Asset Links (TWA)', labelFr: 'Générateur Asset Links', labelEn: 'Asset Links Generator', icon: <KeyRound className="h-3.5 w-3.5 text-cyan-400" />, descAr: 'ملف assetlinks.json لروابط التطبيق', descFr: 'assetlinks.json pour App Links & TWA', descEn: 'assetlinks.json for App Links & TWA' },
       { href: '/tools/app-banner-generator', labelAr: 'شريط التطبيق الذكي (Smart Banner)', labelFr: 'Générateur Smart App Banner', labelEn: 'Smart App Banner Generator', icon: <Smartphone className="h-3.5 w-3.5 text-emerald-400" />, descAr: 'كود شريط Google Play لموقعك', descFr: 'Bannière Google Play pour votre site', descEn: 'Google Play banner code for your site' },
       { href: '/tools/manifest-generator', labelAr: 'مولد Manifest', labelFr: 'Générateur Manifest', labelEn: 'Manifest Generator', icon: <FileCode className="h-3.5 w-3.5 text-indigo-400" />, descAr: 'أنشئ manifest.json لتطبيقك', descFr: 'Créer un fichier manifest.json', descEn: 'Build your PWA manifest.json' },
       { href: '/tools/icon-generator', labelAr: 'مولد أيقونات التطبيق', labelFr: 'Générateur d\'icônes', labelEn: 'Icon Generator', icon: <ImageIcon className="h-3.5 w-3.5 text-purple-400" />, descAr: 'جميع أحجام PWA من صورة واحدة', descFr: 'Toutes les tailles PWA en un clic', descEn: 'All PWA sizes from one image' },
@@ -417,6 +418,7 @@ function SiteFooter() {
         <Link href="/tools/manifest-generator" className="hover:text-white">{lang === 'ar' ? 'مولد Manifest' : lang === 'fr' ? 'Générateur Manifest' : 'Manifest Generator'}</Link>
         <Link href="/tools/icon-generator" className="hover:text-white">{lang === 'ar' ? 'مولد الأيقونات' : lang === 'fr' ? 'Générateur d\'icônes' : 'Icon Generator'}</Link>
         <Link href="/tools/qr-generator" className="hover:text-white">{lang === 'ar' ? 'مولد رمز QR' : lang === 'fr' ? 'Générateur QR' : 'QR Generator'}</Link>
+        <Link href="/tools/assetlinks-generator" className="hover:text-white">{lang === 'ar' ? 'مولد Asset Links' : lang === 'fr' ? 'Générateur Asset Links' : 'Asset Links Generator'}</Link>
         <Link href="/tools/app-banner-generator" className="hover:text-white">{lang === 'ar' ? 'شريط التطبيق الذكي (Smart Banner)' : lang === 'fr' ? 'Smart App Banner' : 'Smart App Banner'}</Link>
         <Link href="/tools/pwa-checker" className="hover:text-white">{lang === 'ar' ? 'فاحص PWA' : lang === 'fr' ? 'Vérificateur PWA' : 'PWA Checker'}</Link>
         <Link href="/contact" className="hover:text-white">{t('navContact')}</Link>
