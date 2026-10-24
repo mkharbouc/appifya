@@ -88,6 +88,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'APK builder is not configured' }, { status: 503 });
     }
 
+    // GitHub repository_dispatch limits client_payload to a maximum of 10 keys
     const response = await fetch(
       `https://api.github.com/repos/${config.owner}/${targetRepo}/dispatches`,
       {
@@ -105,9 +106,6 @@ export async function POST(req: NextRequest) {
             admob_app_id: admobAppId,
             admob_banner_unit_id: admobBannerUnitId,
             admob_interstitial_unit_id: admobInterstitialUnitId,
-            admob_rewarded_unit_id: typeof appDoc.admob_rewarded_unit_id === 'string' ? appDoc.admob_rewarded_unit_id : '',
-            admob_app_open_unit_id: typeof appDoc.admob_app_open_unit_id === 'string' ? appDoc.admob_app_open_unit_id : '',
-            admob_native_unit_id: typeof appDoc.admob_native_unit_id === 'string' ? appDoc.admob_native_unit_id : '',
           },
         }),
       },
@@ -116,13 +114,14 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       const errText = await response.text();
       console.error('GitHub dispatch failed:', response.status, errText);
-      return NextResponse.json({ error: 'Failed to trigger build on cloud runner' }, { status: 502 });
+      return NextResponse.json({ error: `Failed to trigger build on cloud runner (${response.status})` }, { status: 502 });
     }
 
     return NextResponse.json({ success: true, message: 'Build started' });
   } catch (error) {
-    console.error('APK build request failed:', error);
-    return NextResponse.json({ error: 'Unable to start APK build' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('APK build request failed:', msg);
+    return NextResponse.json({ error: 'Unable to start APK build: ' + msg }, { status: 500 });
   }
 }
 

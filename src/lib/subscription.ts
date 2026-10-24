@@ -6,6 +6,8 @@
 export const PAYPAL_EMAIL = 'kharbouch.km@gmail.com';
 export const SUBSCRIPTION_PRICE_USD = 19;
 export const RETENTION_DAYS = 10; // Auto-delete server files after 10 days
+export const PAYPAL_DIRECT_PAY_URL = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(PAYPAL_EMAIL)}&currency_code=USD&amount=${SUBSCRIPTION_PRICE_USD}&item_name=${encodeURIComponent('Appifya Pro Studio Plan')}`;
+
 
 export interface AdMobSubscription {
   isActive: boolean;

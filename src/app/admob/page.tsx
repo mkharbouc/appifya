@@ -12,6 +12,7 @@ import {
   activateUserSubscription,
   getFileRetentionStatus,
   PAYPAL_EMAIL,
+  PAYPAL_DIRECT_PAY_URL,
   SUBSCRIPTION_PRICE_USD,
   RETENTION_DAYS,
   type AdMobSubscription,
@@ -1455,13 +1456,13 @@ export default function AdMobPage() {
               </div>
 
               <a
-                href={`https://www.paypal.com/paypalme/`}
+                href={PAYPAL_DIRECT_PAY_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow transition-all"
+                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:scale-[1.01]"
               >
-                <ExternalLink className="h-3.5 w-3.5" />
-                <span>{t('فتح تطبيق PayPal للتحويل', 'Ouvrir PayPal pour envoyer', 'Open PayPal to Transfer')}</span>
+                <ExternalLink className="h-4 w-4" />
+                <span>{t('الذهاب للدفع عبر PayPal مباشرة ($19)', 'Payer 19$ directement via PayPal', 'Pay $19 via PayPal Checkout')}</span>
               </a>
             </div>
 
