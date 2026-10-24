@@ -17,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/tools/icon-generator',
     '/tools/pwa-checker',
     '/tools/qr-generator',
+    '/tools/app-banner-generator',
   ];
 
   return routes.map((route) => ({
