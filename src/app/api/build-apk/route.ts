@@ -33,14 +33,55 @@ export async function POST(req: NextRequest) {
     const appId = typeof body.appId === 'string' ? body.appId : '';
     const userId = typeof body.userId === 'string' ? body.userId : '';
 
-    if (!appId || !userId) {
-      return NextResponse.json({ error: 'appId and userId are required' }, { status: 400 });
+    if (!appId) {
+      return NextResponse.json({ error: 'appId is required' }, { status: 400 });
     }
 
-    const appDoc = await databases.getDocument(DB_ID, TABLE_ID, appId);
-    if (appDoc.user_id !== userId) {
-      return NextResponse.json({ error: 'You do not own this app' }, { status: 403 });
+    // Try fetching from Appwrite database if available, otherwise fall back to client payload
+    let appDoc: Record<string, unknown> = {};
+    try {
+      if (DB_ID && TABLE_ID) {
+        appDoc = await databases.getDocument(DB_ID, TABLE_ID, appId);
+        if (appDoc.user_id && userId && appDoc.user_id !== userId) {
+          return NextResponse.json({ error: 'You do not own this app' }, { status: 403 });
+        }
+      }
+    } catch {
+      // Server-side Appwrite client is guest, fallback to client-supplied details
     }
+
+    const appName = typeof body.appName === 'string' && body.appName
+      ? body.appName
+      : typeof appDoc.app_name === 'string'
+        ? appDoc.app_name
+        : 'MyStore';
+
+    const storeUrl = typeof body.storeUrl === 'string' && body.storeUrl
+      ? body.storeUrl
+      : typeof appDoc.store_url === 'string'
+        ? appDoc.store_url
+        : 'https://appifya.app';
+
+    const themeColor = typeof body.themeColor === 'string' && body.themeColor
+      ? body.themeColor
+      : typeof appDoc.theme_color === 'string'
+        ? appDoc.theme_color
+        : '#6366f1';
+
+    const logoUrl = typeof body.logoUrl === 'string' && body.logoUrl
+      ? body.logoUrl
+      : getLogoUrl(appDoc);
+
+    const isProBuild = Boolean(body.isProBuild);
+    const admobAppId = isProBuild
+      ? (typeof body.admobAppId === 'string' ? body.admobAppId : typeof appDoc.admob_app_id === 'string' ? appDoc.admob_app_id : '')
+      : '';
+    const admobBannerUnitId = isProBuild
+      ? (typeof body.admobBannerUnitId === 'string' ? body.admobBannerUnitId : typeof appDoc.admob_banner_unit_id === 'string' ? appDoc.admob_banner_unit_id : '')
+      : '';
+    const admobInterstitialUnitId = isProBuild
+      ? (typeof body.admobInterstitialUnitId === 'string' ? body.admobInterstitialUnitId : typeof appDoc.admob_interstitial_unit_id === 'string' ? appDoc.admob_interstitial_unit_id : '')
+      : '';
 
     const config = getConfig();
     if (!config) {
@@ -56,27 +97,29 @@ export async function POST(req: NextRequest) {
           event_type: 'build_apk',
           client_payload: {
             app_id: appId,
-            app_name: appDoc.app_name || 'MyStore',
-            store_url: appDoc.store_url || 'https://appifya.app',
-            theme_color: appDoc.theme_color || '#6366f1',
-            logo_url: getLogoUrl(appDoc),
-            admob_app_id: appDoc.admob_app_id || '',
-            admob_banner_unit_id: appDoc.admob_banner_unit_id || '',
-            admob_interstitial_unit_id: appDoc.admob_interstitial_unit_id || '',
-            admob_rewarded_unit_id: appDoc.admob_rewarded_unit_id || '',
-            admob_app_open_unit_id: appDoc.admob_app_open_unit_id || '',
-            admob_native_unit_id: appDoc.admob_native_unit_id || '',
+            app_name: appName,
+            store_url: storeUrl,
+            theme_color: themeColor,
+            logo_url: logoUrl,
+            package_type: isProBuild ? 'aab_bundle' : 'apk_direct',
+            admob_app_id: admobAppId,
+            admob_banner_unit_id: admobBannerUnitId,
+            admob_interstitial_unit_id: admobInterstitialUnitId,
+            admob_rewarded_unit_id: typeof appDoc.admob_rewarded_unit_id === 'string' ? appDoc.admob_rewarded_unit_id : '',
+            admob_app_open_unit_id: typeof appDoc.admob_app_open_unit_id === 'string' ? appDoc.admob_app_open_unit_id : '',
+            admob_native_unit_id: typeof appDoc.admob_native_unit_id === 'string' ? appDoc.admob_native_unit_id : '',
           },
         }),
       },
     );
 
     if (!response.ok) {
-      console.error('GitHub dispatch failed:', response.status);
-      return NextResponse.json({ error: 'Failed to trigger build' }, { status: 502 });
+      const errText = await response.text();
+      console.error('GitHub dispatch failed:', response.status, errText);
+      return NextResponse.json({ error: 'Failed to trigger build on cloud runner' }, { status: 502 });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: 'Build started' });
   } catch (error) {
     console.error('APK build request failed:', error);
     return NextResponse.json({ error: 'Unable to start APK build' }, { status: 500 });

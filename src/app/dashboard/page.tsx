@@ -188,25 +188,45 @@ export default function DashboardPage() {
     void restoreBuildStatuses();
   }, [apps]);
 
-  const handleTriggerBuild = async (app: AppDocument) => {
+  const handleTriggerBuild = async (app: AppDocument, isProBuild: boolean = false) => {
+    if (isProBuild && !subscription.isActive) {
+      setShowPayModal(true);
+      return;
+    }
+
     try {
       setBuildingAppId(app.$id);
       const res = await fetch('/api/build-apk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appId: app.$id, userId: user?.$id }),
+        body: JSON.stringify({
+          appId: app.$id,
+          userId: user?.$id,
+          appName: app.app_name,
+          storeUrl: app.store_url,
+          themeColor: app.theme_color,
+          iconId: app.icon_id,
+          isProBuild,
+          admobAppId: app.admob_app_id,
+          admobBannerUnitId: app.admob_banner_unit_id,
+          admobInterstitialUnitId: app.admob_interstitial_unit_id,
+          admobRewardedUnitId: app.admob_rewarded_unit_id,
+          admobAppOpenUnitId: app.admob_app_open_unit_id,
+          admobNativeUnitId: app.admob_native_unit_id,
+        }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         markBuildStarted(app.$id);
         setBuilds((current) => ({ ...current, [app.$id]: { status: 'building' } }));
         setBuildNoticeAppId(app.$id);
       } else {
-        alert(data.error || 'فشل إرسال طلب البناء، يرجى المحاولة مرة أخرى.');
+        alert(data.error || (lang === 'ar' ? 'فشل إرسال طلب البناء، يرجى المحاولة مرة أخرى.' : 'Build request failed, please try again.'));
       }
-    } catch {
-      alert('تعذر الاتصال بالسيرفر لبدء البناء');
+    } catch (err) {
+      console.error('Build trigger error:', err);
+      alert(lang === 'ar' ? 'تعذر الاتصال بالسيرفر لبدء البناء' : 'Unable to connect to build server');
     } finally {
       setBuildingAppId(null);
     }
@@ -726,12 +746,12 @@ export default function DashboardPage() {
 
                 {/* Action buttons */}
                 <div>
-                  <div className="flex items-center gap-2 pt-3 border-t border-slate-800/80">
+                  <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-800/80">
                     <a
                       href={app.store_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-xl transition-colors"
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-xl transition-colors flex items-center justify-center gap-1.5"
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
                       <span>{getTxt('preview')}</span>
@@ -745,18 +765,41 @@ export default function DashboardPage() {
                       <Settings className="h-3.5 w-3.5" />
                     </Link>
 
+                    {/* Button 1: Free APK Build */}
                     <button
-                      onClick={() => handleTriggerBuild(app)}
+                      type="button"
+                      onClick={() => handleTriggerBuild(app, false)}
                       disabled={buildingAppId === app.$id}
-                      className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors shadow-md shadow-indigo-600/20 cursor-pointer"
-                      title={getTxt('buildApk')}
+                      className="flex-1 min-w-[120px] flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                      title={lang === 'ar' ? 'بناء ملف APK مجاني ومباشر (بدون إعلانات)' : 'Build Free APK (Clean)'}
                     >
                       {buildingAppId === app.$id ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-400" />
                       ) : (
-                        <Play className="h-3.5 w-3.5 fill-current" />
+                        <Play className="h-3.5 w-3.5 fill-current text-indigo-400" />
                       )}
-                      <span>{buildingAppId === app.$id ? getTxt('buildStarting') : getTxt('buildApk')}</span>
+                      <span>{buildingAppId === app.$id ? getTxt('buildStarting') : (lang === 'ar' ? 'بناء APK (مجاني)' : 'Free APK')}</span>
+                    </button>
+
+                    {/* Button 2: Pro Studio Store Bundle (AAB + AdMob) -> triggers PayPal modal if unsubscribed */}
+                    <button
+                      type="button"
+                      onClick={() => handleTriggerBuild(app, true)}
+                      disabled={buildingAppId === app.$id}
+                      className={`flex-1 min-w-[140px] flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer ${
+                        subscription.isActive
+                          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-600/20'
+                          : 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-indigo-600/25 ring-1 ring-indigo-400/30'
+                      }`}
+                      title={lang === 'ar' ? 'توليد حزمة المتجر الرسمية (AAB + APK) مع AdMob' : 'Build Store Bundle (AAB + AdMob)'}
+                    >
+                      <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                      <span>{lang === 'ar' ? 'حزمة المتجر AAB' : 'Store AAB'}</span>
+                      {!subscription.isActive && (
+                        <span className="px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[9px] font-extrabold uppercase">
+                          PRO
+                        </span>
+                      )}
                     </button>
                   </div>
 
@@ -805,24 +848,24 @@ export default function DashboardPage() {
             </button>
 
             <div className="text-center space-y-2">
-              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25 mb-1">
-                <DollarSign className="h-7 w-7" />
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/25 mb-1">
+                <Sparkles className="h-7 w-7 text-amber-300" />
               </div>
               <h3 className="text-2xl font-black text-white">
-                {lang === 'ar' ? 'اشتراك إعلانات AdMob غير المحدود' : 'Unlimited AdMob Subscription'}
+                {lang === 'ar' ? 'ترقية استوديو برو (Pro Studio)' : 'Upgrade to Pro Studio Plan'}
               </h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+              <p className="text-xs text-slate-300 max-w-sm mx-auto leading-relaxed">
                 {lang === 'ar'
-                  ? 'أضف وحدث إعلانات Google AdMob لجميع تطبيقاتك بدون حدود طيلة الشهر مقابل 19$ فقط.'
-                  : 'Add and update Google AdMob ads for all your apps without limits for just $19/month.'}
+                  ? 'احصل على حزم Google Play الرسمية (Android AAB + APK) وفعّل إعلانات AdMob غير المحدودة وأرباح 100% لك مقابل 19$ فقط.'
+                  : 'Build official Google Play release bundles (AAB + APK) and monetize unlimited apps with AdMob for just $19/mo.'}
               </p>
             </div>
 
-            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center">
+            <div className="rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-4 text-center">
               <span className="text-3xl font-black text-white">$19</span>
-              <span className="text-xs text-emerald-400 font-bold ms-1.5">/ {lang === 'ar' ? 'شهرياً (30 يوماً)' : 'per month'}</span>
-              <p className="text-[11px] text-slate-400 mt-1">
-                {lang === 'ar' ? 'يشمل جميع وحدات الإعلانات وبناء تطبيقات غير محدودة' : 'All ad formats and unlimited builds included'}
+              <span className="text-xs text-indigo-300 font-bold ms-1.5">/ {lang === 'ar' ? 'شهرياً عبر PayPal' : 'per month via PayPal'}</span>
+              <p className="text-[11px] text-slate-300 mt-1">
+                {lang === 'ar' ? 'يشمل حزم المتجر AAB وإعلانات AdMob وبناء تطبيقات غير محدودة' : 'Includes official Store AAB bundles, AdMob ads & unlimited builds'}
               </p>
             </div>
 
