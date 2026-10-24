@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import CustomerStoriesShowcase from './CustomerStoriesShowcase';
@@ -18,18 +18,34 @@ import {
   AlertCircle,
   Eye,
   RefreshCw,
-  ExternalLink,
   Check,
   HelpCircle,
   ShieldCheck,
   Zap,
-  Layers3,
   Bell,
-  Send,
   Play,
-  ArrowUpRight,
   ArrowRight,
   DollarSign,
+  Terminal,
+  Cpu,
+  Gauge,
+  Sliders,
+  Apple,
+  WifiOff,
+  Fingerprint,
+  Wifi,
+  Battery,
+  Package,
+  Headphones,
+  Home,
+  Search,
+  ShoppingBag,
+  User,
+  Rocket,
+  Award,
+  Shield,
+  HardDrive,
+  X,
 } from 'lucide-react';
 
 const faqSchema = (lang: 'ar' | 'en' | 'fr') => ({
@@ -46,26 +62,26 @@ const faqSchema = (lang: 'ar' | 'en' | 'fr') => ({
     },
     {
       '@type': 'Question',
-      name: lang === 'ar' ? 'هل أحتاج إلى Android Studio؟' : lang === 'fr' ? 'Ai-je besoin d\'Android Studio ?' : 'Do I need Android Studio?',
+      name: lang === 'ar' ? 'هل أحتاج إلى Android Studio أو Xcode؟' : lang === 'fr' ? 'Ai-je besoin d\'Android Studio ou Xcode ?' : 'Do I need Android Studio or Xcode?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: lang === 'ar' ? 'لا، المنصة تتولى إنشاء APK عبر خدمة بناء آلية. ستحتاج فقط إلى حسابك وبيانات تطبيقك.' : lang === 'fr' ? 'Non, la plateforme lance une compilation automatisée.' : 'No. The platform starts an automated build for you.',
+        text: lang === 'ar' ? 'لا، محرك Appifya السحابي يتولى تجميع ملفات AAB و APK و IPA تلقائياً دون الحاجة لكتابة كود أصلي أو تنزيل برامج برمجية ضخمة.' : lang === 'fr' ? 'Non, le moteur cloud Appifya compile vos binaires AAB, APK et IPA automatiquement sans configuration native.' : 'No. Appifya cloud engine automates AAB, APK, and IPA packaging with zero native SDK installations required.',
       },
     },
     {
       '@type': 'Question',
-      name: lang === 'ar' ? 'هل أملك أرباح AdMob؟' : lang === 'fr' ? 'Qui possède les revenus AdMob ?' : 'Who owns AdMob revenue?',
+      name: lang === 'ar' ? 'هل أملك أرباح AdMob والتطبيق بنسبة 100%؟' : lang === 'fr' ? 'Qui possède les revenus AdMob ?' : 'Who owns AdMob revenue?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: lang === 'ar' ? 'نعم. عند استخدام إعدادات AdMob الخاصة بك، يبقى الحساب والأرباح ملكاً لك وتبقى مسؤولاً عن سياسات Google.' : lang === 'fr' ? 'Les paramètres et revenus restent les vôtres, sous votre responsabilité vis-à-vis de Google.' : 'Your settings and revenue remain yours, and you are responsible for Google policies.',
+        text: lang === 'ar' ? 'نعم 100%. عند استخدام إعدادات AdMob الخاصة بك، يبقى الحساب والأرباح ملكاً لك بالكامل وتبقى مسؤولاً عن سياسات Google.' : lang === 'fr' ? 'Les paramètres et 100% des revenus restent les vôtres sous votre responsabilité vis-à-vis de Google.' : '100% yes. Your AdMob identifiers and revenue flow directly to your account with zero revenue share.',
       },
     },
     {
       '@type': 'Question',
-      name: lang === 'ar' ? 'لماذا لا تظهر بعض المواقع داخل المعاينة؟' : lang === 'fr' ? 'Pourquoi certains sites ne s\'affichent-ils pas dans l\'aperçu ?' : 'Why do some sites not appear in preview?',
+      name: lang === 'ar' ? 'لماذا لا تظهر بعض المواقع داخل المعاينة الحية؟' : lang === 'fr' ? 'Pourquoi certains sites ne s\'affichent-ils pas dans l\'aperçu ?' : 'Why do some sites not appear in preview?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: lang === 'ar' ? 'بعض المواقع تمنع التضمين داخل iframe لأسباب أمنية. في هذه الحالة استخدم زر الفتح خارجياً، ولا يمنع ذلك إنشاء التطبيق.' : lang === 'fr' ? 'Certains sites bloquent les iframe pour des raisons de sécurité. Ouvrez-les dans un nouvel onglet.' : 'Some sites block iframe embedding for security. Use the external preview link; this does not prevent app creation.',
+        text: lang === 'ar' ? 'بعض المواقع تمنع التضمين داخل iframe لأسباب أمنية (X-Frame-Options). يمكنك استخدام محاكي التطبيق الأصلي أو زر الفتح خارجياً، ولا يؤثر ذلك إطلاقاً على إنشاء التطبيق.' : lang === 'fr' ? 'Certains sites bloquent les iframes pour des raisons de sécurité. Utilisez le mode simulateur ou ouvrez dans un nouvel onglet.' : 'Some websites restrict iframe embedding for security headers. Use our native simulation mode or external preview link; this never prevents APK generation.',
       },
     },
   ],
@@ -74,115 +90,94 @@ const faqSchema = (lang: 'ar' | 'en' | 'fr') => ({
 const howToSchema = (lang: 'ar' | 'en' | 'fr') => ({
   '@context': 'https://schema.org',
   '@type': 'HowTo',
-  name: lang === 'ar' ? 'كيف تحول متجرك إلى تطبيق PWA' : lang === 'fr' ? 'Comment transformer votre boutique en PWA' : 'How to convert your store to a PWA',
-  description: lang === 'ar' ? 'دليل خطوة بخطوة لتحويل أي متجر أو موقع إلى تطبيق ويب تقدمي قابل للتثبيت' : lang === 'fr' ? 'Guide étape par étape pour convertir n\'importe quel magasin ou site en Progressive Web App installable' : 'Step-by-step guide to convert any store or website into an installable Progressive Web App',
+  name: lang === 'ar' ? 'كيف تحول موقعك أو متجرك إلى تطبيق PWA أصلي' : lang === 'fr' ? 'Comment transformer votre site en application mobile native' : 'How to convert any website into a native mobile app',
+  description: lang === 'ar' ? 'دليل خطوة بخطوة لتحويل أي متجر أو موقع إلى تطبيق ويب تقدمي قابل للتثبيت' : lang === 'fr' ? 'Guide étape par étape pour convertir n\'importe quel magasin ou site en application mobile' : 'Step-by-step guide to package any store or web application into an installable mobile app',
   step: [
     {
       '@type': 'HowToStep',
-      name: lang === 'ar' ? 'أضف رابط موقعك' : lang === 'fr' ? 'Ajoutez votre URL' : 'Add your URL',
-      text: lang === 'ar' ? 'أدخل رابط متجرك أو صفحة الهبوط التي تعمل عبر HTTPS. المنصة تقبل جميع أنواع المواقع والمتاجر الإلكترونية.' : lang === 'fr' ? 'Entrez l\'URL de votre boutique ou page de destination servie via HTTPS. La plateforme accepte tous types de sites et boutiques.' : 'Enter your store or landing page URL served over HTTPS. The platform accepts all types of websites and online stores.',
+      name: lang === 'ar' ? 'أدخل رابط موقعك' : lang === 'fr' ? 'Entrez l\'URL' : 'Enter your URL',
+      text: lang === 'ar' ? 'أدخل رابط متجرك أو موقعك الذي يعمل عبر HTTPS.' : lang === 'fr' ? 'Entrez l\'URL de votre boutique ou site HTTPS.' : 'Enter your store or site URL served over HTTPS.',
+      url: 'https://appifya.app/#pipeline',
+    },
+    {
+      '@type': 'HowToStep',
+      name: lang === 'ar' ? 'خصص التطبيق وميزات العتاد' : lang === 'fr' ? 'Personnalisez' : 'Customize options',
+      text: lang === 'ar' ? 'اختر اسم التطبيق، لون الهوية، الأيقونة، وفعّل الإشعارات الفورية أو إعلانات AdMob.' : lang === 'fr' ? 'Choisissez le nom, l\'icône, la couleur et activez les notifications ou AdMob.' : 'Pick app name, branding colors, icon, and configure push notifications or AdMob.',
       url: 'https://appifya.app/#builder',
     },
     {
       '@type': 'HowToStep',
-      name: lang === 'ar' ? 'خصص التطبيق' : lang === 'fr' ? 'Personnalisez' : 'Customize it',
-      text: lang === 'ar' ? 'اختر اسم التطبيق، لون الهوية، والأيقونة التي تمثل علامتك التجارية. يمكنك أيضاً إضافة معرّفات AdMob لتحقيق الأرباح (اختياري، أندرويد فقط).' : lang === 'fr' ? 'Choisissez le nom, la couleur et l\'icône de votre marque. Vous pouvez aussi ajouter vos identifiants AdMob pour la monétisation (optionnel, Android seulement).' : 'Choose the name, color, and icon for your brand. You can also add AdMob IDs for monetization (optional, Android only).',
-      url: 'https://appifya.app/#builder',
-    },
-    {
-      '@type': 'HowToStep',
-      name: lang === 'ar' ? 'صدّر وتابع' : lang === 'fr' ? 'Exportez et suivez' : 'Export and track',
-      text: lang === 'ar' ? 'اضغط على زر الحفظ والتصدير. ستتم إعادة توجيهك إلى لوحة التحكم حيث يمكنك تتبع حالة بناء APK وتنزيل الملف عند جاهزيته.' : lang === 'fr' ? 'Cliquez sur enregistrer et exporter. Vous serez redirigé vers le tableau de bord pour suivre la compilation et télécharger le fichier prêt.' : 'Click save and export. You\'ll be redirected to the dashboard to track the APK build status and download the file when ready.',
+      name: lang === 'ar' ? 'صدّر وحمّل حزم المتجر' : lang === 'fr' ? 'Exportez' : 'Export and download',
+      text: lang === 'ar' ? 'اضغط على زر الحفظ والتصدير للحصول على ملف APK/AAB أو تشغيل البناء السحابي.' : lang === 'fr' ? 'Téléchargez vos fichiers APK/AAB prêts pour le Play Store.' : 'Export and download release-ready binaries for Google Play and App Store.',
       url: 'https://appifya.app/dashboard',
     },
   ],
-  totalTime: 'PT5M',
-  supply: [
-    {
-      '@type': 'HowToSupply',
-      name: 'Store URL (HTTPS)',
-    },
-    {
-      '@type': 'HowToSupply',
-      name: 'App name',
-    },
-    {
-      '@type': 'HowToSupply',
-      name: 'App icon (optional)',
-    },
-  ],
-  tool: [
-    {
-      '@type': 'HowToTool',
-      name: 'Appifya PWA Builder',
-      url: 'https://appifya.app',
-    },
-  ],
+  totalTime: 'PT3M',
 });
 
 export default function HomePage() {
   const router = useRouter();
   const { user, openAuthModal } = useAuth();
   const { lang } = useLanguage();
+  const isRtl = lang === 'ar';
 
+  // ─── App Builder Form State ───
   const [storeUrl, setStoreUrl] = useState('');
   const [appName, setAppName] = useState('');
   const [platform, setPlatform] = useState<'both' | 'android' | 'ios'>('both');
-  const [themeColor, setThemeColor] = useState('#6366f1');
+  const [themeColor, setThemeColor] = useState('#4f46e5');
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [iconPreview, setIconPreview] = useState('');
   const [iframeKey, setIframeKey] = useState(0);
-  const [notificationTitle, setNotificationTitle] = useState('عرض خاص من متجرك');
-  const [notificationMessage, setNotificationMessage] = useState('خصم 50% لفترة محدودة على جميع المنتجات!');
-  const [previewNotification, setPreviewNotification] = useState(false);
-  const [previewNotificationKey, setPreviewNotificationKey] = useState(0);
 
+  // ─── Interactive Phone & Pipeline Showcase State ───
+  const [deviceTarget, setDeviceTarget] = useState<'ios' | 'android'>('android');
+  const [previewMode, setPreviewMode] = useState<'native' | 'iframe'>('native');
+  const [phoneClock, setPhoneClock] = useState('09:41');
+
+  // Hardware Toggles
+  const [featurePush, setFeaturePush] = useState(true);
+  const [featureOffline, setFeatureOffline] = useState(true);
+  const [featureBio, setFeatureBio] = useState(false);
+
+  // Pipeline simulation state
+  const [isBuilding, setIsBuilding] = useState(false);
+  const [buildProgress, setBuildProgress] = useState(0);
+  const [buildStatus, setBuildStatus] = useState<'idle' | 'compiling' | 'ready'>('idle');
+  const [terminalLogs, setTerminalLogs] = useState<Array<{ text: string; type: 'info' | 'success' | 'warn' }>>([
+    { text: '# Ready for automated conversion. Enter your URL and press "Compile App".', type: 'info' },
+    { text: '> Targeting engines: Android AAB/APK & iOS IPA workspace.', type: 'info' },
+    { text: '> Pre-caching WebKit & Chromium isolated runtime bridges...', type: 'info' },
+    { text: '> Pipeline ready for execution.', type: 'success' },
+  ]);
+
+  const terminalRef = useRef<HTMLDivElement>(null);
+
+  // General App Submission State
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const isRtl = lang === 'ar';
-  const notificationDefaults = lang === 'ar'
-    ? {
-        title: 'عرض خاص من متجرك',
-        message: 'خصم 50% لفترة محدودة على جميع المنتجات!',
-        fallbackTitle: 'عرض خاص',
-        fallbackMessage: 'رسالة تجريبية لمتجرك',
-        now: 'الآن · تجربة Appifya',
-      }
-    : lang === 'fr'
-      ? {
-          title: 'Offre spéciale de votre boutique',
-          message: '50 % de réduction pendant une durée limitée sur tous les produits !',
-          fallbackTitle: 'Offre spéciale',
-          fallbackMessage: 'Message de test pour votre boutique',
-          now: 'Maintenant · Démo Appifya',
-        }
-      : {
-          title: 'Special offer from your store',
-          message: '50% off for a limited time on all products!',
-          fallbackTitle: 'Special offer',
-          fallbackMessage: 'A test message for your store',
-          now: 'Now · Appifya demo',
-        };
-
+  // Clock safe sync (avoids prerender mismatch)
   useEffect(() => {
-    const defaultTitles = ['عرض خاص من متجرك', 'Special offer from your store', 'Offre spéciale de votre boutique'];
-    const defaultMessages = [
-      'خصم 50% لفترة محدودة على جميع المنتجات!',
-      '50% off for a limited time on all products!',
-      '50 % de réduction pendant une durée limitée sur tous les produits !',
-    ];
+    const updateTime = () => {
+      const now = new Date();
+      const hrs = String(now.getHours()).padStart(2, '0');
+      const mins = String(now.getMinutes()).padStart(2, '0');
+      setPhoneClock(`${hrs}:${mins}`);
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 30000);
+    return () => clearInterval(timer);
+  }, []);
 
-    if (defaultTitles.includes(notificationTitle)) {
-      // Keep untouched sample content aligned with the selected language.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setNotificationTitle(notificationDefaults.title);
+  // Scroll terminal on logs
+  useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-    if (defaultMessages.includes(notificationMessage)) {
-      setNotificationMessage(notificationDefaults.message);
-    }
-  }, [lang, notificationDefaults.message, notificationDefaults.title, notificationMessage, notificationTitle]);
+  }, [terminalLogs]);
 
+  // Handle URL changes & auto app name
   const handleUrlChange = (val: string) => {
     setStoreUrl(val);
     if (!appName && val) {
@@ -204,11 +199,86 @@ export default function HomePage() {
     return `https://${storeUrl}`;
   };
 
+  // Add terminal log helper
+  const addLog = (text: string, type: 'info' | 'success' | 'warn' = 'info') => {
+    setTerminalLogs((prev) => [...prev, { text, type }]);
+  };
+
+  // Hardware toggle handlers
+  const handleTogglePush = (checked: boolean) => {
+    setFeaturePush(checked);
+    addLog(
+      checked
+        ? '✓ Native Push Notification plugin attached (APNS / FCM credentials synced).'
+        : 'ℹ Push Notification module detached.',
+      checked ? 'success' : 'info'
+    );
+  };
+
+  const handleToggleOffline = (checked: boolean) => {
+    setFeatureOffline(checked);
+    addLog(
+      checked
+        ? '✓ Offline Cache ServiceWorker enabled with IndexedDB persistent bridge.'
+        : 'ℹ Offline ServiceWorker disabled.',
+      checked ? 'success' : 'info'
+    );
+  };
+
+  const handleToggleBio = (checked: boolean) => {
+    setFeatureBio(checked);
+    addLog(
+      checked
+        ? '✓ Biometric Hardware Keys (FaceID/Fingerprint) enabled in manifest.'
+        : 'ℹ Biometric authentication removed.',
+      checked ? 'success' : 'info'
+    );
+  };
+
+  // Trigger simulated cloud build pipeline
+  const runSimulation = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (isBuilding) return;
+
+    const targetUrl = storeUrl.trim() || 'https://shopnova.store';
+    if (!storeUrl) {
+      setStoreUrl(targetUrl);
+      setAppName('ShopNova');
+    }
+
+    setIsBuilding(true);
+    setBuildStatus('compiling');
+    setBuildProgress(10);
+    setTerminalLogs([]);
+
+    const steps: Array<{ progress: number; delay: number; text: string; type: 'info' | 'success' | 'warn' }> = [
+      { progress: 15, delay: 350, text: `> Connecting to destination host: ${targetUrl}...`, type: 'info' },
+      { progress: 35, delay: 850, text: `✓ Web Manifest & Favicon assets parsed (Theme color detected: ${themeColor}).`, type: 'success' },
+      { progress: 55, delay: 1400, text: `> Generating adaptive icons (mdpi, hdpi, xxhdpi, AppStore 1024x1024)...`, type: 'info' },
+      { progress: 75, delay: 2000, text: `> Injecting Hardware JS Bridge & SSL pinning configuration...`, type: 'info' },
+      { progress: 90, delay: 2600, text: `> Running Gradle AAB bundling & code signing sequence...`, type: 'info' },
+      { progress: 100, delay: 3200, text: `✓ BUILD COMPLETE: Output files 'app-release.aab' & 'Runner.ipa' are ready!`, type: 'success' },
+    ];
+
+    steps.forEach((step, index) => {
+      setTimeout(() => {
+        setBuildProgress(step.progress);
+        addLog(step.text, step.type);
+
+        if (index === steps.length - 1) {
+          setBuildStatus('ready');
+          setIsBuilding(false);
+        }
+      }, step.delay);
+    });
+  };
+
+  // ─── Real App Creation in Appwrite Backend ───
   const executeSaveApp = async (userId: string) => {
     if (!storeUrl) {
       setStatusMsg({
         type: 'error',
-        text: lang === 'ar' ? 'يرجى إدخال رابط المتجر أولاً.' : lang === 'fr' ? 'Veuillez saisir l\'URL de la boutique.' : 'Please enter your store URL first.',
+        text: lang === 'ar' ? 'يرجى إدخال رابط المتجر أو الموقع أولاً.' : lang === 'fr' ? 'Veuillez saisir l\'URL du site.' : 'Please enter your website URL first.',
       });
       return;
     }
@@ -305,249 +375,542 @@ export default function HomePage() {
     executeSaveApp(user.$id);
   };
 
-  const simulateNotification = () => {
-    setPreviewNotificationKey((current) => current + 1);
-    setPreviewNotification(true);
-    if ('vibrate' in navigator) {
-      navigator.vibrate([120, 70, 120]);
-    }
-  };
-
   return (
-    <main className="site-main flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12" dir={isRtl ? 'rtl' : 'ltr'}>
-      <div className="text-center max-w-3xl mx-auto mb-10">
-        <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-4">
-          {lang === 'ar' ? (
-            <>حوّل متجرك أو صفحة الهبوط إلى <span className="bg-gradient-to-r from-indigo-400 via-indigo-300 to-violet-400 bg-clip-text text-transparent">تطبيق PWA فائق السرعة</span></>
-          ) : lang === 'fr' ? (
-            <>Transformez votre boutique en une <span className="bg-gradient-to-r from-indigo-400 via-indigo-300 to-violet-400 bg-clip-text text-transparent">PWA Mobile Ultra-Rapide</span></>
-          ) : (
-            <>Convert Your Store or Landing Page into a <span className="bg-gradient-to-r from-indigo-400 via-indigo-300 to-violet-400 bg-clip-text text-transparent">Fast Mobile PWA</span></>
-          )}
-        </h1>
-        <p className="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-2xl mx-auto">
-          {lang === 'ar'
-            ? 'أنشئ تطبيق ويب تقدمي قابل للتثبيت بضغطة زر، مدمج بحزم إعلانية متوافقة ومربوط سحابياً مع لوحة تحكمك.'
-            : lang === 'fr'
-              ? 'Créez une Progressive Web App installable en un clic, personnalisable et synchronisée avec le cloud.'
-              : 'Build an installable Progressive Web App in one click, customize it, and keep it synced with your cloud dashboard.'}
-        </p>
-      </div>
+    <main className="site-main flex-1 w-full relative overflow-x-hidden selection:bg-indigo-500 selection:text-white" dir={isRtl ? 'rtl' : 'ltr'}>
+      
+      {/* ── Ambient Glow Lighting Effects ── */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] glow-indigo -z-10 pointer-events-none opacity-40 animate-pulse"></div>
+      <div className="fixed top-1/3 -left-48 w-[650px] h-[650px] glow-cyan -z-10 pointer-events-none opacity-30"></div>
 
-      {/* Neon Purple Animated Border Beam around Showcase Card */}
-      <div className="neon-border-wrapper mb-12">
-        <div className="neon-border-glow" aria-hidden="true" />
-        <div className="neon-border-beam" aria-hidden="true" />
-        <section className="showcase-panel relative isolate overflow-hidden rounded-[calc(2rem-2px)] bg-gradient-to-b from-zinc-900/90 via-zinc-900/60 to-zinc-950/95 p-5 shadow-2xl shadow-black/80 sm:p-8" aria-labelledby="showcase-title">
-          <div className="pointer-events-none absolute -left-20 -top-24 -z-10 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 -right-16 -z-10 h-64 w-64 rounded-full bg-violet-500/10 blur-3xl" />
-          <div className="grid items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className={isRtl ? 'text-right' : 'text-left'}>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-indigo-300/20 bg-white/5 px-3 py-1.5 text-[11px] font-bold text-indigo-200">
-                <Sparkles className="h-3.5 w-3.5" />
-                {lang === 'ar' ? 'شاهد كيف تتحول فكرتك إلى تطبيق' : lang === 'fr' ? 'Voyez votre idée devenir une application' : 'See your idea become an app'}
-              </div>
-              <h2 id="showcase-title" className="max-w-xl text-2xl font-black leading-tight text-white sm:text-4xl">
-                {lang === 'ar' ? 'تجربة عصرية تبدأ من رابط واحد' : lang === 'fr' ? 'Une expérience moderne à partir d’un seul lien' : 'A modern experience from one simple link'}
-              </h2>
-              <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">
-                {lang === 'ar'
-                  ? 'أدخل رابط متجرك، خصص مظهر التطبيق، ثم شاهد المعاينة الفورية قبل النشر. كل خطوة واضحة ومصممة لتكسب ثقة زوارك.'
-                  : lang === 'fr'
-                    ? 'Ajoutez votre lien, personnalisez l’apparence et prévisualisez votre application avant de la publier.'
-                    : 'Add your store link, customize the look, and preview your app before publishing. Every step is clear and built to earn trust.'}
-              </p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <a href="#builder" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-indigo-950 shadow-lg transition hover:bg-indigo-50">
-                  <Play className="h-3.5 w-3.5 fill-current" />
-                  {lang === 'ar' ? 'ابدأ التجربة' : lang === 'fr' ? 'Commencer' : 'Start building'}
-                </a>
-                <a href="/guide" className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/10">
-                  {lang === 'ar' ? 'دليل التثبيت الكامل' : lang === 'fr' ? 'Guide d\'installation complet' : 'Full Installation Guide'}
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </a>
-                <a href="/about" className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-white/10">
-                  {lang === 'ar' ? 'اكتشف الطريقة' : lang === 'fr' ? 'Découvrir' : 'Discover how it works'}
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </a>
-              </div>
-            </div>
+      {/* ── Hero Section ── */}
+      <section className="relative pt-8 pb-16 md:pt-16 md:pb-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          
+          {/* Announcement Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold bg-indigo-500/10 border border-indigo-500/25 text-indigo-300 mb-8 shadow-inner shadow-indigo-500/10">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span className="text-emerald-400 font-bold">
+              {lang === 'ar' ? 'المحرك السحابي v3.4 نشط' : lang === 'fr' ? 'Moteur Cloud v3.4 Actif' : 'Engine v3.4 Active'}
+            </span>
+            <span className="text-slate-500">•</span>
+            <span>
+              {lang === 'ar' ? 'تحويل فوري بدون كود إلى حزم Android و iOS' : lang === 'fr' ? 'Conversion Web vers APK & iOS sans code' : 'Zero-Code Web-to-APK & IPA Conversion'}
+            </span>
+            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+          </div>
 
-            <div className="relative mx-auto w-full max-w-md">
-              <div className="showcase-window overflow-hidden rounded-2xl border border-purple-500/25 bg-slate-900/80 shadow-2xl shadow-purple-500/10 backdrop-blur">
-                <div className="flex items-center gap-1.5 border-b border-white/10 px-4 py-3">
-                  <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                  <span className="ml-2 truncate rounded-md bg-white/5 px-3 py-1 text-[9px] text-slate-400">appifya.app/preview</span>
-                </div>
-                <div className="relative aspect-[16/10] overflow-hidden">
-                  <img src="/logo.jpg.jpeg" alt="Appifya platform preview" className="h-full w-full object-cover opacity-35" />
-                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-950/95 via-indigo-950/40 to-transparent" />
-                  <div className="absolute inset-x-5 bottom-5">
-                    <div className="mb-3 h-2 w-20 rounded-full bg-indigo-300/60" />
-                    <div className="h-3 w-4/5 rounded-full bg-white/80" />
-                    <div className="mt-2 h-2 w-3/5 rounded-full bg-white/30" />
-                    <div className="mt-5 flex gap-2">
-                      <span className="h-7 w-20 rounded-lg bg-white/90" />
-                      <span className="h-7 w-14 rounded-lg bg-white/20" />
-                    </div>
-                  </div>
-                </div>
+          {/* Headline */}
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white max-w-4xl mx-auto leading-[1.12]">
+            {lang === 'ar' ? (
+              <>
+                حوّل أي موقع أو متجر إلى{' '}
+                <span className="bg-gradient-to-r from-indigo-400 via-indigo-200 to-cyan-300 bg-clip-text text-transparent">
+                  تطبيق موبايل أصلي
+                </span>
+              </>
+            ) : lang === 'fr' ? (
+              <>
+                Transformez tout site Web en{' '}
+                <span className="bg-gradient-to-r from-indigo-400 via-indigo-200 to-cyan-300 bg-clip-text text-transparent">
+                  Application Mobile Native
+                </span>
+              </>
+            ) : (
+              <>
+                Turn Any Web App into a{' '}
+                <span className="bg-gradient-to-r from-indigo-400 via-indigo-200 to-cyan-300 bg-clip-text text-transparent">
+                  Native Mobile App
+                </span>
+              </>
+            )}
+          </h1>
+
+          <p className="mt-6 text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            {lang === 'ar'
+              ? 'أدخل رابط موقعك، واستخرج ملف الـ Manifest، وحمّل حزم أندرويد وiOS فائقة السرعة المجهزة بالإشعارات الفورية، المصادقة البيومترية، والعمل بدون إنترنت.'
+              : lang === 'fr'
+                ? 'Saisissez votre URL, extrayez les manifestes et générez des binaires Android & iOS rapides avec notifications push, biométrie et cache hors-ligne.'
+                : 'Input your URL, extract web manifests, and package lightning-fast Android & iOS binaries equipped with push notifications, biometric auth, and offline caching.'}
+          </p>
+
+          {/* Interactive URL Input Tool */}
+          <div className="mt-10 max-w-2xl mx-auto">
+            <form onSubmit={runSimulation} className="relative p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/10 shadow-2xl transition-all flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1 flex items-center px-4">
+                <Globe className="w-5 h-5 text-slate-400 shrink-0" />
+                <input
+                  type="text"
+                  required
+                  placeholder={lang === 'ar' ? 'https://yourstore.com' : 'https://yourwebapp.com'}
+                  value={storeUrl}
+                  onChange={(e) => handleUrlChange(e.target.value)}
+                  className="w-full bg-transparent border-0 px-3 py-3 text-sm sm:text-base text-white placeholder-slate-500 focus:outline-none font-mono"
+                  dir="ltr"
+                />
               </div>
-              <div className="showcase-step absolute -bottom-4 -left-3 rounded-xl border border-indigo-300/20 bg-slate-900/95 px-3 py-2 shadow-xl sm:-left-6">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-400/15 text-emerald-300"><Check className="h-4 w-4" /></span>
-                  <span className="text-[10px] font-bold text-white">{lang === 'ar' ? 'جاهز للنشر' : lang === 'fr' ? 'Prêt à publier' : 'Ready to publish'}</span>
-                </div>
+
+              <button
+                type="submit"
+                disabled={isBuilding}
+                className="px-6 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] active:scale-[0.99] shrink-0 disabled:opacity-50 cursor-pointer"
+              >
+                {isBuilding ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                ) : (
+                  <Zap className="w-4 h-4 fill-white" />
+                )}
+                <span>
+                  {isBuilding
+                    ? (lang === 'ar' ? 'جاري التجميع...' : lang === 'fr' ? 'Compilation...' : 'Compiling...')
+                    : (lang === 'ar' ? 'تجربة المحاكي' : lang === 'fr' ? 'Compiler en direct' : 'Compile App')}
+                </span>
+              </button>
+            </form>
+
+            {/* Under-Input Trust Indicators */}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400">
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>{lang === 'ar' ? 'جاهز لـ Google Play و App Store' : 'Google Play & App Store Ready'}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Cpu className="w-4 h-4 text-cyan-400" />
+                <span>{lang === 'ar' ? 'شهادات SSL وتوقيع Keystore آلي' : 'Automated Keystore & Signing'}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Gauge className="w-4 h-4 text-indigo-400" />
+                <span>{lang === 'ar' ? 'بناء سحابي في أقل من 45 ثانية' : 'Under 45s Cloud Builds'}</span>
               </div>
             </div>
           </div>
-        </section>
-      </div>
 
+        </div>
+      </section>
+
+      {/* ── Status Message Alert ── */}
       {statusMsg && (
-        <div
-          className={`max-w-4xl mx-auto mb-8 p-4 rounded-2xl border flex items-center gap-3 text-sm font-medium ${
-            statusMsg.type === 'success'
-              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-              : 'bg-red-500/10 border-red-500/30 text-red-300'
-          }`}
-        >
-          {statusMsg.type === 'success' ? <CheckCircle2 className="h-5 w-5 shrink-0" /> : <AlertCircle className="h-5 w-5 shrink-0" />}
-          <span>{statusMsg.text}</span>
+        <div className="max-w-4xl mx-auto px-4 mb-8">
+          <div
+            className={`p-4 rounded-2xl border flex items-center gap-3 text-sm font-medium ${
+              statusMsg.type === 'success'
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                : 'bg-red-500/10 border-red-500/30 text-red-300'
+            }`}
+          >
+            {statusMsg.type === 'success' ? <CheckCircle2 className="h-5 w-5 shrink-0" /> : <AlertCircle className="h-5 w-5 shrink-0" />}
+            <span>{statusMsg.text}</span>
+          </div>
         </div>
       )}
 
-      <div id="builder" className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Mockup Preview */}
-        <div className="lg:col-span-5 flex flex-col items-center order-2 lg:order-1">
-          <div className="sticky top-24 w-full max-w-[340px]">
-            <div className="flex items-center justify-between mb-3 px-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900 border border-slate-800 text-[11px] font-semibold text-indigo-400 rounded-full">
-                <Eye className="h-3.5 w-3.5" />
-                <span>{lang === 'ar' ? 'معاينة حية للمتجر' : lang === 'fr' ? 'Aperçu interactif direct' : 'Live store preview'}</span>
-              </span>
+      {/* ── Interactive Conversion Showcase (Terminal Simulator + 3D Phone Mockup) ── */}
+      <section id="pipeline" className="relative py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          
+          {/* Left: Interactive Build Console & Hardware Toggles (7 Cols) */}
+          <div className="lg:col-span-7 space-y-6">
+            
+            {/* Live Terminal Simulator */}
+            <div className="glass-card rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
+              <div className="bg-slate-900/90 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-rose-500/80"></span>
+                  <span className="w-3 h-3 rounded-full bg-amber-500/80"></span>
+                  <span className="w-3 h-3 rounded-full bg-emerald-500/80"></span>
+                  <span className="ml-2 font-mono text-xs text-slate-400 flex items-center gap-1.5" dir="ltr">
+                    <Terminal className="w-3.5 h-3.5 text-indigo-400" />
+                    appifya-cloud-runner@v3.4:~$
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-mono border font-bold ${
+                      buildStatus === 'compiling'
+                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 animate-pulse'
+                        : buildStatus === 'ready'
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                          : 'bg-slate-800 text-slate-400 border-slate-700'
+                    }`}
+                  >
+                    {buildStatus === 'compiling'
+                      ? (lang === 'ar' ? 'جاري البناء السحابي' : 'COMPILING LIVE')
+                      : buildStatus === 'ready'
+                        ? (lang === 'ar' ? 'الحزمة جاهزة' : 'PACKAGE READY')
+                        : (lang === 'ar' ? 'جاهز للتنفيذ' : 'SYSTEM IDLE')}
+                  </span>
+                </div>
+              </div>
+
+              {/* Terminal Logs Body */}
+              <div
+                ref={terminalRef}
+                className="p-4 font-mono text-xs text-slate-300 space-y-2 h-56 overflow-y-auto terminal-scroll bg-[#080b12]"
+                dir="ltr"
+              >
+                {terminalLogs.map((log, i) => (
+                  <p
+                    key={i}
+                    className={
+                      log.type === 'success'
+                        ? 'text-emerald-400 font-semibold'
+                        : log.type === 'warn'
+                          ? 'text-amber-400'
+                          : 'text-slate-300'
+                    }
+                  >
+                    {log.text}
+                  </p>
+                ))}
+              </div>
+
+              {/* Progress & Target Footer */}
+              <div className="px-4 py-2.5 bg-slate-900/70 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400" dir="ltr">
+                <div className="flex items-center gap-2 truncate max-w-[260px]">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                  <span className="truncate font-mono">{storeUrl || 'https://shopnova.store'}</span>
+                </div>
+                <div className="w-36 bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="bg-indigo-500 h-full transition-all duration-300"
+                    style={{ width: `${buildProgress}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Hardware Bridge Toggles */}
+            <div className="glass-card rounded-2xl p-5 border border-slate-800">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-indigo-400" />
+                  <span>{lang === 'ar' ? 'مفاتيح ربط عتاد الهاتف (Hardware Bridges)' : 'Hardware Bridge Toggles'}</span>
+                </h3>
+                <span className="text-xs text-slate-400">
+                  {lang === 'ar' ? 'تفعيل إضافات الهاتف الأصلية' : 'Toggle native mobile plugins'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Push Toggle */}
+                <label className="flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors">
+                  <div className="flex items-center gap-2.5">
+                    <Bell className="w-4 h-4 text-indigo-400" />
+                    <span className="text-xs font-semibold text-slate-200">
+                      {lang === 'ar' ? 'الإشعارات الفورية' : 'Push Alerts'}
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={featurePush}
+                    onChange={(e) => handleTogglePush(e.target.checked)}
+                    className="rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0 cursor-pointer"
+                  />
+                </label>
+
+                {/* Offline Cache Toggle */}
+                <label className="flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors">
+                  <div className="flex items-center gap-2.5">
+                    <WifiOff className="w-4 h-4 text-cyan-400" />
+                    <span className="text-xs font-semibold text-slate-200">
+                      {lang === 'ar' ? 'العمل بدون إنترنت' : 'Offline PWA'}
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={featureOffline}
+                    onChange={(e) => handleToggleOffline(e.target.checked)}
+                    className="rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0 cursor-pointer"
+                  />
+                </label>
+
+                {/* Biometrics Toggle */}
+                <label className="flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors">
+                  <div className="flex items-center gap-2.5">
+                    <Fingerprint className="w-4 h-4 text-emerald-400" />
+                    <span className="text-xs font-semibold text-slate-200">
+                      {lang === 'ar' ? 'بصمة الوجه / الإصبع' : 'FaceID / Bio'}
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={featureBio}
+                    onChange={(e) => handleToggleBio(e.target.checked)}
+                    className="rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0 cursor-pointer"
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* Quick Action Button to Jump to Customizer */}
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/25">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-300">
+                  <Smartphone className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-white">
+                    {lang === 'ar' ? 'هل تريد تخصيص اسم وأيقونة تطبيقك؟' : 'Ready to customize app icons and build APK?'}
+                  </h4>
+                  <p className="text-[11px] text-slate-400">
+                    {lang === 'ar' ? 'انتقل إلى معالج التخصيص الكامل في الأسفل وتنزيل التطبيق' : 'Jump down to full builder to configure AdMob, icons & export'}
+                  </p>
+                </div>
+              </div>
+              <a
+                href="#builder"
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md shadow-indigo-600/20 flex items-center gap-1.5"
+              >
+                <span>{lang === 'ar' ? 'تخصيص الآن' : 'Customize'}</span>
+                <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
+              </a>
+            </div>
+
+          </div>
+
+          {/* Right: Realistic Mobile Phone Mockup (5 Cols) */}
+          <div className="lg:col-span-5 flex flex-col items-center justify-center">
+            
+            {/* Platform & View Controller */}
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeviceTarget('android');
+                    addLog('> Platform target changed: Android (Chromium & Gradle engine) configured.');
+                  }}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    deviceTarget === 'android'
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>Android</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeviceTarget('ios');
+                    addLog('> Platform target changed: Apple iOS (Swift/WebKit wrapper) configured.');
+                  }}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    deviceTarget === 'ios'
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Apple className="w-3.5 h-3.5" />
+                  <span>Apple iOS</span>
+                </button>
+              </div>
+
+              {/* Mode switch: Native app view vs Live site iframe */}
               {storeUrl && (
-                <div className="flex items-center gap-1">
+                <>
                   <button
                     type="button"
-                    onClick={() => setIframeKey((k) => k + 1)}
-                    className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-900 transition-colors"
-                    title={lang === 'ar' ? 'تحديث المعاينة' : lang === 'fr' ? 'Actualiser l’aperçu' : 'Refresh preview'}
+                    onClick={() => setPreviewMode(previewMode === 'native' ? 'iframe' : 'native')}
+                    className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+                    title="Toggle between Native App preview and Web Iframe"
                   >
-                    <RefreshCw className="h-3.5 w-3.5" />
+                    <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>{previewMode === 'native' ? (lang === 'ar' ? 'عرض الموقع الحقيقي' : 'Live Iframe') : (lang === 'ar' ? 'العرض الأصلي' : 'Native View')}</span>
                   </button>
-                  <a
-                    href={getCleanPreviewUrl()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-2 py-1 text-[10px] font-semibold text-indigo-300 hover:bg-slate-800 hover:text-white transition-colors"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    <span>{lang === 'ar' ? 'فتح خارجياً' : lang === 'fr' ? 'Ouvrir' : 'Open externally'}</span>
-                  </a>
-                </div>
+                  {previewMode === 'iframe' && (
+                    <button
+                      type="button"
+                      onClick={() => setIframeKey((k) => k + 1)}
+                      className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                      title={lang === 'ar' ? 'تحديث المعاينة' : 'Refresh preview'}
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </>
               )}
             </div>
 
-            <div className="preview-device relative mx-auto border-[10px] border-slate-900 bg-slate-950 rounded-[48px] shadow-2xl overflow-hidden aspect-[9/19] flex flex-col ring-1 ring-slate-800">
-              <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-28 h-4 bg-slate-900 rounded-full z-30"></div>
+            {/* Phone Hardware Frame */}
+            <div className="relative w-[300px] h-[610px] bg-slate-900 rounded-[50px] p-3 shadow-2xl shadow-indigo-500/20 border-4 border-slate-700">
+              
+              {/* Outer Physical Phone Buttons */}
+              <div className="absolute -left-[7px] top-28 w-[3px] h-9 bg-slate-600 rounded-l-sm"></div>
+              <div className="absolute -left-[7px] top-40 w-[3px] h-12 bg-slate-600 rounded-l-sm"></div>
+              <div className="absolute -right-[7px] top-32 w-[3px] h-16 bg-slate-600 rounded-r-sm"></div>
 
-              <div
-                className="h-14 px-5 pt-5 pb-2 flex items-center justify-between text-[11px] text-white font-semibold transition-colors z-20 shrink-0"
-                style={{ backgroundColor: themeColor }}
-              >
-                <div className="flex items-center gap-2 truncate">
-                  <Smartphone className="h-3.5 w-3.5" />
-                  <span className="truncate max-w-[140px]">{appName || 'Appifya'}</span>
+              {/* Inner Screen */}
+              <div className="w-full h-full bg-[#080b12] rounded-[40px] overflow-hidden flex flex-col relative border border-slate-800">
+                
+                {/* Dynamic Island / Notch */}
+                <div className="w-full pt-3 pb-2 px-6 flex justify-between items-center z-20 bg-[#080b12]">
+                  <span className="text-[11px] font-semibold text-slate-300 font-mono" dir="ltr">{phoneClock}</span>
+                  <div className="w-20 h-4 bg-black rounded-full flex items-center justify-end pr-2 border border-slate-800">
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/90"></div>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-slate-300" dir="ltr">
+                    <Wifi className="w-3 h-3" />
+                    <Battery className="w-3.5 h-3.5" />
+                  </div>
                 </div>
-                <span className="text-[10px] opacity-90">9:41</span>
-              </div>
 
-              <div className="flex-1 bg-white relative overflow-hidden">
-                {previewNotification && (
-                  <div key={previewNotificationKey} className="absolute left-3 right-3 top-3 z-40 animate-[shake_0.45s_ease-in-out] rounded-2xl border border-slate-200/80 bg-white/95 p-3 text-slate-900 shadow-2xl backdrop-blur-md" role="status">
-                    <div className="flex items-start gap-2">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white">
-                        <Bell className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0 flex-1 text-left" dir={isRtl ? 'rtl' : 'ltr'}>
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="truncate text-[10px] font-bold">{appName || 'Appifya Store'}</p>
-                          <button type="button" onClick={() => setPreviewNotification(false)} className="text-xs text-slate-400 hover:text-slate-700" aria-label={lang === 'ar' ? 'إغلاق الإشعار' : lang === 'fr' ? 'Fermer la notification' : 'Close notification'}>×</button>
+                {/* Content View: Native Simulation or Real Iframe */}
+                {previewMode === 'iframe' && getCleanPreviewUrl() ? (
+                  <div className="flex-1 w-full h-full bg-white relative">
+                    <iframe
+                      key={iframeKey}
+                      src={getCleanPreviewUrl()}
+                      className="w-full h-full border-0"
+                      sandbox="allow-scripts allow-same-origin allow-forms"
+                      loading="lazy"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 font-sans relative terminal-scroll">
+                    
+                    {/* App Bar */}
+                    <div
+                      className="flex items-center justify-between pb-2 border-b border-slate-800 transition-colors"
+                      style={{ borderBottomColor: themeColor ? `${themeColor}40` : undefined }}
+                    >
+                      <div className="flex items-center gap-2">
+                        {iconPreview ? (
+                          <img src={iconPreview} alt="App" className="w-7 h-7 rounded-lg object-cover shadow" />
+                        ) : (
+                          <div
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-black text-xs shadow-md"
+                            style={{ backgroundColor: themeColor || '#4f46e5' }}
+                          >
+                            {(appName || 'A').charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <h4 className="text-xs font-bold text-white tracking-tight truncate max-w-[140px]">
+                            {appName || 'ShopNova Mobile'}
+                          </h4>
+                          <span className="text-[9px] text-emerald-400 font-medium flex items-center gap-1">
+                            <span className="w-1 h-1 rounded-full bg-emerald-400"></span>
+                            <span>{deviceTarget === 'ios' ? 'iOS Native PWA' : 'Android AAB Build'}</span>
+                          </span>
                         </div>
-                        <p className="mt-1 text-xs font-bold">{notificationTitle || notificationDefaults.fallbackTitle}</p>
-                        <p className="mt-0.5 line-clamp-2 text-[10px] text-slate-600">{notificationMessage || notificationDefaults.fallbackMessage}</p>
-                        <p className="mt-1 text-[9px] text-slate-400">{notificationDefaults.now}</p>
+                      </div>
+                      <div className="w-6 h-6 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center">
+                        <Bell className="w-3 h-3 text-indigo-400" />
                       </div>
                     </div>
-                  </div>
-                )}
-                {getCleanPreviewUrl() ? (
-                  <iframe
-                    key={iframeKey}
-                    src={getCleanPreviewUrl()}
-                    className="w-full h-full border-0 select-none"
-                    sandbox="allow-scripts allow-same-origin allow-forms"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
-                    <Smartphone className="h-12 w-12 text-slate-700 mb-3" />
-                    <p className="text-xs text-slate-400 font-medium">
-                      {lang === 'ar' ? 'أدخل رابط موقعك لمشاهدته مباشرة داخل الهاتف' : lang === 'fr' ? 'Saisissez l\'URL de votre site pour afficher l\'aperçu interactif' : 'Enter your website URL to see it inside the phone preview'}
-                    </p>
-                  </div>
-                )}
-              </div>
 
-              <div className="h-5 bg-slate-950 flex items-center justify-center shrink-0">
-                <div className="w-28 h-1 bg-slate-700 rounded-full"></div>
-              </div>
-              <div className="mt-4 rounded-2xl border border-indigo-500/20 bg-indigo-950/30 p-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <Bell className="h-4 w-4 text-indigo-300" />
-                  <div>
-                    <h3 className="text-xs font-bold text-white">
-                      {lang === 'ar' ? 'محاكاة الإشعارات الفورية' : lang === 'fr' ? 'Simulateur de notifications' : 'Push notification simulator'}
-                    </h3>
-                    <p className="mt-0.5 text-[10px] text-slate-400">
-                      {lang === 'ar' ? 'جرّب كيف سيظهر التنبيه داخل تطبيقك.' : lang === 'fr' ? 'Voyez comment votre notification apparaîtra.' : 'See how a notification will look in your app.'}
-                    </p>
+                    {/* Simulated Push Toast (Conditional on toggle) */}
+                    {featurePush && (
+                      <div className="p-2.5 rounded-xl bg-slate-900 border border-indigo-500/30 shadow-lg text-[10px] space-y-1 transition-all">
+                        <div className="flex items-center justify-between text-indigo-400 font-bold">
+                          <span className="flex items-center gap-1">
+                            <Sparkles className="w-3 h-3 text-indigo-400" />
+                            <span>{lang === 'ar' ? 'إشعار فوري نشط' : 'Push Delivery Active'}</span>
+                          </span>
+                          <span className="text-slate-500 text-[8px] font-mono">{phoneClock}</span>
+                        </div>
+                        <p className="text-slate-300 leading-tight">
+                          {lang === 'ar'
+                            ? 'تم إرسال إشعار تفاعلي للمستخدم عبر قنوات FCM و APNS.'
+                            : 'Push channel synced with FCM & APNS cloud delivery.'}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Biometric Badge Toast if enabled */}
+                    {featureBio && (
+                      <div className="p-2 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-[10px] flex items-center gap-2 text-emerald-300">
+                        <Fingerprint className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>{lang === 'ar' ? 'تمت المصادقة ببصمة الوجه بنجاح' : 'Biometric FaceID authenticated'}</span>
+                      </div>
+                    )}
+
+                    {/* Sample Store Banner */}
+                    <div
+                      className="rounded-xl p-3 text-white space-y-1.5 shadow-md"
+                      style={{
+                        background: `linear-gradient(135deg, ${themeColor}bb, #0f172a)`,
+                        border: `1px solid ${themeColor}40`,
+                      }}
+                    >
+                      <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-white/20 text-white">
+                        {lang === 'ar' ? 'تطبيق متزامن' : 'Live Sync'}
+                      </span>
+                      <h5 className="text-xs font-bold leading-tight">
+                        {appName ? `${appName} Official App` : 'Summer Sneaker Drop 2026'}
+                      </h5>
+                      <p className="text-[10px] text-slate-300">
+                        {lang === 'ar'
+                          ? 'متزامن مباشرة مع خوادم متجرك بدون تأخير.'
+                          : 'Synchronized smoothly with web store backend in real-time.'}
+                      </p>
+                    </div>
+
+                    {/* Product Cards */}
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                        <div className="h-14 rounded-lg bg-slate-800 flex items-center justify-center">
+                          <Package className="w-5 h-5 text-slate-500" />
+                        </div>
+                        <div className="text-[10px] font-semibold text-white">Cyber Runner X</div>
+                        <div className="text-[9px] text-indigo-400 font-bold">$189.00</div>
+                      </div>
+
+                      <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                        <div className="h-14 rounded-lg bg-slate-800 flex items-center justify-center">
+                          <Headphones className="w-5 h-5 text-slate-500" />
+                        </div>
+                        <div className="text-[10px] font-semibold text-white">Aero Pods Pro</div>
+                        <div className="text-[9px] text-emerald-400 font-bold">$120.00</div>
+                      </div>
+                    </div>
+
                   </div>
+                )}
+
+                {/* Bottom Navigation */}
+                <div className="px-6 py-2.5 bg-[#080b12] border-t border-slate-800 flex items-center justify-between text-slate-400">
+                  <Home className="w-4 h-4 text-indigo-400" />
+                  <Search className="w-4 h-4 hover:text-slate-200" />
+                  <ShoppingBag className="w-4 h-4 hover:text-slate-200" />
+                  <User className="w-4 h-4 hover:text-slate-200" />
                 </div>
-                <input
-                  value={notificationTitle}
-                  onChange={(event) => setNotificationTitle(event.target.value)}
-                  placeholder={lang === 'ar' ? 'عنوان الإشعار' : lang === 'fr' ? 'Titre de la notification' : 'Notification title'}
-                  className="mb-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
-                />
-                <textarea
-                  value={notificationMessage}
-                  onChange={(event) => setNotificationMessage(event.target.value)}
-                  placeholder={lang === 'ar' ? 'اكتب رسالتك...' : lang === 'fr' ? 'Écrivez votre message...' : 'Write your message...'}
-                  rows={2}
-                  className="mb-3 w-full resize-none rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={simulateNotification}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 py-2 text-xs font-bold text-white transition hover:bg-indigo-500"
-                >
-                  <Send className="h-3.5 w-3.5" />
-                  {lang === 'ar' ? 'تجربة الإشعار' : lang === 'fr' ? 'Tester la notification' : 'Test notification'}
-                </button>
+
+                {/* Phone Home Bar */}
+                <div className="pb-1.5 pt-1 flex justify-center bg-[#080b12]">
+                  <div className="w-24 h-1 bg-slate-700 rounded-full"></div>
+                </div>
+
               </div>
             </div>
+
           </div>
+
+        </div>
+      </section>
+
+      {/* ── Real App Builder & Customizer Section ── */}
+      <section id="builder" className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800/80">
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">
+            {lang === 'ar' ? 'معالج البناء والتصدير' : 'Production Build Suite'}
+          </span>
+          <h2 className="mt-2 text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            {lang === 'ar' ? 'خصص تطبيقك واحفظه في لوحة التحكم' : 'Customize Your App & Export to Dashboard'}
+          </h2>
+          <p className="mt-3 text-sm text-slate-400">
+            {lang === 'ar'
+              ? 'اربط هويتك البصرية، واضبط الأيقونة وإعلانات Google AdMob ليتم تجميع ملف الـ APK الخاص بك فوراً.'
+              : 'Set your branding, configure app icon and AdMob monetization to build your production APK.'}
+          </p>
         </div>
 
-        {/* Form Panel */}
-        <div id="create-app" className="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-xl space-y-6 order-1 lg:order-2">
+        <div className="max-w-4xl mx-auto glass-card rounded-3xl p-6 sm:p-10 border border-slate-800 shadow-2xl space-y-6">
+          
+          {/* Store URL */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              {lang === 'ar' ? 'رابط المتجر أو صفحة الهبوط' : lang === 'fr' ? 'URL du magasin ou page d\'atterrissage' : 'Store or landing page URL'} *
+              {lang === 'ar' ? 'رابط المتجر أو صفحة الهبوط' : 'Store or landing page URL'} *
             </label>
             <div className="relative">
               <Globe className="absolute right-4 top-3.5 h-4 w-4 text-slate-500" />
@@ -557,15 +920,16 @@ export default function HomePage() {
                 value={storeUrl}
                 onChange={(e) => handleUrlChange(e.target.value)}
                 placeholder="https://siin.shop/ar"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pr-11 pl-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pr-11 pl-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono transition-colors"
                 dir="ltr"
               />
             </div>
           </div>
 
+          {/* App Name */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              {lang === 'ar' ? 'اسم التطبيق' : lang === 'fr' ? 'Nom de l\'application' : 'App name'}
+              {lang === 'ar' ? 'اسم التطبيق' : 'App name'}
             </label>
             <div className="relative">
               <Smartphone className="absolute right-4 top-3.5 h-4 w-4 text-slate-500" />
@@ -573,61 +937,65 @@ export default function HomePage() {
                 type="text"
                 value={appName}
                 onChange={(e) => setAppName(e.target.value)}
-                placeholder="Siin"
+                placeholder="ShopNova"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pr-11 pl-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              {lang === 'ar' ? 'المنصة المستهدفة' : lang === 'fr' ? 'Plateforme cible' : 'Target platform'}
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              {(['both', 'android', 'ios'] as const).map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setPlatform(p)}
-                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                    platform === p
-                      ? 'bg-indigo-500/15 border-indigo-500/60 text-white shadow-sm ring-1 ring-indigo-500/20'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {p === 'both' ? (lang === 'ar' ? 'الكل (موصى به)' : lang === 'fr' ? 'Les deux' : 'Both (recommended)') : p === 'android' ? 'Android' : 'iOS'}
-                </button>
-              ))}
+          {/* Platform & Theme Color Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                {lang === 'ar' ? 'المنصة المستهدفة' : 'Target platform'}
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {(['both', 'android', 'ios'] as const).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPlatform(p)}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                      platform === p
+                        ? 'bg-indigo-500/20 border-indigo-500/60 text-white shadow-sm ring-1 ring-indigo-500/30'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {p === 'both' ? (lang === 'ar' ? 'الكل (موصى)' : 'Both') : p === 'android' ? 'Android' : 'iOS'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                {lang === 'ar' ? 'لون الهوية (Theme Color)' : 'Theme color'}
+              </label>
+              <div className="flex items-center gap-3 bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+                <input
+                  type="color"
+                  value={themeColor}
+                  onChange={(e) => setThemeColor(e.target.value)}
+                  className="h-8 w-10 bg-transparent cursor-pointer rounded-lg border-0"
+                />
+                <span className="text-xs font-mono text-slate-300 uppercase">{themeColor}</span>
+              </div>
             </div>
           </div>
 
+          {/* Icon Upload */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              {lang === 'ar' ? 'لون الهوية (Theme Color)' : lang === 'fr' ? 'Couleur du thème' : 'Theme color'}
-            </label>
-            <div className="flex items-center gap-3 bg-slate-950 border border-slate-800 rounded-xl p-2.5">
-              <input
-                type="color"
-                value={themeColor}
-                onChange={(e) => setThemeColor(e.target.value)}
-                className="h-8 w-10 bg-transparent cursor-pointer rounded-lg border-0"
-              />
-              <span className="text-xs font-mono text-slate-300 uppercase">{themeColor}</span>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              {lang === 'ar' ? 'أيقونة التطبيق (اختياري)' : lang === 'fr' ? 'Icône de l’application (facultatif)' : 'App icon (optional)'}
+              {lang === 'ar' ? 'أيقونة التطبيق (اختياري)' : 'App icon (optional)'}
             </label>
             <label className="flex items-center gap-3 bg-slate-950 border border-slate-800 rounded-xl p-3 cursor-pointer hover:border-indigo-500 transition-colors">
               {iconPreview ? (
-                <img src={iconPreview} alt="" className="h-10 w-10 rounded-xl object-cover" />
+                <img src={iconPreview} alt="App icon" className="h-10 w-10 rounded-xl object-cover" />
               ) : (
                 <Smartphone className="h-8 w-8 text-slate-600" />
               )}
-              <span className="text-xs text-slate-400">
-                {iconFile?.name || (lang === 'ar' ? 'اختر صورة PNG أو JPG (حتى 2MB)' : lang === 'fr' ? 'Choisissez une image PNG ou JPG (2 Mo maximum)' : 'Choose a PNG or JPG image (up to 2MB)')}
+              <span className="text-xs text-slate-400 truncate flex-1">
+                {iconFile?.name || (lang === 'ar' ? 'اختر صورة PNG أو JPG أو WebP (حتى 2MB)' : 'Choose PNG, JPG, or WebP image (up to 2MB)')}
               </span>
               <input
                 type="file"
@@ -638,41 +1006,38 @@ export default function HomePage() {
             </label>
           </div>
 
-          {/* AdMob Guidance Notice */}
-          <div className="admob-guidance-card rounded-2xl border border-indigo-200/80 dark:border-indigo-500/20 bg-gradient-to-br from-indigo-50/70 via-purple-50/40 to-slate-50 dark:from-indigo-950/30 dark:via-zinc-900/50 dark:to-purple-950/20 p-4 sm:p-5 transition-all hover:border-indigo-300 dark:hover:border-indigo-500/35 shadow-sm dark:shadow-none">
+          {/* AdMob Guidance Card */}
+          <div className="rounded-2xl border border-indigo-500/25 bg-gradient-to-br from-indigo-950/40 via-slate-900/60 to-purple-950/20 p-5 transition-all hover:border-indigo-500/40">
             <div className="flex items-start gap-3.5">
-              <div className="admob-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 dark:bg-gradient-to-br dark:from-indigo-500/20 dark:to-purple-500/20 border border-indigo-200 dark:border-indigo-400/30 text-indigo-700 dark:text-indigo-300 shadow-sm dark:shadow-inner">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 shadow-inner">
                 <DollarSign className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                  <span className="admob-card-title text-sm font-bold text-slate-900 dark:text-white">
-                    {lang === 'ar' ? 'هل ترغب في تحقيق أرباح عبر Google AdMob؟' : lang === 'fr' ? 'Monétisation Google AdMob' : 'Monetize with Google AdMob'}
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <span className="text-sm font-bold text-white">
+                    {lang === 'ar' ? 'تريد تحقيق أرباح عبر Google AdMob؟' : 'Monetize with Google AdMob'}
                   </span>
-                  <span className="admob-card-badge rounded-full bg-indigo-100 dark:bg-indigo-500/15 border border-indigo-200 dark:border-indigo-500/25 px-2.5 py-0.5 text-[10px] font-bold text-indigo-700 dark:text-indigo-300">
-                    {lang === 'ar' ? 'أندرويد APK' : lang === 'fr' ? 'Android APK' : 'Android APK'}
+                  <span className="rounded-full bg-indigo-500/15 border border-indigo-500/30 px-2 py-0.5 text-[10px] font-bold text-indigo-300">
+                    Android APK
                   </span>
                 </div>
-                <p className="admob-card-desc text-xs leading-relaxed text-slate-600 dark:text-slate-300 mb-3">
+                <p className="text-xs leading-relaxed text-slate-300 mb-3">
                   {lang === 'ar'
-                    ? 'يمكنك ربط وتهيئة إعلاناتك (البنر والشاشات الكاملة) وتوليد ملف APK المخصص بسهولة عبر صفحة إعداد AdMob.'
-                    : lang === 'fr'
-                      ? 'Configurez vos identifiants AdMob et générez votre APK monétisé directement depuis notre page dédiée.'
-                      : 'Configure your AdMob IDs and build a monetized APK anytime through our dedicated setup page.'}
+                    ? 'يمكنك ربط إعلانات البنر والشاشات الكاملة وتوليد ملف APK المخصص للأرباح بضغطة زر عبر صفحة إعداد AdMob.'
+                    : 'Configure your banner and interstitial ad units to build a monetized APK directly through our AdMob wizard.'}
                 </p>
-                <div>
-                  <Link
-                    href="/admob"
-                    className="admob-card-btn inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md shadow-indigo-600/20 group cursor-pointer"
-                  >
-                    <span>{lang === 'ar' ? 'انتقل إلى إعدادات AdMob' : lang === 'fr' ? 'Accéder à la config AdMob' : 'Go to AdMob Setup'}</span>
-                    <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 transition-transform group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
-                  </Link>
-                </div>
+                <Link
+                  href="/admob"
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md shadow-indigo-600/20"
+                >
+                  <span>{lang === 'ar' ? 'انتقل إلى إعدادات AdMob' : 'Go to AdMob Setup'}</span>
+                  <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
+                </Link>
               </div>
             </div>
           </div>
 
+          {/* Submit Action */}
           <div className="pt-2">
             <button
               type="button"
@@ -687,118 +1052,286 @@ export default function HomePage() {
                   <Sparkles className="h-5 w-5" />
                   <span>
                     {user
-                      ? (lang === 'ar' ? 'حفظ وتصدير التطبيق إلى لوحة التحكم' : lang === 'fr' ? 'Enregistrer et exporter vers le tableau de bord' : 'Save and export to dashboard')
-                      : (lang === 'ar' ? 'تسجيل الدخول وتصدير التطبيق' : lang === 'fr' ? 'Connexion et exportation' : 'Sign in and export')}
+                      ? (lang === 'ar' ? 'حفظ وتصدير التطبيق إلى لوحة التحكم' : 'Save and export to dashboard')
+                      : (lang === 'ar' ? 'تسجيل الدخول وبدء التصدير' : 'Sign in and export app')}
                   </span>
                 </>
               )}
             </button>
           </div>
-        </div>
-      </div>
 
-      <section className="mt-24 space-y-10" aria-labelledby="why-appifya">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-indigo-400">
-            {lang === 'ar' ? 'لماذا Appifya؟' : lang === 'fr' ? 'Pourquoi Appifya ?' : 'Why Appifya?'}
-          </p>
-          <h2 id="why-appifya" className="text-2xl font-black text-white sm:text-3xl">
-            {lang === 'ar'
-              ? 'طريقة أبسط لإطلاق حضورك على الهاتف'
-              : lang === 'fr'
-                ? 'Une manière plus simple de lancer votre présence mobile'
-                : 'A simpler way to launch your mobile presence'}
-          </h2>
-          <p className="mt-4 text-sm leading-7 text-slate-400">
-            {lang === 'ar'
-              ? 'نختصر الخطوات التقنية المعقدة في تجربة واضحة: أضف رابطك، خصص تطبيقك، ثم تابع كل عمليات التصدير من لوحة واحدة.'
-              : lang === 'fr'
-                ? 'Nous simplifions les étapes techniques : ajoutez votre URL, personnalisez votre application et suivez vos exports depuis un seul tableau de bord.'
-                : 'We simplify the technical steps: add your URL, customize your app, and track every export from one dashboard.'}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {[
-            {
-              icon: Zap,
-              title: lang === 'ar' ? 'إطلاق سريع' : lang === 'fr' ? 'Lancement rapide' : 'Fast launch',
-              text: lang === 'ar' ? 'حوّل رابطاً جاهزاً إلى تجربة قابلة للتثبيت دون البدء من مشروع Android معقد.' : lang === 'fr' ? 'Transformez un site existant sans démarrer un projet Android complexe.' : 'Turn an existing site into an installable experience without starting a complex Android project.',
-              color: 'bg-indigo-500/10 text-indigo-400',
-              link: '/guide',
-              linkText: lang === 'ar' ? 'دليل التثبيت' : lang === 'fr' ? 'Guide d\'installation' : 'Installation Guide',
-            },
-            {
-              icon: ShieldCheck,
-              title: lang === 'ar' ? 'وضوح وملكية' : lang === 'fr' ? 'Clarté et propriété' : 'Clear ownership',
-              text: lang === 'ar' ? 'إعداداتك وبياناتك الإعلانية تبقى لك، ونوضح دائماً ما هو مجاني وما هو اختياري.' : lang === 'fr' ? 'Vos paramètres restent les vôtres, avec une distinction claire entre les fonctions gratuites et optionnelles.' : 'Your settings remain yours, with a clear distinction between free and optional features.',
-              color: 'bg-emerald-500/10 text-emerald-400',
-              link: '/admob',
-              linkText: lang === 'ar' ? 'إعداد AdMob' : lang === 'fr' ? 'Config AdMob' : 'AdMob Setup',
-            },
-            {
-              icon: Layers3,
-              title: lang === 'ar' ? 'تجربة متكاملة' : lang === 'fr' ? 'Expérience complète' : 'Complete workflow',
-              text: lang === 'ar' ? 'معاينة، تخصيص، بناء APK، وتنزيل من مكان واحد مع متابعة حالة العملية.' : lang === 'fr' ? 'Prévisualisez, personnalisez, compilez et téléchargez depuis un seul endroit.' : 'Preview, customize, build, and download from one place with visible progress.',
-              color: 'bg-pink-500/10 text-pink-400',
-              link: '/dashboard',
-              linkText: lang === 'ar' ? 'لوحة التحكم' : lang === 'fr' ? 'Tableau de bord' : 'Dashboard',
-            },
-          ].map(({ icon: Icon, title, text, color, link, linkText }) => (
-            <article key={title} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-              <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl ${color}`}>
-                <Icon className="h-5 w-5" />
-              </div>
-              <h3 className="mb-2 text-base font-bold text-white">{title}</h3>
-              <p className="text-xs leading-6 text-slate-400 mb-4">{text}</p>
-              <a
-                href={link}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
-              >
-                {linkText}
-                <ArrowUpRight className="h-3 w-3" />
-              </a>
-            </article>
-          ))}
         </div>
       </section>
 
-      {/* Customer Stories & Case Studies (Median-style showcase) */}
-      <CustomerStoriesShowcase />
+      {/* ── Bento Grid: Modern Architectural Features ── */}
+      <section id="bento" className="py-20 relative border-t border-slate-800/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-xs font-bold text-indigo-400 uppercase tracking-widest">
+              {lang === 'ar' ? 'الميزات الهندسية المتقدمة' : 'Architectural Advantage'}
+            </h2>
+            <p className="mt-2 text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+              {lang === 'ar' ? 'كل ما تحتاجه لتصدر متجر التطبيقات' : 'Everything You Need to Dominate the App Stores'}
+            </p>
+            <p className="mt-4 text-slate-400 text-sm sm:text-base">
+              {lang === 'ar'
+                ? 'محرك Appifya يغلف تقنيات الويب داخل أغلفة Chromium و WebKit فائقة السرعة مع وصول كامل لأهم واجهات برمجة الهاتف.'
+                : 'Appifya wraps web technologies inside high-performance Chromium & WebKit native wrappers with direct OS-level API bridge access.'}
+            </p>
+          </div>
 
-      <section className="mt-24" aria-labelledby="how-it-works">
-        <div className="mb-8 text-center">
-          <h2 id="how-it-works" className="text-2xl font-black text-white sm:text-3xl">
-            {lang === 'ar' ? 'كيف تعمل المنصة؟' : lang === 'fr' ? 'Comment ça marche ?' : 'How does it work?'}
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {[
-            [ '01', lang === 'ar' ? 'أضف رابط موقعك' : lang === 'fr' ? 'Ajoutez votre URL' : 'Add your URL', lang === 'ar' ? 'نقبل المواقع والمتاجر التي تعمل عبر HTTPS.' : lang === 'fr' ? 'Nous acceptons les sites et boutiques en HTTPS.' : 'We support websites and stores served over HTTPS.', '/guide', lang === 'ar' ? 'اقرأ الدليل الكامل' : lang === 'fr' ? 'Lire le guide complet' : 'Read full guide' ],
-            [ '02', lang === 'ar' ? 'خصص التطبيق' : lang === 'fr' ? 'Personnalisez' : 'Customize it', lang === 'ar' ? 'اختر الاسم واللون والأيقونة التي تمثل علامتك.' : lang === 'fr' ? 'Choisissez le nom, la couleur et l’icône de votre marque.' : 'Choose the name, color, and icon for your brand.', '/admob', lang === 'ar' ? 'إعداد AdMob' : lang === 'fr' ? 'Config AdMob' : 'AdMob Setup' ],
-            [ '03', lang === 'ar' ? 'صدّر وتابع' : lang === 'fr' ? 'Exportez et suivez' : 'Export and track', lang === 'ar' ? 'تابع حالة بناء APK ونزّل الملف عند جاهزيته.' : lang === 'fr' ? 'Suivez la compilation et téléchargez le fichier prêt.' : 'Track the build and download the ready file.', '/dashboard', lang === 'ar' ? 'لوحة التحكم' : lang === 'fr' ? 'Tableau de bord' : 'Dashboard' ],
-          ].map(([number, title, text, link, linkText]) => (
-            <div key={number} className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
-              <div className="flex gap-4">
-                <span className="text-2xl font-black text-indigo-400">{number}</span>
+          {/* Bento Cards Structure */}
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            
+            {/* Bento Card 1: Fast Build (2 cols) */}
+            <div className="md:col-span-2 glass-card glass-card-hover rounded-3xl p-8 relative overflow-hidden flex flex-col justify-between">
+              <div className="relative z-10 space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                  <Rocket className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-white">
+                  {lang === 'ar' ? 'بناء سحابي آلي فوري (Instant Cloud Bundling)' : 'Instant Automated Cloud Bundling'}
+                </h3>
+                <p className="text-sm text-slate-400 max-w-md">
+                  {lang === 'ar'
+                    ? 'وداعاً لتعقيدات Android Studio و Xcode. خوادمنا تتكفل بتنزيل الحزم البرمجية، تشغيل فحص الأمان، وتوقيع ملفات AAB و APK و IPA في دقائق معدودة.'
+                    : 'No Xcode or Android Studio required. Our distributed build fleet compiles native source, runs security scans, and produces signed release artifacts in minutes.'}
+                </p>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-slate-800/80 flex items-center gap-6">
                 <div>
-                  <h3 className="mb-1 font-bold text-white">{title}</h3>
-                  <p className="text-xs leading-6 text-slate-400">{text}</p>
+                  <span className="text-2xl font-extrabold text-white">99.8%</span>
+                  <p className="text-xs text-slate-400">{lang === 'ar' ? 'نسبة نجاح التجميع' : 'Build Success Rate'}</p>
+                </div>
+                <div className="w-px h-8 bg-slate-800"></div>
+                <div>
+                  <span className="text-2xl font-extrabold text-emerald-400">&lt; 45s</span>
+                  <p className="text-xs text-slate-400">{lang === 'ar' ? 'متوسط وقت البناء' : 'Average Turnaround'}</p>
                 </div>
               </div>
-              <a
-                href={link}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors mt-2"
-              >
-                {linkText}
-                <ArrowUpRight className="h-3 w-3" />
-              </a>
             </div>
-          ))}
+
+            {/* Bento Card 2: Biometric Auth (1 col) */}
+            <div className="glass-card glass-card-hover rounded-3xl p-8 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                  <Fingerprint className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-white">
+                  {lang === 'ar' ? 'المصادقة البيومترية' : 'Biometric Login'}
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {lang === 'ar'
+                    ? 'دعم مدمج لبصمة الوجه FaceID وبصمة الإصبع TouchID لتأمين جلسات المستخدم دون تعقيد.'
+                    : 'Plug-and-play FaceID & TouchID support. Authenticate web sessions without complex native Swift or Kotlin code.'}
+                </p>
+              </div>
+              <div className="mt-6 flex items-center gap-2 text-xs text-cyan-400 font-medium">
+                <span>{lang === 'ar' ? 'سلسلة مفاتيح مشفرة' : 'Encrypted Keyring'}</span>
+                <Check className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* Bento Card 3: Push Notifications (1 col) */}
+            <div className="glass-card glass-card-hover rounded-3xl p-8 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                  <Bell className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-white">
+                  {lang === 'ar' ? 'محرك الإشعارات' : 'Push Engine'}
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {lang === 'ar'
+                    ? 'ربط مباشر مع Firebase و OneSignal لإرسال إشعارات تسويقية تضاعف تفاعل العملاء حتى 3 أضعاف.'
+                    : 'Direct Firebase & OneSignal hooks. Send marketing notifications that re-engage users with 3x higher click-through.'}
+                </p>
+              </div>
+              <div className="mt-6 flex items-center gap-2 text-xs text-emerald-400 font-medium">
+                <span>{lang === 'ar' ? 'جاهز لـ FCM و APNS' : 'FCM + APNS Ready'}</span>
+                <Check className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* Bento Card 4: Store Compliance (1 col) */}
+            <div className="glass-card glass-card-hover rounded-3xl p-8 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                  <Award className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-white">
+                  {lang === 'ar' ? 'أمان القبول بالمتجر' : 'Store Approval Safe'}
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {lang === 'ar'
+                    ? 'مطابقة تامة لسياسات Google Play ومتطلبات مراجعة متجر Apple App Store (إرشادات 4.2.6).'
+                    : 'Full compliance with Google Play Store guidelines and Apple App Store Review Guideline 4.2.6.'}
+                </p>
+              </div>
+              <span className="mt-6 text-xs text-amber-300 font-medium flex items-center gap-1">
+                <Shield className="w-3.5 h-3.5" /> {lang === 'ar' ? 'متوافق مع السياسات 100%' : '100% Policy Compliant'}
+              </span>
+            </div>
+
+            {/* Bento Card 5: Offline Mode & Asset Caching (2 cols) */}
+            <div className="md:col-span-2 glass-card glass-card-hover rounded-3xl p-8 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                  <HardDrive className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-white">
+                  {lang === 'ar' ? 'التخزين المؤقت المتقدم للأصول (Edge Pre-caching)' : 'Edge Asset Pre-caching'}
+                </h3>
+                <p className="text-sm text-slate-400">
+                  {lang === 'ar'
+                    ? 'يتم تخزين ملفات CSS و JavaScript والأيقونات الرئيسية محلياً داخل حزمة التطبيق. هذا يلغي شاشات التحميل الفارغة ويضمن تشغيل التطبيق في ثانية واحدة حتى مع الاتصالات الضعيفة.'
+                    : 'CSS, JavaScript, and key images are cached locally inside the binary to eliminate blank splash screens and ensure instant boot times.'}
+                </p>
+              </div>
+              <div className="mt-6 flex flex-wrap items-center gap-3 text-xs font-mono text-slate-400">
+                <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300">
+                  PWA Manifest Auto-sync
+                </span>
+                <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300">
+                  Service Worker Bridge
+                </span>
+              </div>
+            </div>
+
+            {/* Bento Card 6: Live Code Updates (1 col) */}
+            <div className="glass-card glass-card-hover rounded-3xl p-8 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                  <RefreshCw className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-white">
+                  {lang === 'ar' ? 'تحديثات هوائية (OTA)' : 'Over-The-Air (OTA)'}
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {lang === 'ar'
+                    ? 'انشر تعديلات موقعك مباشرة. يتلقى مستخدمو تطبيقك التحديثات فورياً دون انتظار مراجعات المتجر الطويلة.'
+                    : 'Deploy web updates immediately. Your mobile users receive frontend updates without waiting for store reviews.'}
+                </p>
+              </div>
+              <span className="mt-6 text-xs text-rose-400 font-medium">
+                {lang === 'ar' ? 'تحديثات حية وفورية' : 'Real-time Live Sync'}
+              </span>
+            </div>
+
+          </div>
+
         </div>
       </section>
 
-      <section className="mt-24 mx-auto max-w-4xl" aria-labelledby="faq">
+      {/* ── Transparent SaaS Pricing Table ── */}
+      <section id="pricing" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800/80">
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <h2 className="text-xs font-bold text-indigo-400 uppercase tracking-widest">
+            {lang === 'ar' ? 'أسعار شفافة وبسيطة' : 'Transparent Scalability'}
+          </h2>
+          <p className="mt-2 text-3xl font-extrabold text-white">
+            {lang === 'ar' ? 'خطط مرنة تناسب نمو أعمالك' : 'Simple, Predictable Plans'}
+          </p>
+          <p className="mt-3 text-slate-400 text-sm">
+            {lang === 'ar'
+              ? 'ابدأ بتحويل تطبيقك مجاناً اليوم، ورقّ حسابك عندما تتوسع قاعدة مستخدميك.'
+              : 'Convert your application today. Upgrade as your mobile audience grows.'}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          
+          {/* Tier 1: Starter */}
+          <div className="glass-card rounded-3xl p-8 border border-slate-800 flex flex-col justify-between">
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white">{lang === 'ar' ? 'البداية (Starter)' : 'Starter'}</h3>
+              <p className="text-xs text-slate-400">
+                {lang === 'ar' ? 'مثالية لاختبار تحويل المواقع والمتاجر الصغيرة.' : 'Ideal for testing web-to-app conversion & prototypes.'}
+              </p>
+              <div className="pt-4">
+                <span className="text-4xl font-extrabold text-white">$29</span>
+                <span className="text-slate-400 text-sm">{lang === 'ar' ? ' / شهرياً' : ' / month'}</span>
+              </div>
+              <ul className="space-y-2.5 pt-4 text-xs text-slate-300">
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Android APK & AAB Builds</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> PWA Offline Support</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Appifya Keystore Automation</li>
+                <li className="flex items-center gap-2 text-slate-500"><X className="w-4 h-4 text-slate-600" /> iOS App Store Build</li>
+              </ul>
+            </div>
+            <a
+              href="#builder"
+              className="mt-8 w-full py-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-white transition-all text-center"
+            >
+              {lang === 'ar' ? 'اختر خطة Starter' : 'Select Starter'}
+            </a>
+          </div>
+
+          {/* Tier 2: Pro Studio (Highlighted) */}
+          <div className="glass-card rounded-3xl p-8 border-2 border-indigo-500 relative flex flex-col justify-between shadow-2xl shadow-indigo-500/20">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-indigo-600 text-[10px] font-bold text-white tracking-widest uppercase">
+              {lang === 'ar' ? 'الأكثر طلباً' : 'Most Popular'}
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white">{lang === 'ar' ? 'استوديو برو (Pro Studio)' : 'Pro Studio'}</h3>
+              <p className="text-xs text-slate-400">
+                {lang === 'ar' ? 'للمتاجر الإلكترونية النشطة ومنصات SaaS التجارية.' : 'For serious SaaS platforms & commercial e-commerce stores.'}
+              </p>
+              <div className="pt-4">
+                <span className="text-4xl font-extrabold text-white">$79</span>
+                <span className="text-slate-400 text-sm">{lang === 'ar' ? ' / شهرياً' : ' / month'}</span>
+              </div>
+              <ul className="space-y-2.5 pt-4 text-xs text-slate-300">
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-400" /> Both Android (AAB) & iOS (IPA)</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-400" /> Push Notifications (Unlimited)</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-400" /> Google AdMob Monetization Built-in</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-400" /> 100% White-label (Custom Keystore)</li>
+              </ul>
+            </div>
+            <a
+              href="#builder"
+              className="mt-8 w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] text-center"
+            >
+              {lang === 'ar' ? 'ابدأ التجربة المجانية 14 يوماً' : 'Start Free 14-Day Trial'}
+            </a>
+          </div>
+
+          {/* Tier 3: Enterprise */}
+          <div className="glass-card rounded-3xl p-8 border border-slate-800 flex flex-col justify-between">
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-white">{lang === 'ar' ? 'المؤسسات (Enterprise)' : 'Enterprise Fleet'}</h3>
+              <p className="text-xs text-slate-400">
+                {lang === 'ar' ? 'للعمليات الضخمة والمتاجر ذات الزيارات المليونية.' : 'For high-traffic operations and multiple web platforms.'}
+              </p>
+              <div className="pt-4">
+                <span className="text-4xl font-extrabold text-white">$199</span>
+                <span className="text-slate-400 text-sm">{lang === 'ar' ? ' / شهرياً' : ' / month'}</span>
+              </div>
+              <ul className="space-y-2.5 pt-4 text-xs text-slate-300">
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Dedicated High-Priority Build Runners</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Hands-on App Store Publishing Support</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Custom Native Plugin Injection</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> 99.99% SLA Guarantee</li>
+              </ul>
+            </div>
+            <Link
+              href="/contact"
+              className="mt-8 w-full py-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-white transition-all text-center"
+            >
+              {lang === 'ar' ? 'تواصل مع فريق الهندسة' : 'Contact Engineers'}
+            </Link>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ── Customer Stories Showcase (Median-style) ── */}
+      <CustomerStoriesShowcase />
+
+      {/* ── Frequently Asked Questions ── */}
+      <section className="mt-20 mb-20 mx-auto max-w-4xl px-4" aria-labelledby="faq">
         <div className="mb-8 text-center">
           <HelpCircle className="mx-auto mb-3 h-7 w-7 text-indigo-400" />
           <h2 id="faq" className="text-2xl font-black text-white sm:text-3xl">
@@ -807,33 +1340,56 @@ export default function HomePage() {
         </div>
         <div className="space-y-3">
           {[
-            [lang === 'ar' ? 'هل التحويل الأساسي مجاني؟' : lang === 'fr' ? 'L’export de base est-il gratuit ?' : 'Is the basic export free?', lang === 'ar' ? 'نعم، التحويل الأساسي بدون إعلانات مجاني حالياً. أي خدمة مدفوعة مستقبلية ستظهر بوضوح قبل الدفع.' : lang === 'fr' ? 'Oui, l’export de base sans publicité est actuellement gratuit. Tout futur service payant sera affiché avant le paiement.' : 'Yes. The basic export without ads is currently free. Any future paid service will be shown before payment.'],
-            [lang === 'ar' ? 'هل أحتاج إلى Android Studio؟' : lang === 'fr' ? 'Ai-je besoin d’Android Studio ?' : 'Do I need Android Studio?', lang === 'ar' ? 'لا، المنصة تتولى إنشاء APK عبر خدمة بناء آلية. ستحتاج فقط إلى حسابك وبيانات تطبيقك.' : lang === 'fr' ? 'Non, la plateforme lance une compilation automatisée.' : 'No. The platform starts an automated build for you.'],
-            [lang === 'ar' ? 'هل أملك أرباح AdMob؟' : lang === 'fr' ? 'Qui possède les revenus AdMob ?' : 'Who owns AdMob revenue?', lang === 'ar' ? 'نعم. عند استخدام إعدادات AdMob الخاصة بك، يبقى الحساب والأرباح ملكاً لك وتبقى مسؤولاً عن سياسات Google.' : lang === 'fr' ? 'Les paramètres et revenus restent les vôtres, sous votre responsabilité vis-à-vis de Google.' : 'Your settings and revenue remain yours, and you are responsible for Google policies.'],
-            [lang === 'ar' ? 'لماذا لا تظهر بعض المواقع داخل المعاينة؟' : lang === 'fr' ? 'Pourquoi certains sites ne s’affichent-ils pas dans l’aperçu ?' : 'Why do some sites not appear in preview?', lang === 'ar' ? 'بعض المواقع تمنع التضمين داخل iframe لأسباب أمنية. في هذه الحالة استخدم زر الفتح خارجياً، ولا يمنع ذلك إنشاء التطبيق.' : lang === 'fr' ? 'Certains sites bloquent les iframe pour des raisons de sécurité. Ouvrez-les dans un nouvel onglet.' : 'Some sites block iframe embedding for security. Use the external preview link; this does not prevent app creation.'],
+            [
+              lang === 'ar' ? 'هل التحويل الأساسي مجاني؟' : lang === 'fr' ? 'L’export de base est-il gratuit ?' : 'Is the basic export free?',
+              lang === 'ar' ? 'نعم، التحويل الأساسي بدون إعلانات مجاني حالياً. أي ميزة إضافية أو خدمة مستقبلية ستظهر بوضوح تام.' : 'Yes. The basic export without ads is currently free. Any future paid features are clearly displayed.',
+            ],
+            [
+              lang === 'ar' ? 'هل أحتاج إلى Android Studio أو حاسوب Mac؟' : 'Do I need Android Studio or a Mac?',
+              lang === 'ar' ? 'لا، المنصة السحابية تتولى تجميع ملفات AAB و APK و IPA بنقرة زر واحدة عبر خوادمنا السحابية.' : 'No. Appifya cloud runner handles complete building and signing without requiring Mac hardware or Android Studio.',
+            ],
+            [
+              lang === 'ar' ? 'هل أملك أرباح إعلانات AdMob؟' : 'Who owns AdMob revenue?',
+              lang === 'ar' ? 'نعم 100%. عند استخدام إعدادات AdMob الخاصة بك، يبقى الحساب والأرباح ملكاً لك مباشرة دون أي نسبة اقتطاع.' : 'Your settings and revenue remain 100% yours with direct deposit from Google.',
+            ],
+            [
+              lang === 'ar' ? 'لماذا لا تظهر بعض المواقع داخل المعاينة الحية؟' : 'Why do some sites not appear in live iframe preview?',
+              lang === 'ar' ? 'بعض المواقع تمنع التضمين داخل iframe لأسباب أمنية (X-Frame-Options). يمكنك استخدام محاكي التطبيق الأصلي المدمج أو زر الفتح خارجياً، ولا يمنع ذلك إنشاء التطبيق.' : 'Some sites restrict iframe embedding for security headers. You can always use our native simulated view or test externally; this does not prevent app creation.',
+            ],
           ].map(([question, answer]) => (
-            <details key={question} className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-              <summary className="cursor-pointer list-none font-bold text-white marker:hidden">{question}</summary>
+            <details key={question} className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-5 glass-card">
+              <summary className="cursor-pointer list-none font-bold text-white marker:hidden flex items-center justify-between">
+                <span>{question}</span>
+                <span className="text-indigo-400 font-mono text-sm group-open:rotate-180 transition-transform">▼</span>
+              </summary>
               <p className="mt-3 text-sm leading-7 text-slate-400">{answer}</p>
             </details>
           ))}
         </div>
       </section>
 
-      <section className="mt-24 rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-indigo-900/30 to-pink-900/30 p-8 text-center">
-        <h2 className="text-2xl font-black text-white">
-          {lang === 'ar' ? 'ابدأ بتحويل موقعك اليوم' : lang === 'fr' ? 'Transformez votre site aujourd’hui' : 'Start converting your site today'}
-        </h2>
-        <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-300">
-          {lang === 'ar' ? 'ابدأ مجاناً، واحتفظ بالتحكم الكامل في إعدادات تطبيقك.' : lang === 'fr' ? 'Commencez gratuitement et gardez le contrôle de votre application.' : 'Start for free and keep full control of your app settings.'}
-        </p>
-        <a href="#create-app" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-500/25">
-          <Check className="h-4 w-4" />
-          {lang === 'ar' ? 'ابدأ الآن' : lang === 'fr' ? 'Commencer' : 'Get started'}
-        </a>
+      {/* ── Final Call to Action ── */}
+      <section className="mb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/60 via-slate-900/80 to-purple-950/60 p-10 text-center shadow-2xl">
+          <h2 className="text-2xl sm:text-3xl font-black text-white">
+            {lang === 'ar' ? 'ابدأ بتحويل موقعك إلى تطبيق متجر اليوم' : 'Ready to Launch Your Mobile App Today?'}
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-300">
+            {lang === 'ar'
+              ? 'انضم إلى آلاف المطورين وأصحاب المتاجر الذين وسعوا حضورهم على الهواتف الذكية مع Appifya.'
+              : 'Join developers and merchants who turned their websites into store-ready apps with Appifya.'}
+          </p>
+          <a
+            href="#builder"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/30 hover:scale-105 transition-all cursor-pointer"
+          >
+            <Check className="h-4 w-4" />
+            <span>{lang === 'ar' ? 'ابدأ مجاناً الآن' : 'Get Started for Free'}</span>
+          </a>
+        </div>
       </section>
 
-      {/* Schema.org structured data */}
+      {/* ── Schema.org Structured Data ── */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(lang)) }}

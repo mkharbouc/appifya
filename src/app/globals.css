@@ -1031,3 +1031,45 @@ html[data-theme="light"] .stories-modal-close-btn:hover {
   25% { transform: translateX(-4px) rotate(-1deg); }
   75% { transform: translateX(4px) rotate(1deg); }
 }
+
+/* ── Appifya Modern SaaS Engine Theme Utilities ────────────────────────────── */
+
+.glow-indigo {
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(99, 102, 241, 0) 70%);
+}
+
+.glow-cyan {
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0) 70%);
+}
+
+.glass-card {
+  background: rgba(19, 26, 41, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="light"] .glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(226, 232, 240, 0.9);
+}
+
+.glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-hover:hover {
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: 0 0 35px -5px rgba(99, 102, 241, 0.25);
+  transform: translateY(-2px);
+}
+
+.terminal-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.terminal-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+}
+
