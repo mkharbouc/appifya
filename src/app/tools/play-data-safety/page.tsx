@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import PlayDataSafetyClient from './PlayDataSafetyClient';
 
@@ -125,7 +126,9 @@ export default function PlayDataSafetyPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <PlayDataSafetyClient />
+      <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">Loading...</div>}>
+        <PlayDataSafetyClient />
+      </Suspense>
     </>
   );
 }

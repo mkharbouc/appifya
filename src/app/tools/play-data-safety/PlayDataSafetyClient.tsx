@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '../../lib/i18n';
 import {
@@ -257,6 +257,11 @@ export default function PlayDataSafetyClient() {
 
   // ─── Selected SDKs State ───
   const [selectedSdks, setSelectedSdks] = useState<string[]>(['admob', 'firebase-crashlytics']);
+  const [currentDate, setCurrentDate] = useState('2026-10-24');
+
+  useEffect(() => {
+    setCurrentDate(new Date().toISOString().split('T')[0]);
+  }, []);
 
   // ─── UI State ───
   const [activeTab, setActiveTab] = useState<'cheat-sheet' | 'privacy-policy' | 'audit'>('cheat-sheet');
@@ -327,7 +332,7 @@ export default function PlayDataSafetyClient() {
 
   // ─── Generate Markdown Privacy Policy ───
   const generateMarkdownPolicy = useMemo(() => {
-    const dateStr = new Date().toISOString().split('T')[0];
+    const dateStr = currentDate;
 
     let content = `# Privacy Policy for ${appName}
 
@@ -888,7 +893,7 @@ If you have any questions or suggestions about our Privacy Policy, do not hesita
                 <div className="max-h-[500px] overflow-y-auto p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-4 scrollbar-thin leading-relaxed">
                   <h2 className="text-base font-bold text-white">Privacy Policy for {appName}</h2>
                   <p className="text-slate-400 text-[11px]">
-                    Last updated: {new Date().toLocaleDateString()}
+                    Last updated: {currentDate}
                   </p>
                   <p>
                     {developerName} operates the <strong>{appName}</strong> application. This policy
