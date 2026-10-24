@@ -20,6 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/tools/app-banner-generator',
     '/tools/assetlinks-generator',
     '/tools/app-mockup-framer',
+    '/tools/play-data-safety',
   ];
 
   return routes.map((route) => ({

@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Smartphone,
   KeyRound,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface Tool {
@@ -25,6 +26,24 @@ interface Tool {
 }
 
 const TOOLS: Tool[] = [
+  {
+    href: '/tools/play-data-safety',
+    icon: ShieldCheck,
+    iconColor: 'text-amber-400',
+    iconBg: 'bg-amber-500/15 border-amber-500/25',
+    badge: 'New',
+    title: {
+      ar: 'سلامة البيانات Google Play والخصوصية',
+      en: 'Google Play Data Safety & Privacy Form',
+      fr: 'Sécurité des données Google Play & Privacy',
+    },
+    description: {
+      ar: 'تجنب رفض تطبيقك في Google Play! حدد حزم SDKs لتوليد إجابات دقيقة خطوة بخطوة لاستبيان سلامة البيانات مع سياسة خصوصية مطابقة.',
+      en: 'Eliminate Google Play rejections. Select your SDKs to auto-generate exact Data Safety questionnaire answers and a matched privacy policy.',
+      fr: 'Évitez les refus Google Play. Générez les réponses exactes du formulaire Sécurité des données et une politique de confidentialité.',
+    },
+    cta: { ar: 'توليد الإجابات والخصوصية', en: 'Generate Data Safety', fr: 'Générer Sécurité' },
+  },
   {
     href: '/tools/app-mockup-framer',
     icon: Smartphone,
