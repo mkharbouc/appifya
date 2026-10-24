@@ -94,6 +94,13 @@ const jsonLd = {
       applicationCategory: 'DeveloperApplication',
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     },
+    {
+      '@type': 'WebApplication',
+      name: 'App Store Screenshot Mockup Framer',
+      url: 'https://appifya.app/tools/app-mockup-framer',
+      applicationCategory: 'DesignApplication',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
   ],
 };
 

@@ -26,6 +26,24 @@ interface Tool {
 
 const TOOLS: Tool[] = [
   {
+    href: '/tools/app-mockup-framer',
+    icon: Smartphone,
+    iconColor: 'text-violet-400',
+    iconBg: 'bg-violet-500/15 border-violet-500/25',
+    badge: 'New',
+    title: {
+      ar: 'مصمم سكرين شوت المتجر (Mockup Framer)',
+      en: 'App Store Screenshot Mockup Framer',
+      fr: 'Générateur de Screenshots App Store',
+    },
+    description: {
+      ar: 'صمّم لقطات شاشة ترويجية بمقاسات Google Play و App Store الرسمية مع إطارات أجهزة Pixel و iPhone وخلفيات متدرجة وتصدير ZIP كامل.',
+      en: 'Design professional, store-compliant screenshots with modern device frames (Pixel, iPhone), gradient backgrounds, and batch ZIP export.',
+      fr: 'Créez des captures d’écran d’application conformes aux stores avec cadres Pixel/iPhone, arrière-plans dégradés et export ZIP.',
+    },
+    cta: { ar: 'فتح المصمم', en: 'Open Framer', fr: 'Ouvrir' },
+  },
+  {
     href: '/tools/assetlinks-generator',
     icon: KeyRound,
     iconColor: 'text-cyan-400',

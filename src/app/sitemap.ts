@@ -19,6 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/tools/qr-generator',
     '/tools/app-banner-generator',
     '/tools/assetlinks-generator',
+    '/tools/app-mockup-framer',
   ];
 
   return routes.map((route) => ({
