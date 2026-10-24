@@ -151,24 +151,31 @@ export default function DashboardPage() {
     const restoreBuildStatuses = async () => {
       await Promise.all(apps.map(async (app) => {
         try {
+          const startedAt = getBuildStartedAt(app.$id);
           const response = await fetch(statusUrl(app.$id), { cache: 'no-store' });
           if (!response.ok) return;
 
           const result = await response.json();
-          if (result.status === 'building' || result.status === 'completed' || result.status === 'failed') {
-            const startedAt = getBuildStartedAt(app.$id);
-            const isStale = result.status === 'building'
-              && (!startedAt || Date.now() - startedAt > BUILD_TIMEOUT_MS);
+          if (result.status === 'completed') {
             setBuilds((current) => ({
               ...current,
               [app.$id]: {
-                status: isStale ? 'failed' : result.status,
+                status: 'completed',
+                downloadUrl: result.downloadUrl,
+              },
+            }));
+          } else if (result.status === 'building' && startedAt) {
+            const isStale = Date.now() - startedAt > BUILD_TIMEOUT_MS;
+            setBuilds((current) => ({
+              ...current,
+              [app.$id]: {
+                status: isStale ? 'failed' : 'building',
                 downloadUrl: result.downloadUrl,
               },
             }));
             if (isStale) {
               clearBuildStart(app.$id);
-            } else if (result.status === 'building') {
+            } else {
               setBuildNoticeAppId(app.$id);
             }
           }
@@ -219,7 +226,7 @@ export default function DashboardPage() {
           const result = await response.json();
           const startedAt = getBuildStartedAt(appId);
           const isStale = result.status === 'building'
-            && (!startedAt || Date.now() - startedAt > BUILD_TIMEOUT_MS);
+            && Boolean(startedAt && Date.now() - startedAt > BUILD_TIMEOUT_MS);
           if (isStale || result.status === 'completed' || result.status === 'failed') {
             setBuilds((current) => ({
               ...current,

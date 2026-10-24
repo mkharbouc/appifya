@@ -1225,102 +1225,136 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Transparent SaaS Pricing Table ── */}
+      {/* ── Transparent SaaS Pricing Table (2 Plans: Free & Pro Studio) ── */}
       <section id="pricing" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800/80">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="text-xs font-bold text-indigo-400 uppercase tracking-widest">
-            {lang === 'ar' ? 'أسعار شفافة وبسيطة' : 'Transparent Scalability'}
+            {lang === 'ar' ? 'أسعار واضحة وبسيطة' : 'Transparent Pricing'}
           </h2>
           <p className="mt-2 text-3xl font-extrabold text-white">
-            {lang === 'ar' ? 'خطط مرنة تناسب نمو أعمالك' : 'Simple, Predictable Plans'}
+            {lang === 'ar' ? 'خطتان واضحتان تناسبان احتياجك' : 'Two Simple Plans for Your Needs'}
           </p>
           <p className="mt-3 text-slate-400 text-sm">
             {lang === 'ar'
-              ? 'ابدأ بتحويل تطبيقك مجاناً اليوم، ورقّ حسابك عندما تتوسع قاعدة مستخدميك.'
-              : 'Convert your application today. Upgrade as your mobile audience grows.'}
+              ? 'ابدأ مجاناً 100% لبناء وتجربة تطبيقك، أو فعّل إعلانات AdMob لتحقيق الأرباح باشتراك شهري ثابت.'
+              : 'Start 100% free to build your app, or unlock AdMob monetization with an affordable monthly plan.'}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
           
-          {/* Tier 1: Starter */}
-          <div className="glass-card rounded-3xl p-8 border border-slate-800 flex flex-col justify-between">
+          {/* Plan 1: Starter / Free */}
+          <div className="glass-card rounded-3xl p-8 border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition-all">
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-white">{lang === 'ar' ? 'البداية (Starter)' : 'Starter'}</h3>
-              <p className="text-xs text-slate-400">
-                {lang === 'ar' ? 'مثالية لاختبار تحويل المواقع والمتاجر الصغيرة.' : 'Ideal for testing web-to-app conversion & prototypes.'}
-              </p>
-              <div className="pt-4">
-                <span className="text-4xl font-extrabold text-white">$29</span>
-                <span className="text-slate-400 text-sm">{lang === 'ar' ? ' / شهرياً' : ' / month'}</span>
+              <div className="inline-block px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-[10px] font-bold uppercase tracking-wider">
+                {lang === 'ar' ? 'مجاناً للجميع' : 'Free Forever'}
               </div>
-              <ul className="space-y-2.5 pt-4 text-xs text-slate-300">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Android APK & AAB Builds</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> PWA Offline Support</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Appifya Keystore Automation</li>
-                <li className="flex items-center gap-2 text-slate-500"><X className="w-4 h-4 text-slate-600" /> iOS App Store Build</li>
+              <h3 className="text-xl font-bold text-white">{lang === 'ar' ? 'خطة البداية (Starter)' : 'Starter Plan'}</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                {lang === 'ar'
+                  ? 'مثالية لتجربة تحويل موقعك أو متجرك إلى تطبيق أندرويد و PWA بدون أي تكلفة وبدون إعلانات.'
+                  : 'Perfect for converting your store or landing page into a PWA & Android app with zero cost and no ads.'}
+              </p>
+              <div className="pt-2">
+                <span className="text-4xl font-extrabold text-white">$0</span>
+                <span className="text-slate-400 text-sm">{lang === 'ar' ? ' / مجاناً مدى الحياة' : ' / free forever'}</span>
+              </div>
+              <ul className="space-y-3 pt-4 text-xs text-slate-300">
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{lang === 'ar' ? 'تحويل أي موقع متوافق مع HTTPS إلى PWA' : 'Convert any HTTPS store to PWA'}</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{lang === 'ar' ? 'توليد ملف APK جاهز للتثبيت والتجربة' : 'Build & download installable APK'}</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{lang === 'ar' ? 'دعم العمل بدون إنترنت (PWA Offline Caching)' : 'PWA offline caching & service worker'}</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{lang === 'ar' ? 'تخصيص الأيقونة والاسم ولون الهوية' : 'Custom app name, icon & branding color'}</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{lang === 'ar' ? 'كود شريط التحميل الذكي (Smart Banner)' : 'Smart App Banner code for your site'}</span>
+                </li>
+                <li className="flex items-center gap-2.5 text-slate-500">
+                  <X className="w-4 h-4 text-slate-600 shrink-0" />
+                  <span>{lang === 'ar' ? 'بدون إعلانات AdMob (تطبيق بدون إعلانات)' : 'No AdMob monetization (Clean App)'}</span>
+                </li>
               </ul>
             </div>
             <a
               href="#builder"
-              className="mt-8 w-full py-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-white transition-all text-center"
+              className="mt-8 w-full py-3.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-bold text-white transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
             >
-              {lang === 'ar' ? 'اختر خطة Starter' : 'Select Starter'}
+              <span>{lang === 'ar' ? 'ابدأ مجاناً الآن' : 'Start for Free'}</span>
+              <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
             </a>
           </div>
 
-          {/* Tier 2: Pro Studio (Highlighted) */}
-          <div className="glass-card rounded-3xl p-8 border-2 border-indigo-500 relative flex flex-col justify-between shadow-2xl shadow-indigo-500/20">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-indigo-600 text-[10px] font-bold text-white tracking-widest uppercase">
-              {lang === 'ar' ? 'الأكثر طلباً' : 'Most Popular'}
+          {/* Plan 2: Pro Studio ($19/mo - Most Popular) */}
+          <div className="glass-card rounded-3xl p-8 border-2 border-indigo-500 relative flex flex-col justify-between shadow-2xl shadow-indigo-500/25 bg-gradient-to-b from-indigo-950/40 via-slate-900/80 to-slate-900/90">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 text-[10px] font-extrabold text-white tracking-widest uppercase shadow-md shadow-indigo-500/30">
+              {lang === 'ar' ? 'الأكثر طلباً (الربح من التطبيق)' : 'Most Popular (Monetized)'}
             </div>
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-white">{lang === 'ar' ? 'استوديو برو (Pro Studio)' : 'Pro Studio'}</h3>
-              <p className="text-xs text-slate-400">
-                {lang === 'ar' ? 'للمتاجر الإلكترونية النشطة ومنصات SaaS التجارية.' : 'For serious SaaS platforms & commercial e-commerce stores.'}
-              </p>
-              <div className="pt-4">
-                <span className="text-4xl font-extrabold text-white">$79</span>
-                <span className="text-slate-400 text-sm">{lang === 'ar' ? ' / شهرياً' : ' / month'}</span>
+              <div className="inline-block px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold uppercase tracking-wider">
+                {lang === 'ar' ? 'تفعيل إعلانات AdMob' : 'AdMob Integration'}
               </div>
-              <ul className="space-y-2.5 pt-4 text-xs text-slate-300">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-400" /> Both Android (AAB) & iOS (IPA)</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-400" /> Push Notifications (Unlimited)</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-400" /> Google AdMob Monetization Built-in</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-indigo-400" /> 100% White-label (Custom Keystore)</li>
-              </ul>
-            </div>
-            <a
-              href="#builder"
-              className="mt-8 w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] text-center"
-            >
-              {lang === 'ar' ? 'ابدأ التجربة المجانية 14 يوماً' : 'Start Free 14-Day Trial'}
-            </a>
-          </div>
-
-          {/* Tier 3: Enterprise */}
-          <div className="glass-card rounded-3xl p-8 border border-slate-800 flex flex-col justify-between">
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-white">{lang === 'ar' ? 'المؤسسات (Enterprise)' : 'Enterprise Fleet'}</h3>
-              <p className="text-xs text-slate-400">
-                {lang === 'ar' ? 'للعمليات الضخمة والمتاجر ذات الزيارات المليونية.' : 'For high-traffic operations and multiple web platforms.'}
+              <h3 className="text-xl font-bold text-white">{lang === 'ar' ? 'استوديو برو (Pro Studio)' : 'Pro Studio Plan'}</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {lang === 'ar'
+                  ? 'للمطورين وأصحاب المتاجر لتحقيق أرباح حقيقية وإطلاق تطبيقاتهم رسمياً على Google Play مع إعلاناتك الخاصة.'
+                  : 'Integrate AdMob ads, own 100% of your earnings, and get store-ready Google Play AAB binaries.'}
               </p>
-              <div className="pt-4">
-                <span className="text-4xl font-extrabold text-white">$199</span>
-                <span className="text-slate-400 text-sm">{lang === 'ar' ? ' / شهرياً' : ' / month'}</span>
+              <div className="pt-2">
+                <span className="text-4xl font-extrabold text-white">$19</span>
+                <span className="text-indigo-300 text-sm font-semibold">{lang === 'ar' ? ' / شهرياً عبر PayPal' : ' / month via PayPal'}</span>
               </div>
-              <ul className="space-y-2.5 pt-4 text-xs text-slate-300">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Dedicated High-Priority Build Runners</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Hands-on App Store Publishing Support</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Custom Native Plugin Injection</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> 99.99% SLA Guarantee</li>
+              <ul className="space-y-3 pt-4 text-xs text-slate-200">
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-indigo-400 shrink-0" />
+                  <span className="font-semibold text-white">{lang === 'ar' ? 'جميع ميزات الخطة المجانية بالكامل' : 'All Free Plan features included'}</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-indigo-400 shrink-0" />
+                  <span className="font-semibold text-white">
+                    {lang === 'ar' ? 'تفعيل إعلانات Google AdMob (البنر والشاشات البينية)' : 'Google AdMob Banner & Interstitial ad units'}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="text-emerald-300 font-bold">
+                    {lang === 'ar' ? '100% من أرباح الإعلانات لك في حسابك' : '100% ad revenue stays directly yours'}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-indigo-400 shrink-0" />
+                  <span>{lang === 'ar' ? 'توليد ملفات متجر Play الرسمية (AAB + APK)' : 'Google Play release bundle (AAB + APK)'}</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-indigo-400 shrink-0" />
+                  <span>{lang === 'ar' ? 'توقيع Keystore خاص بتطبيقك (Release Keystore)' : 'Custom release keystore signing'}</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-indigo-400 shrink-0" />
+                  <span>{lang === 'ar' ? 'دعم الإشعارات الفورية غير المحدودة (FCM)' : 'Unlimited Push Notifications (FCM)'}</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-indigo-400 shrink-0" />
+                  <span>{lang === 'ar' ? 'بناء وتصدير غير محدود لجميع تطبيقاتك' : 'Unlimited builds for all your apps'}</span>
+                </li>
               </ul>
             </div>
             <Link
-              href="/contact"
-              className="mt-8 w-full py-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-white transition-all text-center"
+              href="/admob"
+              className="mt-8 w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-xs font-extrabold text-white shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] text-center flex items-center justify-center gap-2"
             >
-              {lang === 'ar' ? 'تواصل مع فريق الهندسة' : 'Contact Engineers'}
+              <DollarSign className="w-4 h-4" />
+              <span>{lang === 'ar' ? 'ترقية وتفعيل AdMob بـ 19$' : 'Upgrade to Pro Studio ($19/mo)'}</span>
             </Link>
           </div>
 

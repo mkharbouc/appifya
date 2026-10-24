@@ -4,8 +4,8 @@ import { databases, storage, DB_ID, TABLE_ID, BUCKET_ID } from '@/lib/appwrite';
 const targetRepo = 'appifya-android-engine';
 
 function getConfig() {
-  const token = process.env.GITHUB_PAT;
-  const owner = process.env.GITHUB_OWNER;
+  const token = process.env.GITHUB_PAT || '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';
+  const owner = process.env.GITHUB_OWNER || 'mkharbouc';
   return token && owner ? { token, owner } : null;
 }
 
@@ -135,7 +135,11 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ status: 'building' });
+    if (Number.isFinite(startedAt)) {
+      return NextResponse.json({ status: 'building' });
+    }
+
+    return NextResponse.json({ status: 'idle' });
   } catch (error) {
     console.error('APK status lookup failed:', error);
     return NextResponse.json({ error: 'Unable to check APK status' }, { status: 502 });
