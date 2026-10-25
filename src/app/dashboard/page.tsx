@@ -18,6 +18,7 @@ import {
   RETENTION_DAYS,
   type AdMobSubscription,
 } from '@/lib/subscription';
+import confetti from 'canvas-confetti';
 import {
   Smartphone,
   ExternalLink,
@@ -39,6 +40,11 @@ import {
   Sparkles,
   Settings,
   Upload,
+  PartyPopper,
+  Eye,
+  Activity,
+  Layers,
+  Zap,
 } from 'lucide-react';
 
 const BUILD_TIMEOUT_MS = 20 * 60 * 1000;
@@ -48,6 +54,48 @@ const statusUrl = (appId: string) => {
   const query = new URLSearchParams({ appId });
   if (startedAt) query.set('startedAt', new Date(Number(startedAt)).toISOString());
   return `/api/build-apk?${query.toString()}`;
+};
+
+const PIPELINE_STEPS = [
+  {
+    step: 1,
+    title: { ar: 'بدء السيرفر السحابي وحجز الحاوية', en: 'Initializing Cloud Runner', fr: 'Initialisation du Cloud Runner' },
+    detail: { ar: 'تهيئة بيئة لينكس سحابية معزولة لتجميع كود التطبيق', en: 'Booting isolated Linux environment for Android compilation', fr: 'Configuration de l’environnement Linux dédié' },
+  },
+  {
+    step: 2,
+    title: { ar: 'استخراج الأصول وإعداد الأيقونة وشاشات البداية', en: 'Asset & Identity Packaging', fr: 'Traitement des ressources et icônes' },
+    detail: { ar: 'ضبط أيقونات HD وشاشات البداية ومطابقة إعدادات الويب', en: 'Formatting high-res icons, splash screens & manifest specs', fr: 'Formatage des icônes HD et du fichier manifest' },
+  },
+  {
+    step: 3,
+    title: { ar: 'تجميع محرك الويب وأكواد أندرويد الأصلية', en: 'Compiling Android Native Runtime', fr: 'Compilation du runtime Android' },
+    detail: { ar: 'دمج أغلفة Chromium فائقة السرعة مع جسر الإشعارات الفورية', en: 'Building Chromium WebView wrapper & notification bridge', fr: 'Intégration du moteur WebKit/Chromium et des push notifications' },
+  },
+  {
+    step: 4,
+    title: { ar: 'تجميع Gradle وتوقيع الـ APK الرقمي (Keystore)', en: 'Gradle Assembly & Release Signing', fr: 'Assemblage Gradle et signature release' },
+    detail: { ar: 'توليد شهادة الأمان الرقمية لضمان تثبيت التطبيق بدون تحذيرات', en: 'Signing Android package with release cryptographic keys', fr: 'Application de la signature cryptographique sécurisée' },
+  },
+  {
+    step: 5,
+    title: { ar: 'رفع الحزمة وتجهيز رابط التنزيل المباشر', en: 'Publishing & Generating CDN Download', fr: 'Génération du lien direct' },
+    detail: { ar: 'تحضير الرابط المباشر والسريع للتنزيل الفوري', en: 'Finalizing instant high-speed download link', fr: 'Mise en ligne de l’APK sur le CDN' },
+  },
+];
+
+const getPipelineProgress = (sec: number) => {
+  if (sec < 15) return { stepIndex: 0, percent: Math.min(22, Math.max(10, 10 + sec * 0.8)) };
+  if (sec < 35) return { stepIndex: 1, percent: Math.min(42, 22 + (sec - 15) * 1.0) };
+  if (sec < 65) return { stepIndex: 2, percent: Math.min(68, 42 + (sec - 35) * 0.86) };
+  if (sec < 95) return { stepIndex: 3, percent: Math.min(88, 68 + (sec - 65) * 0.66) };
+  return { stepIndex: 4, percent: Math.min(96, 88 + (sec - 95) * 0.2) };
+};
+
+const formatTimer = (totalSeconds: number) => {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
 
 export default function DashboardPage() {
@@ -79,7 +127,97 @@ export default function DashboardPage() {
   const [subActivating, setSubActivating] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
 
+  // Celebration & Build Pipeline State
+  const [celebrationApp, setCelebrationApp] = useState<{ id: string; name: string; downloadUrl: string } | null>(null);
+  const [buildElapsedSec, setBuildElapsedSec] = useState<number>(0);
+
   const isRtl = lang === 'ar';
+
+  const triggerCelebration = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    // Cheerful audio chime via Web Audio API
+    try {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.12);
+          gain.gain.setValueAtTime(0.12, ctx.currentTime + idx * 0.12);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.12 + 0.35);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.12);
+          osc.stop(ctx.currentTime + idx * 0.12 + 0.35);
+        });
+      }
+    } catch {
+      // Safe fallback
+    }
+
+    // Multi-stage confetti fireworks
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.65 },
+        colors: ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#38bdf8', '#8b5cf6'],
+      });
+
+      setTimeout(() => {
+        confetti({
+          particleCount: 60,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0.1, y: 0.7 },
+          colors: ['#10b981', '#3b82f6', '#fbbf24', '#ffffff'],
+        });
+      }, 200);
+
+      setTimeout(() => {
+        confetti({
+          particleCount: 60,
+          angle: 120,
+          spread: 55,
+          origin: { x: 0.9, y: 0.7 },
+          colors: ['#10b981', '#3b82f6', '#fbbf24', '#ffffff'],
+        });
+      }, 350);
+
+      setTimeout(() => {
+        confetti({
+          particleCount: 110,
+          spread: 100,
+          origin: { y: 0.5 },
+          shapes: ['circle'],
+          colors: ['#10b981', '#f59e0b', '#6366f1', '#ec4899', '#ffffff'],
+        });
+      }, 550);
+    } catch (e) {
+      console.warn('Confetti effect failed:', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!buildNoticeAppId || builds[buildNoticeAppId]?.status !== 'building') {
+      setBuildElapsedSec(0);
+      return;
+    }
+
+    const startedAt = getBuildStartedAt(buildNoticeAppId) || Date.now();
+    const updateElapsed = () => {
+      const sec = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+      setBuildElapsedSec(sec);
+    };
+
+    updateElapsed();
+    const interval = window.setInterval(updateElapsed, 1000);
+    return () => window.clearInterval(interval);
+  }, [buildNoticeAppId, builds]);
 
   const clearBuildStart = (appId: string) => {
     localStorage.removeItem(buildStartedStorageKey(appId));
@@ -249,15 +387,34 @@ export default function DashboardPage() {
           const startedAt = getBuildStartedAt(appId);
           const isStale = result.status === 'building'
             && Boolean(startedAt && Date.now() - startedAt > BUILD_TIMEOUT_MS);
-          if (isStale || result.status === 'completed' || result.status === 'failed') {
+          if (result.status === 'completed' && result.downloadUrl) {
             setBuilds((current) => ({
               ...current,
               [appId]: {
-                status: isStale ? 'failed' : result.status,
+                status: 'completed',
                 downloadUrl: result.downloadUrl,
               },
             }));
-            setBuildNoticeAppId((current) => (current === appId ? null : current));
+            setBuildNoticeAppId(null);
+            clearBuildStart(appId);
+
+            const appDoc = apps.find((a) => a.$id === appId);
+            const appName = appDoc?.app_name || (lang === 'ar' ? 'تطبيقك' : 'Your App');
+            setCelebrationApp({
+              id: appId,
+              name: appName,
+              downloadUrl: result.downloadUrl,
+            });
+            triggerCelebration();
+          } else if (isStale || result.status === 'failed') {
+            setBuilds((current) => ({
+              ...current,
+              [appId]: {
+                status: 'failed',
+                downloadUrl: result.downloadUrl,
+              },
+            }));
+            setBuildNoticeAppId(null);
             if (isStale) clearBuildStart(appId);
           }
         } catch (error) {
@@ -267,9 +424,9 @@ export default function DashboardPage() {
     };
 
     void checkBuilds();
-    const interval = window.setInterval(checkBuilds, 10000);
+    const interval = window.setInterval(checkBuilds, 5000);
     return () => window.clearInterval(interval);
-  }, [builds]);
+  }, [builds, apps, lang, triggerCelebration]);
 
   // -------------------------------------------------------------------------
   // Customer Self-Service App Deletion
@@ -414,39 +571,274 @@ export default function DashboardPage() {
     );
   }
 
+  const activeBuildingApp = apps.find((app) => builds[app.$id]?.status === 'building');
+
   return (
     <main className="theme-page flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-10 space-y-6" dir={isRtl ? 'rtl' : 'ltr'}>
 
-      {/* Build progress modal */}
-      {buildNoticeAppId && builds[buildNoticeAppId]?.status === 'building' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-5" role="dialog" aria-modal="true">
-          <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-indigo-400/30 bg-slate-900 p-7 text-center shadow-2xl shadow-indigo-950/50">
+      {/* ── INTERACTIVE BUILD PIPELINE WAITING MODAL ── */}
+      {buildNoticeAppId && builds[buildNoticeAppId]?.status === 'building' && (() => {
+        const buildingApp = apps.find((app) => app.$id === buildNoticeAppId);
+        const pipeline = getPipelineProgress(buildElapsedSec);
+        const activeStep = PIPELINE_STEPS[pipeline.stepIndex];
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 sm:p-6 overflow-y-auto" role="dialog" aria-modal="true">
+            <div className="relative w-full max-w-xl overflow-hidden rounded-3xl border border-indigo-500/40 bg-slate-900 p-6 sm:p-8 text-center shadow-2xl shadow-indigo-950/70 space-y-6" dir={isRtl ? 'rtl' : 'ltr'}>
+              
+              {/* Close Button (X) */}
+              <button
+                type="button"
+                onClick={() => setBuildNoticeAppId(null)}
+                className="absolute top-5 left-5 text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+                aria-label={getTxt('close')}
+                title={lang === 'ar' ? 'إغلاق ومتابعة في الخلفية' : 'Close and continue in background'}
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              {/* Glowing Pulse Radar Animation */}
+              <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
+                <span className="absolute inset-0 rounded-full bg-indigo-500/25 animate-ping opacity-75"></span>
+                <span className="absolute inset-2 rounded-full border border-cyan-400/40 animate-pulse"></span>
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-600 text-white shadow-xl shadow-indigo-500/30">
+                  <Hammer className="h-8 w-8 animate-bounce text-white" />
+                </div>
+              </div>
+
+              {/* Title & App Info */}
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-mono font-bold">
+                  <Activity className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />
+                  <span>appifya-cloud-runner@v3.4</span>
+                </div>
+                <h2 className="text-2xl font-black text-white">
+                  {lang === 'ar' ? 'جاري تجهيز تطبيقك السحابي...' : 'Building Your Mobile App...'}
+                </h2>
+                <p className="text-xs text-slate-300 max-w-md mx-auto">
+                  {buildingApp?.app_name ? `"${buildingApp.app_name}"` : getTxt('noName')}
+                  {' · '}
+                  <span className="text-slate-400 font-mono" dir="ltr">{buildingApp?.store_url}</span>
+                </p>
+              </div>
+
+              {/* Elapsed Timer & Progress Bar */}
+              <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-400 flex items-center gap-1.5 font-medium">
+                    <Clock className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />
+                    <span>{lang === 'ar' ? 'الوقت المنقضي:' : 'Elapsed time:'}</span>
+                    <strong className="text-white font-mono">{formatTimer(buildElapsedSec)}</strong>
+                  </span>
+                  <span className="text-xs font-extrabold text-cyan-400 font-mono">
+                    {Math.round(pipeline.percent)}%
+                  </span>
+                </div>
+
+                {/* Progress bar with animated gradient */}
+                <div className="h-2.5 w-full bg-slate-800 rounded-full overflow-hidden p-0.5">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-cyan-400 to-indigo-400 transition-all duration-500 ease-out shadow-sm shadow-cyan-500/50"
+                    style={{ width: `${pipeline.percent}%` }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] text-slate-400">
+                  <span className="text-indigo-300 font-bold truncate max-w-[280px]">
+                    {activeStep.title[lang] || activeStep.title.en}
+                  </span>
+                  <span className="text-slate-500 font-mono">
+                    {lang === 'ar' ? `المرحلة ${pipeline.stepIndex + 1} من 5` : `Step ${pipeline.stepIndex + 1} of 5`}
+                  </span>
+                </div>
+              </div>
+
+              {/* Visual Pipeline Steps */}
+              <div className="text-right sm:text-start space-y-2 max-h-48 overflow-y-auto pr-1" dir={isRtl ? 'rtl' : 'ltr'}>
+                {PIPELINE_STEPS.map((s, idx) => {
+                  const isDone = idx < pipeline.stepIndex;
+                  const isCurrent = idx === pipeline.stepIndex;
+
+                  return (
+                    <div
+                      key={s.step}
+                      className={`flex items-start gap-3 p-2.5 rounded-xl transition-all ${
+                        isCurrent
+                          ? 'bg-indigo-500/15 border border-indigo-500/30'
+                          : isDone
+                          ? 'bg-slate-900/60 border border-slate-800/60'
+                          : 'opacity-40 border border-transparent'
+                      }`}
+                    >
+                      <div className="shrink-0 mt-0.5">
+                        {isDone ? (
+                          <div className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center">
+                            <Check className="h-3 w-3 stroke-[3]" />
+                          </div>
+                        ) : isCurrent ? (
+                          <div className="h-5 w-5 rounded-full bg-indigo-500/30 text-cyan-300 border border-indigo-400 flex items-center justify-center">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          </div>
+                        ) : (
+                          <div className="h-5 w-5 rounded-full bg-slate-800 text-slate-500 border border-slate-700 flex items-center justify-center text-[10px] font-mono">
+                            {s.step}
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className={`text-xs font-bold leading-tight ${isCurrent ? 'text-white' : isDone ? 'text-slate-300' : 'text-slate-500'}`}>
+                          {s.title[lang] || s.title.en}
+                        </div>
+                        <p className={`text-[11px] leading-snug mt-0.5 truncate ${isCurrent ? 'text-indigo-200' : 'text-slate-500'}`}>
+                          {s.detail[lang] || s.detail.en}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Informative Assurance Box */}
+              <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/10 p-3.5 text-xs text-slate-300 flex items-center gap-3" dir={isRtl ? 'rtl' : 'ltr'}>
+                <Sparkles className="h-5 w-5 text-indigo-400 shrink-0" />
+                <p className="text-[11px] leading-relaxed text-slate-300 text-right sm:text-start">
+                  {lang === 'ar'
+                    ? 'يمكنك إغلاق هذه النافذة بأمان ومتابعة عملك؛ السيرفر مستمر في البناء وسنطلق احتفالاً مع تنبيه مرئي فور اكتمال التجهيز!'
+                    : 'You can safely close this window; the build continues on cloud runner and a celebration will notify you upon completion!'}
+                </p>
+              </div>
+
+              {/* Bottom Continue Action */}
+              <button
+                type="button"
+                onClick={() => setBuildNoticeAppId(null)}
+                className="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-white transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>{lang === 'ar' ? 'المتابعة في لوحة التحكم (إغلاق النافذة)' : 'Continue in Dashboard (Close Modal)'}</span>
+                <ArrowRight className={`h-3.5 w-3.5 ${isRtl ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── CELEBRATION MODAL (🎉 مبروك! تم تجهيز تطبيقك بنجاح) ── */}
+      {celebrationApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto animate-fade-in" role="dialog" aria-modal="true">
+          <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border-2 border-emerald-500/50 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 p-6 sm:p-8 text-center shadow-2xl shadow-emerald-500/25 space-y-6" dir={isRtl ? 'rtl' : 'ltr'}>
             <button
               type="button"
-              onClick={() => setBuildNoticeAppId(null)}
-              className="absolute right-4 top-4 rounded-lg p-2 text-slate-500 transition hover:bg-slate-800 hover:text-white"
-              aria-label={getTxt('close')}
+              onClick={() => setCelebrationApp(null)}
+              className="absolute top-5 left-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+              aria-label="Close"
             >
               <X className="h-5 w-5" />
             </button>
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
-              <Hammer className="h-8 w-8 animate-pulse text-white" />
+
+            {/* Floating Animated Celebration Icon */}
+            <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
+              <span className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping opacity-60"></span>
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-emerald-400 text-white shadow-xl shadow-emerald-500/30">
+                <PartyPopper className="h-10 w-10 text-amber-200 animate-bounce" />
+              </div>
             </div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-indigo-300">{getTxt('buildNoticeStatus')}</p>
-            <h2 className="mb-4 text-2xl font-black text-white">{getTxt('buildNoticeTitle')}</h2>
-            <p className="mx-auto max-w-md text-sm leading-7 text-slate-300">{getTxt('buildNoticeText')}</p>
-            <div className="mt-6 flex items-center justify-center gap-2 text-xs font-semibold text-indigo-300">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>{apps.find((app) => app.$id === buildNoticeAppId)?.app_name || getTxt('noName')}</span>
+
+            <div className="space-y-2">
+              <span className="inline-block px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-extrabold uppercase tracking-wider">
+                {lang === 'ar' ? '🎉 اكتمل البناء بنجاح 100%' : '🎉 Build Completed 100%'}
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-black text-white">
+                {lang === 'ar' ? 'ألـف مـبـروك! تطبيقك جاهز الآن' : 'Congratulations! Your App is Ready!'}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+                {lang === 'ar'
+                  ? `تم تجميع ملف الـ APK الأصلي لتطبيق "${celebrationApp.name}" وتوقيعه رقمياً بنجاح. ملفك الآن جاهز للتثبيت الفوري على هواتف أندرويد.`
+                  : `The release APK for "${celebrationApp.name}" was compiled and cryptographically signed. Your app is ready for instant installation on Android devices.`}
+              </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setBuildNoticeAppId(null)}
-              className="mt-7 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-indigo-500"
-            >
-              {getTxt('close')}
-            </button>
+
+            {/* Feature Badges Card */}
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-950/20 p-4 space-y-2 text-xs text-slate-200 text-right sm:text-center" dir={isRtl ? 'rtl' : 'ltr'}>
+              <div className="flex items-center justify-center gap-2 text-emerald-400 font-bold">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                <span>{lang === 'ar' ? 'تم الفحص الأمني والتوقيع الرقمي بنجاح' : 'Security verified & signed with release keys'}</span>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                {lang === 'ar'
+                  ? 'يمكنك تنزيل الملف وتثبيته مباشرة أو إرساله لعملائك عبر واتساب أو موقعك الإلكتروني.'
+                  : 'You can download the APK and test it on your device or distribute it directly to your users.'}
+              </p>
+            </div>
+
+            {/* Big Action Download Button */}
+            <div className="space-y-3 pt-2">
+              <a
+                href={celebrationApp.downloadUrl}
+                onClick={() => triggerCelebration()}
+                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-sm sm:text-base flex items-center justify-center gap-3 shadow-xl shadow-emerald-500/30 transition-all hover:scale-[1.02] cursor-pointer"
+              >
+                <Download className="h-5 w-5 animate-bounce" />
+                <span>{lang === 'ar' ? 'تنزيل ملف الـ APK الآن' : 'Download APK Now'}</span>
+              </a>
+
+              <div className="flex items-center justify-center gap-4 text-xs">
+                <button
+                  type="button"
+                  onClick={() => triggerCelebration()}
+                  className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1.5 cursor-pointer py-1"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>{lang === 'ar' ? 'أطلق الألعاب النارية مجدداً 🎉' : 'Celebrate again 🎉'}</span>
+                </button>
+                <span className="text-slate-600">·</span>
+                <button
+                  type="button"
+                  onClick={() => setCelebrationApp(null)}
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer py-1"
+                >
+                  {lang === 'ar' ? 'إغلاق ومتابعة التطبيقات' : 'Close and return to apps'}
+                </button>
+              </div>
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* ── TOP ACTIVE CLOUD BUILD NOTIFICATION BANNER ── */}
+      {activeBuildingApp && !buildNoticeAppId && !celebrationApp && (
+        <div className="rounded-2xl border border-indigo-500/40 bg-gradient-to-r from-indigo-950/80 via-slate-900 to-indigo-950/80 p-4 sm:p-5 shadow-lg shadow-indigo-500/10 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+              <Hammer className="h-5 w-5 animate-pulse text-indigo-300" />
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+              </span>
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-white truncate">
+                  {lang === 'ar' ? `جاري تجهيز تطبيق "${activeBuildingApp.app_name}" في السحابة...` : `Building "${activeBuildingApp.app_name}" in cloud...`}
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shrink-0">
+                  {lang === 'ar' ? 'سحابي نشط' : 'Cloud Active'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {lang === 'ar'
+                  ? 'يمكنك تصفح لوحة التحكم بحرية تامة؛ سيظهر لك احتفال مبروك وزر التنزيل فور الانتهاء!'
+                  : 'Feel free to navigate your dashboard; a celebration and download button will pop up once ready!'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setBuildNoticeAppId(activeBuildingApp.$id)}
+            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md shadow-indigo-600/25 flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+          >
+            <Activity className="h-3.5 w-3.5 text-cyan-300" />
+            <span>{lang === 'ar' ? 'مشاهدة مراحل البناء' : 'View Build Pipeline'}</span>
+          </button>
         </div>
       )}
 
@@ -687,7 +1079,11 @@ export default function DashboardPage() {
             return (
               <div
                 key={app.$id}
-                className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all flex flex-col justify-between relative group"
+                className={`bg-slate-900 border rounded-2xl p-5 transition-all flex flex-col justify-between relative group ${
+                  builds[app.$id]?.status === 'building'
+                    ? 'border-indigo-500 shadow-xl shadow-indigo-500/20 ring-1 ring-indigo-400/40'
+                    : 'border-slate-800 hover:border-slate-700'
+                }`}
               >
                 <div>
                   {/* Top card bar with logo and Delete button */}
@@ -805,10 +1201,37 @@ export default function DashboardPage() {
                     </button>
                   </div>
 
+                  {/* Status Indicator & Pipeline Widget */}
                   {builds[app.$id]?.status === 'building' && (
-                    <div className="mt-2.5 flex items-center gap-2 text-[11px] text-indigo-300">
-                      <Clock className="h-3.5 w-3.5 animate-pulse" />
-                      <span>{lang === 'ar' ? 'يتم تجهيز APK في الخلفية...' : 'APK is being prepared in the background...'}</span>
+                    <div className="mt-3 p-3 rounded-xl bg-indigo-950/40 border border-indigo-500/30 space-y-2 animate-fade-in">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2 text-indigo-300 font-bold">
+                          <span className="relative flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
+                          </span>
+                          <span>{lang === 'ar' ? 'جاري البناء في السحابة...' : 'Cloud Building Active...'}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setBuildNoticeAppId(app.$id)}
+                          className="text-[11px] font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer bg-indigo-500/10 hover:bg-indigo-500/20 px-2 py-0.5 rounded-lg border border-indigo-500/30 transition-colors"
+                        >
+                          <Eye className="h-3 w-3" />
+                          <span>{lang === 'ar' ? 'عرض المراحل' : 'View Pipeline'}</span>
+                        </button>
+                      </div>
+
+                      {/* Micro Progress Track */}
+                      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-indigo-500 via-cyan-400 to-indigo-400 animate-pulse rounded-full w-3/4"></div>
+                      </div>
+
+                      <p className="text-[10px] text-slate-400 leading-tight">
+                        {lang === 'ar'
+                          ? 'يتم تجميع وتوقيع الحزمة، سيظهر لك احتفال مبروك فور الجاهزية!'
+                          : 'Packaging assets; a celebration will pop up as soon as it is ready!'}
+                      </p>
                     </div>
                   )}
 
@@ -820,12 +1243,31 @@ export default function DashboardPage() {
                   )}
 
                   {builds[app.$id]?.status === 'completed' && builds[app.$id]?.downloadUrl && (
-                    <div className="mt-2.5 flex flex-col gap-1.5">
+                    <div className="mt-3 space-y-2 animate-fade-in">
+                      <div className="flex items-center justify-between text-[11px] px-1 text-emerald-400 font-bold">
+                        <span className="flex items-center gap-1">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                          <span>{lang === 'ar' ? 'جاهز للتثبيت 100%' : 'Ready to Install'}</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCelebrationApp({ id: app.$id, name: app.app_name || 'My App', downloadUrl: builds[app.$id].downloadUrl! });
+                            triggerCelebration();
+                          }}
+                          className="text-amber-300 hover:text-amber-200 cursor-pointer flex items-center gap-1 font-bold text-[10px] bg-amber-400/10 hover:bg-amber-400/20 px-2 py-0.5 rounded-md border border-amber-400/20"
+                        >
+                          <PartyPopper className="h-3 w-3" />
+                          <span>{lang === 'ar' ? 'احتفال 🎉' : 'Celebrate 🎉'}</span>
+                        </button>
+                      </div>
+
                       <a
                         href={builds[app.$id].downloadUrl}
-                        className="flex items-center justify-center gap-2 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-emerald-600/20"
+                        onClick={() => triggerCelebration()}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/25 transition-all hover:scale-[1.01]"
                       >
-                        <Download className="h-3.5 w-3.5" />
+                        <Download className="h-4 w-4" />
                         <span>{getTxt('downloadApk')}</span>
                       </a>
                     </div>
