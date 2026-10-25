@@ -773,7 +773,8 @@ export default function DashboardPage() {
             {/* Big Action Download Button */}
             <div className="space-y-3 pt-2">
               <a
-                href={celebrationApp.downloadUrl}
+                href={celebrationApp.downloadUrl?.startsWith('http') && !celebrationApp.downloadUrl?.includes('/api/download-apk') ? `/api/download-apk?appId=${celebrationApp.id}` : (celebrationApp.downloadUrl || `/api/download-apk?appId=${celebrationApp.id}`)}
+                download={`${celebrationApp.name || 'app'}.apk`}
                 onClick={() => triggerCelebration()}
                 className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-sm sm:text-base flex items-center justify-center gap-3 shadow-xl shadow-emerald-500/30 transition-all hover:scale-[1.02] cursor-pointer"
               >
@@ -1263,7 +1264,8 @@ export default function DashboardPage() {
                       </div>
 
                       <a
-                        href={builds[app.$id].downloadUrl}
+                        href={builds[app.$id].downloadUrl?.startsWith('http') && !builds[app.$id].downloadUrl?.includes('/api/download-apk') ? `/api/download-apk?appId=${app.$id}` : (builds[app.$id].downloadUrl || `/api/download-apk?appId=${app.$id}`)}
+                        download={`${app.app_name || 'app'}.apk`}
                         onClick={() => triggerCelebration()}
                         className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/25 transition-all hover:scale-[1.01]"
                       >

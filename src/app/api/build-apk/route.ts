@@ -139,7 +139,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const response = await fetch(
-      `https://api.github.com/repos/${config.owner}/${targetRepo}/releases?per_page=30`,
+      `https://api.github.com/repos/${config.owner}/${targetRepo}/releases?per_page=50`,
       { headers: githubHeaders(config.token), cache: 'no-store' },
     );
     if (!response.ok) {
@@ -172,7 +172,8 @@ export async function GET(req: NextRequest) {
       const apk = release.assets?.find((asset) => asset.name.toLowerCase().endsWith('.apk'));
       return NextResponse.json({
         status: apk ? 'completed' : 'failed',
-        downloadUrl: apk?.browser_download_url,
+        downloadUrl: apk ? `/api/download-apk?appId=${appId}` : undefined,
+        rawDownloadUrl: apk?.browser_download_url,
         releaseUrl: release.html_url,
       });
     }
