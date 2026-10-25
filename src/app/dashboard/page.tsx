@@ -128,7 +128,13 @@ export default function DashboardPage() {
   const [copiedEmail, setCopiedEmail] = useState(false);
 
   // Celebration & Build Pipeline State
-  const [celebrationApp, setCelebrationApp] = useState<{ id: string; name: string; downloadUrl: string } | null>(null);
+  const [celebrationApp, setCelebrationApp] = useState<{
+    id: string;
+    name: string;
+    downloadUrl: string;
+    hasAdmob?: boolean;
+    isPro?: boolean;
+  } | null>(null);
   const [buildElapsedSec, setBuildElapsedSec] = useState<number>(0);
 
   const isRtl = lang === 'ar';
@@ -400,10 +406,14 @@ export default function DashboardPage() {
 
             const appDoc = apps.find((a) => a.$id === appId);
             const appName = appDoc?.app_name || (lang === 'ar' ? 'تطبيقك' : 'Your App');
+            const hasAdmob = Boolean(appDoc?.admob_app_id || appDoc?.admob_banner_unit_id);
+            const isPro = subscription.isActive || hasAdmob;
             setCelebrationApp({
               id: appId,
               name: appName,
               downloadUrl: result.downloadUrl,
+              hasAdmob,
+              isPro,
             });
             triggerCelebration();
           } else if (isStale || result.status === 'failed') {
@@ -745,15 +755,21 @@ export default function DashboardPage() {
 
             <div className="space-y-2">
               <span className="inline-block px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-extrabold uppercase tracking-wider">
-                {lang === 'ar' ? '🎉 اكتمل البناء بنجاح 100%' : '🎉 Build Completed 100%'}
+                {celebrationApp.hasAdmob
+                  ? (lang === 'ar' ? '🎉 اكتمل البناء ودمج AdMob بنجاح 100% (Pro Studio)' : '🎉 Build & AdMob Integration 100% (Pro Studio)')
+                  : (lang === 'ar' ? '🎉 اكتمل البناء بنجاح 100%' : '🎉 Build Completed 100%')}
               </span>
               <h2 className="text-2xl sm:text-3xl font-black text-white">
                 {lang === 'ar' ? 'ألـف مـبـروك! تطبيقك جاهز الآن' : 'Congratulations! Your App is Ready!'}
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
-                {lang === 'ar'
-                  ? `تم تجميع ملف الـ APK الأصلي لتطبيق "${celebrationApp.name}" وتوقيعه رقمياً بنجاح. ملفك الآن جاهز للتثبيت الفوري على هواتف أندرويد.`
-                  : `The release APK for "${celebrationApp.name}" was compiled and cryptographically signed. Your app is ready for instant installation on Android devices.`}
+                {celebrationApp.hasAdmob
+                  ? (lang === 'ar'
+                      ? `تم تجميع ملف الـ APK لتطبيق "${celebrationApp.name}" وتضمين إعلانات Google AdMob بنسبة أرباح 100% لك مع التوقيع الرقمي الرسمي لمتجر Google Play.`
+                      : `The release APK for "${celebrationApp.name}" was compiled with Google AdMob embedded (100% revenue to you) and signed for Google Play.`)
+                  : (lang === 'ar'
+                      ? `تم تجميع ملف الـ APK الأصلي لتطبيق "${celebrationApp.name}" وتوقيعه رقمياً بنجاح. ملفك الآن جاهز للتثبيت الفوري على هواتف أندرويد.`
+                      : `The release APK for "${celebrationApp.name}" was compiled and cryptographically signed. Your app is ready for instant installation on Android devices.`)}
               </p>
             </div>
 
@@ -761,12 +777,20 @@ export default function DashboardPage() {
             <div className="rounded-2xl border border-emerald-500/20 bg-emerald-950/20 p-4 space-y-2 text-xs text-slate-200 text-right sm:text-center" dir={isRtl ? 'rtl' : 'ltr'}>
               <div className="flex items-center justify-center gap-2 text-emerald-400 font-bold">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
-                <span>{lang === 'ar' ? 'تم الفحص الأمني والتوقيع الرقمي بنجاح' : 'Security verified & signed with release keys'}</span>
+                <span>
+                  {celebrationApp.hasAdmob
+                    ? (lang === 'ar' ? 'إعلانات AdMob مدمجة ومفعلة · أرباح 100% بدون أي وسيط' : 'AdMob Ads Active · 100% ad revenue directly to you')
+                    : (lang === 'ar' ? 'تم الفحص الأمني والتوقيع الرقمي بنجاح' : 'Security verified & signed with release keys')}
+                </span>
               </div>
               <p className="text-[11px] text-slate-400">
-                {lang === 'ar'
-                  ? 'يمكنك تنزيل الملف وتثبيته مباشرة أو إرساله لعملائك عبر واتساب أو موقعك الإلكتروني.'
-                  : 'You can download the APK and test it on your device or distribute it directly to your users.'}
+                {celebrationApp.hasAdmob
+                  ? (lang === 'ar'
+                      ? 'يمكنك تنزيل الـ APK وتثبيته مباشرة لبدء تحقيق الأرباح فوراً من الإعلانات على هواتف عملائك.'
+                      : 'Download and install the APK to start generating ad revenue immediately on your users’ devices.')
+                  : (lang === 'ar'
+                      ? 'يمكنك تنزيل الملف وتثبيته مباشرة أو إرساله لعملائك عبر واتساب أو موقعك الإلكتروني.'
+                      : 'You can download the APK and test it on your device or distribute it directly to your users.')}
               </p>
             </div>
 
@@ -779,7 +803,11 @@ export default function DashboardPage() {
                 className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-sm sm:text-base flex items-center justify-center gap-3 shadow-xl shadow-emerald-500/30 transition-all hover:scale-[1.02] cursor-pointer"
               >
                 <Download className="h-5 w-5 animate-bounce" />
-                <span>{lang === 'ar' ? 'تنزيل ملف الـ APK الآن' : 'Download APK Now'}</span>
+                <span>
+                  {celebrationApp.hasAdmob
+                    ? (lang === 'ar' ? '📥 تنزيل ملف الـ APK (المجهز بإعلانات AdMob)' : '📥 Download Monetized APK Now')
+                    : (lang === 'ar' ? '📥 تنزيل ملف الـ APK الآن' : '📥 Download APK Now')}
+                </span>
               </a>
 
               <div className="flex items-center justify-center gap-4 text-xs">
@@ -1246,17 +1274,27 @@ export default function DashboardPage() {
                   {builds[app.$id]?.status === 'completed' && builds[app.$id]?.downloadUrl && (
                     <div className="mt-3 space-y-2 animate-fade-in">
                       <div className="flex items-center justify-between text-[11px] px-1 text-emerald-400 font-bold">
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1.5">
                           <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                          <span>{lang === 'ar' ? 'جاهز للتثبيت 100%' : 'Ready to Install'}</span>
+                          <span>
+                            {app.admob_app_id
+                              ? (lang === 'ar' ? 'جاهز للتثبيت 100% (AdMob مفعل)' : 'Ready 100% (AdMob Active)')
+                              : (lang === 'ar' ? 'جاهز للتثبيت 100%' : 'Ready to Install 100%')}
+                          </span>
                         </span>
                         <button
                           type="button"
                           onClick={() => {
-                            setCelebrationApp({ id: app.$id, name: app.app_name || 'My App', downloadUrl: builds[app.$id].downloadUrl! });
+                            setCelebrationApp({
+                              id: app.$id,
+                              name: app.app_name || 'My App',
+                              downloadUrl: builds[app.$id].downloadUrl!,
+                              hasAdmob: Boolean(app.admob_app_id),
+                              isPro: subscription.isActive || Boolean(app.admob_app_id),
+                            });
                             triggerCelebration();
                           }}
-                          className="text-amber-300 hover:text-amber-200 cursor-pointer flex items-center gap-1 font-bold text-[10px] bg-amber-400/10 hover:bg-amber-400/20 px-2 py-0.5 rounded-md border border-amber-400/20"
+                          className="text-amber-300 hover:text-amber-200 cursor-pointer flex items-center gap-1 font-bold text-[10px] bg-amber-400/10 hover:bg-amber-400/20 px-2 py-0.5 rounded-md border border-amber-400/20 shadow-sm"
                         >
                           <PartyPopper className="h-3 w-3" />
                           <span>{lang === 'ar' ? 'احتفال 🎉' : 'Celebrate 🎉'}</span>
@@ -1270,7 +1308,11 @@ export default function DashboardPage() {
                         className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/25 transition-all hover:scale-[1.01]"
                       >
                         <Download className="h-4 w-4" />
-                        <span>{getTxt('downloadApk')}</span>
+                        <span>
+                          {app.admob_app_id
+                            ? (lang === 'ar' ? 'تنزيل APK (AdMob مفعل)' : 'Download APK (AdMob Active)')
+                            : getTxt('downloadApk')}
+                        </span>
                       </a>
                     </div>
                   )}

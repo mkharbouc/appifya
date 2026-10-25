@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import confetti from 'canvas-confetti';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '../lib/i18n';
 import { databases, storage, DB_ID, TABLE_ID, BUCKET_ID } from '@/lib/appwrite';
@@ -38,6 +39,8 @@ import {
   Sparkles,
   Layers,
   Clock,
+  PartyPopper,
+  Download,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -446,6 +449,78 @@ export default function AdMobPage() {
   };
 
   // -------------------------------------------------------------------------
+  // Celebratory Multi-Stage Fireworks & Chime
+  // -------------------------------------------------------------------------
+  const triggerCelebration = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    // Cheerful audio chime via Web Audio API
+    try {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.12);
+          gain.gain.setValueAtTime(0.12, ctx.currentTime + idx * 0.12);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.12 + 0.35);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.12);
+          osc.stop(ctx.currentTime + idx * 0.12 + 0.35);
+        });
+      }
+    } catch {
+      // Safe fallback
+    }
+
+    // Multi-stage confetti fireworks from angles and center
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.65 },
+        colors: ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#38bdf8', '#8b5cf6'],
+      });
+
+      setTimeout(() => {
+        confetti({
+          particleCount: 60,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0.1, y: 0.7 },
+          colors: ['#10b981', '#3b82f6', '#fbbf24', '#ffffff'],
+        });
+      }, 200);
+
+      setTimeout(() => {
+        confetti({
+          particleCount: 60,
+          angle: 120,
+          spread: 55,
+          origin: { x: 0.9, y: 0.7 },
+          colors: ['#10b981', '#3b82f6', '#fbbf24', '#ffffff'],
+        });
+      }, 350);
+
+      setTimeout(() => {
+        confetti({
+          particleCount: 110,
+          spread: 100,
+          origin: { y: 0.5 },
+          shapes: ['circle'],
+          colors: ['#10b981', '#f59e0b', '#6366f1', '#ec4899', '#ffffff'],
+        });
+      }, 550);
+    } catch (e) {
+      console.warn('Confetti effect failed:', e);
+    }
+  }, []);
+
+  // -------------------------------------------------------------------------
   // Step 3: Save to Database & Finish
   // -------------------------------------------------------------------------
   const handleSave = async () => {
@@ -499,6 +574,7 @@ export default function AdMobPage() {
 
       setSavedAppId(targetAppId);
       setDone(true);
+      triggerCelebration();
     } catch (err) {
       setSaveError(
         err instanceof Error && err.message
@@ -552,24 +628,52 @@ export default function AdMobPage() {
   const fileRetention = getFileRetentionStatus(new Date());
 
   // -------------------------------------------------------------------------
-  // SUCCESS SCREEN
+  // SUCCESS & CELEBRATION SCREEN (The Celebration Moment 🎉)
   // -------------------------------------------------------------------------
   if (done) {
     return (
-      <main className="theme-page flex-1 max-w-2xl mx-auto px-4 sm:px-6 py-16 text-center" dir={isRtl ? 'rtl' : 'ltr'}>
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-xl shadow-emerald-500/30">
-          <BadgeCheck className="h-10 w-10 text-white" />
+      <main className="theme-page flex-1 max-w-2xl mx-auto px-4 sm:px-6 py-12 text-center" dir={isRtl ? 'rtl' : 'ltr'}>
+        {/* Animated Celebration Radar & Icon */}
+        <div className="relative mx-auto mb-6 flex h-24 w-24 items-center justify-center">
+          <span className="absolute inset-0 rounded-3xl bg-emerald-500/25 animate-ping opacity-75"></span>
+          <span className="absolute inset-2 rounded-2xl border-2 border-emerald-400/40 animate-pulse"></span>
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-emerald-400 text-white shadow-2xl shadow-emerald-500/40">
+            <PartyPopper className="h-10 w-10 text-amber-200 animate-bounce" />
+          </div>
         </div>
-        <h1 className="text-3xl font-black text-white mb-3">
-          {t('تم تجهيز إعلانات AdMob بنجاح!', 'Configuration AdMob enregistrée !', 'AdMob Setup Completed!')}
-        </h1>
-        <p className="text-sm text-slate-400 leading-relaxed max-w-md mx-auto mb-8">
-          {t(
-            'تم ربط جميع وحدات إعلاناتك وحفظ ملف التطبيق في حسابك. يمكنك الآن تشغيل بناء APK مع الإعلانات المدمجة مباشرة.',
-            "Vos blocs d'annonces et votre fichier ont été enregistrés avec succès. Vous pouvez maintenant compiler l'APK avec les publicités.",
-            'Your ad units and app file have been saved. You can now build the monetized APK directly.',
-          )}
-        </p>
+
+        {/* Badge & Headings */}
+        <div className="space-y-3 mb-6">
+          <span className="inline-block px-3.5 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/35 text-xs font-black uppercase tracking-wider shadow-sm">
+            {t('🎉 تم ربط AdMob وتفعيل الأرباح بنجاح 100% (Pro Studio Plan)', '🎉 AdMob activé à 100% (Pro Studio)', '🎉 AdMob Monetization Activated 100% (Pro Studio)')}
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+            {t('ألـف مـبـروك! تطبيقك جاهز الآن', 'Félicitations ! Votre application est prête', 'Congratulations! Your App is Ready')}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
+            {t(
+              `تم حفظ إعدادات إعلانات Google AdMob لتطبيق "${currentAppName}" بنجاح! تم تفعيل أحقية الأرباح بنسبة 100% لك بالكامل مع شهادة التوقيع الرسمية لمتجر Google Play. ملفك الآن جاهز للتجميع والتنزيل الفوري.`,
+              `Les identifiants AdMob pour "${currentAppName}" ont été configurés avec 100% des revenus pour vous. Compilez ou téléchargez votre APK monétisé !`,
+              `Google AdMob monetization configured for "${currentAppName}" with 100% ad earnings to you. You can now compile and download your monetized APK!`,
+            )}
+          </p>
+        </div>
+
+        {/* Feature Badges Card */}
+        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/25 p-4 mb-6 space-y-2.5 text-xs text-slate-200 text-start" dir={isRtl ? 'rtl' : 'ltr'}>
+          <div className="flex items-center gap-2.5 text-emerald-400 font-bold">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+            <span>{t('أرباح الإعلانات 100% في حسابك البنكي مباشرة بدون أي عمولة أو اقتطاع', '100% de vos gains directement sans commission', '100% ad revenue directly to your account with zero commission')}</span>
+          </div>
+          <div className="flex items-center gap-2.5 text-emerald-400 font-bold">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+            <span>{t('متوافق مع حزم Google Play الرسمية (Release Keystore) ومعتمد للتثبيت الفوري', 'Compatible Google Play et installation immédiate', 'Google Play release compatible & ready for instant install')}</span>
+          </div>
+          <div className="flex items-center gap-2.5 text-emerald-400 font-bold">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+            <span>{t('تم حفظ معرّفات الوحدات الإعلانية ومزامنتها تلقائياً مع خادم البناء السحابي', 'Unités publicitaires synchronisées avec le serveur de build', 'Ad units synchronized with cloud build runner')}</span>
+          </div>
+        </div>
 
         {/* Retention alert */}
         <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 mb-6 text-xs text-amber-300 flex items-center gap-3 text-start">
@@ -649,26 +753,45 @@ export default function AdMobPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 justify-center">
+        {/* Action Buttons */}
+        <div className="space-y-4 max-w-md mx-auto">
+          {/* Prominent Glowing Emerald Action Button */}
           <Link
             href={savedAppId ? `/dashboard?app=${savedAppId}` : '/dashboard'}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/25 transition-all"
+            onClick={() => triggerCelebration()}
+            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-sm sm:text-base flex items-center justify-center gap-3 shadow-xl shadow-emerald-500/30 transition-all hover:scale-[1.02] cursor-pointer"
           >
-            <LayoutDashboard className="h-4 w-4" />
-            <span>{t('لوحة التحكم وبناء التطبيق', 'Tableau de bord & Compilation', 'Go to Dashboard & Build')}</span>
+            <Download className="h-5 w-5 animate-bounce" />
+            <span>{t('📥 بناء وتنزيل ملف الـ APK المجهز بالإعلانات', "Compiler & Télécharger l'APK Monétisé", 'Build & Download Monetized APK Now')}</span>
           </Link>
-          <button
-            onClick={() => {
-              setDone(false);
-              setStep(1);
-              setUploadedFileId(null);
-              setUploadedFileUrl('');
-              setUploadedFileName('');
-            }}
-            className="inline-flex items-center gap-2 px-6 py-3 border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-sm rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
-          >
-            <span>{t('إعداد تطبيق آخر', 'Configurer une autre app', 'Set up another app')}</span>
-          </button>
+
+          <div className="flex items-center justify-center gap-4 text-xs">
+            {/* Interactive Celebration Fireworks Button */}
+            <button
+              type="button"
+              onClick={() => triggerCelebration()}
+              className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1.5 cursor-pointer py-1"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>{t('أطلق الألعاب النارية مجدداً 🎉', 'Célébrer à nouveau 🎉', 'Celebrate again 🎉')}</span>
+            </button>
+
+            <span className="text-slate-600">·</span>
+
+            <button
+              type="button"
+              onClick={() => {
+                setDone(false);
+                setStep(1);
+                setUploadedFileId(null);
+                setUploadedFileUrl('');
+                setUploadedFileName('');
+              }}
+              className="text-slate-400 hover:text-white transition-colors cursor-pointer py-1"
+            >
+              <span>{t('إعداد تطبيق آخر', 'Configurer une autre app', 'Set up another app')}</span>
+            </button>
+          </div>
         </div>
       </main>
     );
