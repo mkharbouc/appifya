@@ -12,6 +12,7 @@ import {
   Smartphone,
   KeyRound,
   ShieldCheck,
+  ShieldAlert,
 } from 'lucide-react';
 
 interface Tool {
@@ -26,6 +27,24 @@ interface Tool {
 }
 
 const TOOLS: Tool[] = [
+  {
+    href: '/tools/apk-permissions-auditor',
+    icon: ShieldAlert,
+    iconColor: 'text-rose-400',
+    iconBg: 'bg-rose-500/15 border-rose-500/25',
+    badge: 'New',
+    title: {
+      ar: 'فاحص أذونات APK / AAB ومكاتب الـ SDKs',
+      en: 'AAB / APK Permissions & SDK Auditor',
+      fr: 'Auditeur de Permissions & SDKs APK / AAB',
+    },
+    description: {
+      ar: 'اكشف الأذونات الحساسة والمكاتب البرمجية المخفية التي قد تسبب رفض تطبيقك في Google Play مع فحص محلي 100% وكود إزالة فوري.',
+      en: 'Scan APK/AAB files in-browser to identify hidden SDKs, high-risk permissions (QUERY_ALL_PACKAGES, GPS), and generate removal snippets.',
+      fr: 'Analysez vos fichiers APK/AAB en local pour détecter les SDKs cachés, les permissions à risque et générer les extraits de suppression.',
+    },
+    cta: { ar: 'بدء فحص الحزمة', en: 'Audit Package', fr: 'Auditer le package' },
+  },
   {
     href: '/tools/play-data-safety',
     icon: ShieldCheck,

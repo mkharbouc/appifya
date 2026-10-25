@@ -103,6 +103,13 @@ const jsonLd = {
     },
     {
       '@type': 'WebApplication',
+      name: 'Android AAB / APK Permissions & SDK Auditor',
+      url: 'https://appifya.app/tools/apk-permissions-auditor',
+      applicationCategory: 'DeveloperApplication',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
+    {
+      '@type': 'WebApplication',
       name: 'Google Play Data Safety & Privacy Form Generator',
       url: 'https://appifya.app/tools/play-data-safety',
       applicationCategory: 'DeveloperApplication',

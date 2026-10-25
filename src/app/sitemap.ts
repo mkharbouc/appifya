@@ -21,6 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/tools/assetlinks-generator',
     '/tools/app-mockup-framer',
     '/tools/play-data-safety',
+    '/tools/apk-permissions-auditor',
   ];
 
   return routes.map((route) => ({
