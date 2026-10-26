@@ -394,8 +394,16 @@ export default function HomePage() {
       <div className="fixed top-1/3 -left-48 w-[650px] h-[650px] glow-cyan -z-10 pointer-events-none opacity-30"></div>
 
       {/* ── Hero Section ── */}
-      <section className="relative pt-8 pb-16 md:pt-16 md:pb-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="relative pt-8 pb-16 md:pt-16 md:pb-24 overflow-hidden">
+        {/* Subtle Developer Grid Pattern (Hero Section Only) */}
+        <div
+          className="absolute inset-0 -z-10 pointer-events-none opacity-[0.14] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_40%,#000_60%,transparent_100%)]"
+          style={{
+            backgroundImage: `linear-gradient(to right, rgba(99, 102, 241, 0.28) 1px, transparent 1px), linear-gradient(to bottom, rgba(99, 102, 241, 0.28) 1px, transparent 1px)`,
+            backgroundSize: '40px 40px',
+          }}
+        />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
           
           {/* Announcement & GitHub Marketplace Badges */}
           <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
@@ -781,28 +789,44 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Phone Hardware Frame */}
-            <div className="relative w-[300px] h-[610px] bg-slate-900 rounded-[50px] p-3 shadow-2xl shadow-indigo-500/20 border-4 border-slate-700">
-              
-              {/* Outer Physical Phone Buttons */}
-              <div className="absolute -left-[7px] top-28 w-[3px] h-9 bg-slate-600 rounded-l-sm"></div>
-              <div className="absolute -left-[7px] top-40 w-[3px] h-12 bg-slate-600 rounded-l-sm"></div>
-              <div className="absolute -right-[7px] top-32 w-[3px] h-16 bg-slate-600 rounded-r-sm"></div>
+            {/* Elevated Phone Mockup Canvas with Identity Glow (#6366f1) */}
+            <div className="relative flex items-center justify-center p-2 sm:p-4 group">
+              {/* Radial Identity Glow Backdrop */}
+              <div
+                className="absolute inset-0 -m-6 sm:-m-12 rounded-full blur-3xl opacity-40 pointer-events-none transition-opacity duration-700 group-hover:opacity-55"
+                style={{
+                  background: 'radial-gradient(circle at center, rgba(99, 102, 241, 0.5) 0%, rgba(99, 102, 241, 0.18) 45%, transparent 70%)',
+                }}
+              />
+              <div
+                className="absolute -bottom-8 w-4/5 h-20 blur-2xl opacity-35 pointer-events-none"
+                style={{
+                  background: 'radial-gradient(ellipse at bottom, rgba(99, 102, 241, 0.45) 0%, transparent 70%)',
+                }}
+              />
 
-              {/* Inner Screen */}
-              <div className="w-full h-full bg-[#080b12] rounded-[40px] overflow-hidden flex flex-col relative border border-slate-800">
+              {/* Phone Hardware Frame */}
+              <div className="relative w-[300px] h-[610px] bg-slate-900 rounded-[50px] p-3 shadow-[0_25px_60px_-15px_rgba(99,102,241,0.35)] border-4 border-slate-700/90 ring-1 ring-indigo-500/30 transition-transform duration-300">
                 
-                {/* Dynamic Island / Notch */}
-                <div className="w-full pt-3 pb-2 px-6 flex justify-between items-center z-20 bg-[#080b12]">
-                  <span className="text-[11px] font-semibold text-slate-300 font-mono" dir="ltr">{phoneClock}</span>
-                  <div className="w-20 h-4 bg-black rounded-full flex items-center justify-end pr-2 border border-slate-800">
-                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/90"></div>
+                {/* Outer Physical Phone Buttons */}
+                <div className="absolute -left-[7px] top-28 w-[3px] h-9 bg-slate-600 rounded-l-sm"></div>
+                <div className="absolute -left-[7px] top-40 w-[3px] h-12 bg-slate-600 rounded-l-sm"></div>
+                <div className="absolute -right-[7px] top-32 w-[3px] h-16 bg-slate-600 rounded-r-sm"></div>
+
+                {/* Inner Screen */}
+                <div className="w-full h-full bg-[#080b12] rounded-[40px] overflow-hidden flex flex-col relative border border-slate-800">
+                  
+                  {/* Dynamic Island / Notch */}
+                  <div className="w-full pt-3 pb-2 px-6 flex justify-between items-center z-20 bg-[#080b12]">
+                    <span className="text-[11px] font-semibold text-slate-300 font-mono" dir="ltr">{phoneClock}</span>
+                    <div className="w-20 h-4 bg-black rounded-full flex items-center justify-end pr-2 border border-slate-800">
+                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/90"></div>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-300" dir="ltr">
+                      <Wifi className="w-3 h-3" />
+                      <Battery className="w-3.5 h-3.5" />
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5 text-slate-300" dir="ltr">
-                    <Wifi className="w-3 h-3" />
-                    <Battery className="w-3.5 h-3.5" />
-                  </div>
-                </div>
 
                 {/* Content View: Native Simulation or Real Iframe */}
                 {previewMode === 'iframe' && getCleanPreviewUrl() ? (
@@ -992,6 +1016,7 @@ export default function HomePage() {
 
               </div>
             </div>
+          </div>
 
           </div>
 

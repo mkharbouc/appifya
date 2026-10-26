@@ -245,12 +245,14 @@ export async function GET(req: NextRequest): Promise<NextResponse<CheckResponse>
   try {
     const res = await fetch(urlStr, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; AppifyaBot/1.0; +https://www.appifya.app)',
-        'Accept': 'text/html,application/xhtml+xml',
-        'Accept-Language': 'en,ar;q=0.9',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
       },
       redirect: 'follow',
-      signal: AbortSignal.timeout(7000),
+      signal: AbortSignal.timeout(8000),
     });
 
     finalUrl = res.url || urlStr;
