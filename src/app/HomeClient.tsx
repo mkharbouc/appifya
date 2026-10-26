@@ -46,6 +46,8 @@ import {
   Shield,
   HardDrive,
   X,
+  Lock,
+  ExternalLink,
 } from 'lucide-react';
 
 const faqSchema = (lang: 'ar' | 'en' | 'fr') => ({
@@ -133,6 +135,7 @@ export default function HomePage() {
   // ─── Interactive Phone & Pipeline Showcase State ───
   const [deviceTarget, setDeviceTarget] = useState<'ios' | 'android'>('android');
   const [previewMode, setPreviewMode] = useState<'native' | 'iframe'>('native');
+  const [iframeLoading, setIframeLoading] = useState(false);
   const [phoneClock, setPhoneClock] = useState('09:41');
 
   // Hardware Toggles
@@ -177,7 +180,7 @@ export default function HomePage() {
     }
   }, [terminalLogs]);
 
-  // Handle URL changes & auto app name
+  // Handle URL changes & auto app name with instant live phone preview
   const handleUrlChange = (val: string) => {
     setStoreUrl(val);
     if (!appName && val) {
@@ -188,6 +191,11 @@ export default function HomePage() {
           setAppName(namePart.charAt(0).toUpperCase() + namePart.slice(1));
         }
       } catch {}
+    }
+    // Switch phone mockup to instant live iframe as soon as a URL is typed or pasted
+    if (val.trim().length > 3) {
+      setPreviewMode('iframe');
+      setIframeLoading(true);
     }
   };
 
@@ -245,6 +253,9 @@ export default function HomePage() {
       setStoreUrl(targetUrl);
       setAppName('ShopNova');
     }
+
+    setPreviewMode('iframe');
+    setIframeLoading(true);
 
     setIsBuilding(true);
     setBuildStatus('compiling');
@@ -688,7 +699,7 @@ export default function HomePage() {
           <div className="lg:col-span-5 flex flex-col items-center justify-center">
             
             {/* Platform & View Controller */}
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
               <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800">
                 <button
                   type="button"
@@ -696,7 +707,7 @@ export default function HomePage() {
                     setDeviceTarget('android');
                     addLog('> Platform target changed: Android (Chromium & Gradle engine) configured.');
                   }}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                     deviceTarget === 'android'
                       ? 'bg-indigo-600 text-white shadow-sm'
                       : 'text-slate-400 hover:text-white'
@@ -711,40 +722,62 @@ export default function HomePage() {
                     setDeviceTarget('ios');
                     addLog('> Platform target changed: Apple iOS (Swift/WebKit wrapper) configured.');
                   }}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                     deviceTarget === 'ios'
                       ? 'bg-indigo-600 text-white shadow-sm'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   <Apple className="w-3.5 h-3.5" />
-                  <span>Apple iOS</span>
+                  <span>iOS</span>
                 </button>
               </div>
 
-              {/* Mode switch: Native app view vs Live site iframe */}
-              {storeUrl && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setPreviewMode(previewMode === 'native' ? 'iframe' : 'native')}
-                    className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
-                    title="Toggle between Native App preview and Web Iframe"
-                  >
-                    <Eye className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>{previewMode === 'native' ? (lang === 'ar' ? 'عرض الموقع الحقيقي' : 'Live Iframe') : (lang === 'ar' ? 'العرض الأصلي' : 'Native View')}</span>
-                  </button>
-                  {previewMode === 'iframe' && (
-                    <button
-                      type="button"
-                      onClick={() => setIframeKey((k) => k + 1)}
-                      className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                      title={lang === 'ar' ? 'تحديث المعاينة' : 'Refresh preview'}
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </>
+              {/* View Mode Toggle: Live Web vs Native App */}
+              <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPreviewMode('iframe');
+                    setIframeLoading(true);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    previewMode === 'iframe'
+                      ? 'bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                  title={lang === 'ar' ? 'معاينة حية للموقع داخل الهاتف' : 'Live site webview'}
+                >
+                  <Globe className="w-3.5 h-3.5 text-cyan-300" />
+                  <span>{lang === 'ar' ? 'معاينة حية' : lang === 'fr' ? 'Site en direct' : 'Live Web'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode('native')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    previewMode === 'native'
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                  title={lang === 'ar' ? 'محاكي واجهة وتطبيق الهاتف' : 'Native App UI simulator'}
+                >
+                  <Smartphone className="w-3.5 h-3.5" />
+                  <span>{lang === 'ar' ? 'محاكي التطبيق' : lang === 'fr' ? 'Simulateur' : 'Native UI'}</span>
+                </button>
+              </div>
+
+              {previewMode === 'iframe' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIframeKey((k) => k + 1);
+                    setIframeLoading(true);
+                  }}
+                  className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  title={lang === 'ar' ? 'تحديث المعاينة' : 'Refresh preview'}
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${iframeLoading ? 'animate-spin text-cyan-400' : ''}`} />
+                </button>
               )}
             </div>
 
@@ -773,14 +806,73 @@ export default function HomePage() {
 
                 {/* Content View: Native Simulation or Real Iframe */}
                 {previewMode === 'iframe' && getCleanPreviewUrl() ? (
-                  <div className="flex-1 w-full h-full bg-white relative">
+                  <div className="flex-1 w-full h-full bg-slate-950 relative flex flex-col overflow-hidden">
+                    {/* Mini Browser Bar */}
+                    <div className="bg-slate-900/90 border-b border-slate-800 px-3 py-1.5 flex items-center justify-between text-[10px] text-slate-300 shrink-0 select-none">
+                      <div className="flex items-center gap-1.5 truncate max-w-[190px]">
+                        <Lock className="w-2.5 h-2.5 text-emerald-400 shrink-0" />
+                        <span className="truncate font-mono text-slate-300">
+                          {getCleanPreviewUrl().replace(/^https?:\/\//, '')}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIframeKey((k) => k + 1);
+                            setIframeLoading(true);
+                          }}
+                          className="text-slate-400 hover:text-white transition-colors"
+                          title={lang === 'ar' ? 'تحديث' : 'Refresh'}
+                        >
+                          <RefreshCw className={`w-2.5 h-2.5 ${iframeLoading ? 'animate-spin text-cyan-400' : ''}`} />
+                        </button>
+                        <a
+                          href={getCleanPreviewUrl()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-slate-400 hover:text-white transition-colors"
+                          title={lang === 'ar' ? 'فتح في تبويب جديد' : 'Open in new tab'}
+                        >
+                          <ExternalLink className="w-2.5 h-2.5" />
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Loading Overlay */}
+                    {iframeLoading && (
+                      <div className="absolute inset-0 top-7 bg-slate-950/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center gap-2 text-slate-300">
+                        <Loader2 className="w-5 h-5 animate-spin text-indigo-400" />
+                        <span className="text-[10px] font-medium text-slate-400">
+                          {lang === 'ar' ? 'جاري تحميل الموقع...' : 'Loading site...'}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Real Iframe */}
                     <iframe
                       key={iframeKey}
                       src={getCleanPreviewUrl()}
-                      className="w-full h-full border-0"
-                      sandbox="allow-scripts allow-same-origin allow-forms"
-                      loading="lazy"
+                      onLoad={() => setIframeLoading(false)}
+                      className="w-full flex-1 border-0 bg-white"
+                      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                      loading="eager"
                     />
+
+                    {/* Bottom Helper Bar */}
+                    <div className="bg-slate-950 border-t border-slate-800 px-3 py-1 flex items-center justify-between text-[9px] text-slate-400 shrink-0 select-none">
+                      <span className="flex items-center gap-1 text-emerald-400 font-semibold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        {lang === 'ar' ? 'معاينة حية للموقع' : 'Live Web Preview'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewMode('native')}
+                        className="text-indigo-400 hover:text-indigo-300 underline font-medium cursor-pointer"
+                      >
+                        {lang === 'ar' ? 'محاكي التطبيق' : 'Native UI'}
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 font-sans relative terminal-scroll">
