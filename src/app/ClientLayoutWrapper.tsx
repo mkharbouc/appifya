@@ -9,7 +9,7 @@ import {
   Globe, Sparkles, LayoutDashboard, LogOut, User, Moon, Sun,
   FileCode, ChevronDown, ImageIcon, Gauge, QrCode, Home, Info, BookOpen,
   DollarSign, Mail, ShieldCheck, FileText, PanelLeftClose, PanelLeftOpen, Wrench, X, Smartphone, KeyRound,
-  ShieldAlert, BellRing, Cpu,
+  ShieldAlert, BellRing, Cpu, Users,
 } from "lucide-react";
 
 // ─── Logo ──────────────────────────────────────────────────────────────────────
@@ -46,6 +46,7 @@ const NAV_ITEMS: NavItem[] = [
     icon: <Wrench className="h-4 w-4" />,
     children: [
       { href: '/tools/native-bridge-simulator', labelAr: 'محاكي واجهات الجهاز (Bridge)', labelFr: 'Simulateur Native Bridge', labelEn: 'Native Bridge Simulator', icon: <Cpu className="h-3.5 w-3.5 text-violet-400" />, descAr: 'مختبر ميزات أندرويد الحية وكود آمن', descFr: 'APIs matérielles & code sécurisé', descEn: 'Live hardware APIs & safe code' },
+      { href: '/tools/play-testers-generator', labelAr: 'مولد روابط 20 مختبراً Play Store', labelFr: 'Générateur 20 Testeurs Play Store', labelEn: 'Play 20 Testers Link Generator', icon: <Users className="h-3.5 w-3.5 text-violet-400" />, descAr: 'روابط Opt-in ونماذج دعوة وحل خطأ App not available', descFr: 'Liens Opt-in, invitations et correction d\'erreurs', descEn: 'Opt-in URLs, invitation templates & error inspector' },
       { href: '/tools/push-notification-tester', labelAr: 'مختبر الإشعارات (Push Tester)', labelFr: 'Testeur Push Notifications', labelEn: 'Push Notification Tester', icon: <BellRing className="h-3.5 w-3.5 text-amber-400" />, descAr: 'صانع حمولة FCM & Web Push مع معاينة حية', descFr: 'Payloads FCM & Web Push avec prévisualisation', descEn: 'FCM & Web Push payload builder with live preview' },
       { href: '/tools/apk-permissions-auditor', labelAr: 'فاحص أذونات APK & SDKs', labelFr: 'Auditeur Permissions APK & SDK', labelEn: 'APK & SDK Auditor', icon: <ShieldAlert className="h-3.5 w-3.5 text-rose-400" />, descAr: 'فحص أذونات ومكاتب APK/AAB لـ Google Play', descFr: 'Audit permissions et SDKs APK/AAB', descEn: 'Audit APK/AAB permissions & SDKs' },
       { href: '/tools/play-data-safety', labelAr: 'سلامة البيانات Google Play', labelFr: 'Sécurité des données Play', labelEn: 'Play Data Safety', icon: <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />, descAr: 'استبيان سلامة البيانات وسياسة الخصوصية', descFr: 'Sécurité des données & politique de confidentialité', descEn: 'Data Safety questionnaire & privacy policy' },
@@ -444,6 +445,7 @@ function SiteFooter() {
     {
       title: lang === 'ar' ? 'المطورين والتدقيق' : lang === 'fr' ? 'Développeurs & Audit' : 'Developer & Audit',
       links: [
+        { href: '/tools/play-testers-generator', label: lang === 'ar' ? 'روابط 20 مختبراً Play Store' : lang === 'fr' ? '20 Testeurs Play Store' : 'Play 20 Testers Generator' },
         { href: '/tools/push-notification-tester', label: lang === 'ar' ? 'مختبر الإشعارات' : lang === 'fr' ? 'Testeur Push Notifications' : 'Push Notification Tester' },
         { href: '/tools/apk-permissions-auditor', label: lang === 'ar' ? 'فاحص أذونات APK & SDKs' : lang === 'fr' ? 'Auditeur Permissions APK' : 'APK & SDK Auditor' },
         { href: '/tools/play-data-safety', label: lang === 'ar' ? 'سلامة البيانات Google Play' : lang === 'fr' ? 'Sécurité des données' : 'Play Data Safety' },

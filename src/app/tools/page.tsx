@@ -48,6 +48,13 @@ const jsonLd = {
   hasPart: [
     {
       '@type': 'WebApplication',
+      name: 'Google Play 20 Testers Link Generator & Verification Inspector',
+      url: 'https://www.appifya.app/tools/play-testers-generator',
+      applicationCategory: 'DeveloperApplication',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
+    {
+      '@type': 'WebApplication',
       name: 'Native-Bridge Simulator (JS-to-Android Hardware API Tester)',
       url: 'https://www.appifya.app/tools/native-bridge-simulator',
       applicationCategory: 'DeveloperApplication',

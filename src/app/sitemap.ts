@@ -17,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { route: '/tools/push-notification-tester', lastModified: '2026-10-26', changeFrequency: 'weekly', priority: 0.8 },
     { route: '/tools/apk-permissions-auditor', lastModified: '2026-10-25', changeFrequency: 'weekly', priority: 0.8 },
     { route: '/tools/app-mockup-framer', lastModified: '2026-10-25', changeFrequency: 'weekly', priority: 0.8 },
+    { route: '/tools/play-testers-generator', lastModified: '2026-10-26', changeFrequency: 'weekly', priority: 0.9 },
     { route: '/tools/play-data-safety', lastModified: '2026-10-25', changeFrequency: 'weekly', priority: 0.8 },
     { route: '/tools/assetlinks-generator', lastModified: '2026-10-25', changeFrequency: 'monthly', priority: 0.7 },
     { route: '/tools/app-banner-generator', lastModified: '2026-10-25', changeFrequency: 'monthly', priority: 0.7 },

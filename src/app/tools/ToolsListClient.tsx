@@ -16,6 +16,7 @@ import {
   BellRing,
   Cpu,
   Sparkles,
+  Users,
 } from 'lucide-react';
 
 interface Tool {
@@ -49,6 +50,24 @@ const TOOLS: Tool[] = [
       fr: 'Automatisez les audits PWA, la validation du manifest et les builds mobiles directement dans vos pipelines CI/CD.',
     },
     cta: { ar: 'تثبيت من GitHub Marketplace', en: 'Install on GitHub', fr: 'Installer sur GitHub' },
+  },
+  {
+    href: '/tools/play-testers-generator',
+    icon: Users,
+    iconColor: 'text-violet-400',
+    iconBg: 'bg-violet-500/15 border-violet-500/25',
+    badge: 'Hot',
+    title: {
+      ar: 'مولد روابط 20 مختبراً وفاحص الجاهزية (Google Play)',
+      en: 'Google Play 20 Testers Link Generator & Inspector',
+      fr: 'Générateur de Liens 20 Testeurs Google Play',
+    },
+    description: {
+      ar: 'ولد روابط الـ Opt-in الصالحة لبرنامج الـ 14 يوماً الإلزامي، وأنشئ رسائل دعوة WhatsApp/Email، وشخّص سبب خطأ "App not available".',
+      en: 'Generate valid closed testing opt-in URLs, create multi-channel invite templates, and diagnose the "App not available" error.',
+      fr: 'Générez des liens opt-in valides pour les 20 testeurs Google Play et diagnostiquez l\'erreur "Application non disponible".',
+    },
+    cta: { ar: 'توليد الروابط والفحص', en: 'Generate & Inspect', fr: 'Générer & Tester' },
   },
   {
     href: '/tools/native-bridge-simulator',
