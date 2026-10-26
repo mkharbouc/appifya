@@ -269,6 +269,7 @@ function SidebarNav({ onClose }: { onClose?: () => void }) {
         {user && (
           <Link
             href="/dashboard"
+            rel="nofollow"
             onClick={onClose}
             className={`sidebar-nav-link flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors
               ${isActive('/dashboard') ? 'sidebar-nav-active' : 'text-indigo-400 hover:text-indigo-300'}`}
@@ -335,6 +336,7 @@ function SidebarNav({ onClose }: { onClose?: () => void }) {
           <div className={`flex ${expanded || isMobileDrawer ? 'items-center gap-2' : 'flex-col items-center gap-1'}`}>
             <Link
               href="/dashboard"
+              rel="nofollow"
               onClick={onClose}
               className="sidebar-nav-link flex-1 flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-slate-200 hover:text-white transition-colors min-w-0"
               title={!expanded && !isMobileDrawer ? (user.name || user.email.split('@')[0]) : undefined}
