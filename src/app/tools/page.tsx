@@ -48,6 +48,13 @@ const jsonLd = {
   hasPart: [
     {
       '@type': 'WebApplication',
+      name: 'Native-Bridge Simulator (JS-to-Android Hardware API Tester)',
+      url: 'https://www.appifya.app/tools/native-bridge-simulator',
+      applicationCategory: 'DeveloperApplication',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
+    {
+      '@type': 'WebApplication',
       name: 'PWA Manifest Generator',
       url: 'https://www.appifya.app/tools/manifest-generator',
       applicationCategory: 'DeveloperApplication',

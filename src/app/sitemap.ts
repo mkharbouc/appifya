@@ -11,6 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }> = [
     { route: '', lastModified: '2026-10-25', changeFrequency: 'weekly', priority: 1.0 },
     { route: '/tools', lastModified: '2026-10-25', changeFrequency: 'weekly', priority: 0.9 },
+    { route: '/tools/native-bridge-simulator', lastModified: '2026-10-26', changeFrequency: 'weekly', priority: 0.8 },
     { route: '/guide', lastModified: '2026-10-24', changeFrequency: 'monthly', priority: 0.8 },
     { route: '/admob', lastModified: '2026-10-24', changeFrequency: 'monthly', priority: 0.8 },
     { route: '/tools/push-notification-tester', lastModified: '2026-10-26', changeFrequency: 'weekly', priority: 0.8 },

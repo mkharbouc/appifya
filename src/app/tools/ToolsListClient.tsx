@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   ShieldAlert,
   BellRing,
+  Cpu,
 } from 'lucide-react';
 
 interface Tool {
@@ -28,6 +29,24 @@ interface Tool {
 }
 
 const TOOLS: Tool[] = [
+  {
+    href: '/tools/native-bridge-simulator',
+    icon: Cpu,
+    iconColor: 'text-violet-400',
+    iconBg: 'bg-violet-500/15 border-violet-500/25',
+    badge: 'New',
+    title: {
+      ar: 'محاكي واجهات برمجة الجهاز (Native Bridge Simulator)',
+      en: 'Native-Bridge Simulator (JS-to-Android Tester)',
+      fr: 'Simulateur Native-Bridge (JS-Android)',
+    },
+    description: {
+      ar: 'اختبر ميزات الهاتف (الاهتزاز، قفل الشاشة، المشاركة، الكاميرا، والبطارية) حياً على هاتف أندرويد مع كود آمن 100% يمنع أخطاء undefined.',
+      en: 'Test mobile hardware APIs (Haptics, Wake Lock, Native Share, Camera, Orientation) live on an interactive Android mockup with zero-crash safe wrappers.',
+      fr: 'Testez les APIs matérielles (Haptics, Wake Lock, Partage, Caméra, Orientation) sur un mockup Android interactif avec wrappers sécurisés.',
+    },
+    cta: { ar: 'فتح محاكي الجهاز', en: 'Open Simulator', fr: 'Ouvrir le simulateur' },
+  },
   {
     href: '/tools/push-notification-tester',
     icon: BellRing,
