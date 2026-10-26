@@ -8,6 +8,7 @@ const PUBLIC_URLS = [
   'https://www.appifya.app/tools',
   'https://www.appifya.app/guide',
   'https://www.appifya.app/admob',
+  'https://www.appifya.app/tools/push-notification-tester',
   'https://www.appifya.app/tools/apk-permissions-auditor',
   'https://www.appifya.app/tools/app-mockup-framer',
   'https://www.appifya.app/tools/play-data-safety',

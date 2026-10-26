@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 import PushTesterClient from './PushTesterClient';
 
 export const metadata: Metadata = {
-  title: 'Push Notification Payload Builder & Tester - FCM HTTP v1 & Web Push Simulator',
+  title: 'Push Notification Payload Tester',
   description:
-    'Free visual Push Notification payload generator and Android lock screen previewer. Test Firebase Cloud Messaging (FCM HTTP v1), Web Push (Service Worker), and OneSignal with live browser push testing.',
+    'Visual Push Notification payload generator for Android and Web Push. Test FCM HTTP v1, Service Worker, and OneSignal with live browser preview.',
   keywords: [
     'push notification tester',
     'fcm payload builder',
@@ -18,20 +18,14 @@ export const metadata: Metadata = {
     'Appifya developer tools',
   ],
   alternates: {
-    canonical: 'https://appifya.app/tools/push-notification-tester',
-    languages: {
-      ar: 'https://appifya.app/tools/push-notification-tester',
-      en: 'https://appifya.app/tools/push-notification-tester',
-      fr: 'https://appifya.app/tools/push-notification-tester',
-      'x-default': 'https://appifya.app/tools/push-notification-tester',
-    },
+    canonical: 'https://www.appifya.app/tools/push-notification-tester',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app/tools/push-notification-tester',
-    title: 'Push Notification Payload Builder & Tester - Appifya',
+    url: 'https://www.appifya.app/tools/push-notification-tester',
+    title: 'Push Notification Payload Tester | Appifya',
     description:
-      'Design, preview, and test Push Notifications for Android & PWA. Live Android lock screen simulation with instant FCM v1, Web Push, and cURL export.',
+      'Visual Push Notification simulator and payload builder for FCM HTTP v1, Web Push, and Android lock screen testing.',
     siteName: 'Appifya',
     images: [
       {
@@ -44,9 +38,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Push Notification Payload Builder & Tester',
+    title: 'Push Notification Payload Tester | Appifya',
     description:
-      'Visual Android lock screen push simulator with instant FCM HTTP v1 and Web Push payload generator.',
+      'Visual Push Notification simulator and payload builder for FCM HTTP v1, Web Push, and Android lock screen testing.',
     images: ['/logo.jpg.jpeg'],
   },
 };
@@ -59,7 +53,7 @@ export default function PushNotificationTesterPage() {
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'All, Android, iOS, Web',
     browserRequirements: 'Requires JavaScript',
-    url: 'https://appifya.app/tools/push-notification-tester',
+    url: 'https://www.appifya.app/tools/push-notification-tester',
     description:
       'Free visual simulator and payload generator for Android & Web Push notifications with support for FCM HTTP v1, Web Push API, OneSignal, cURL, and live browser testing.',
     offers: {

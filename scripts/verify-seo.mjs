@@ -1,32 +1,39 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const PUBLIC_ROUTES = [
-  { file: 'src/app/page.tsx', route: '/' },
-  { file: 'src/app/about/page.tsx', route: '/about' },
-  { file: 'src/app/admob/page.tsx', route: '/admob' },
-  { file: 'src/app/contact/page.tsx', route: '/contact' },
-  { file: 'src/app/guide/page.tsx', route: '/guide' },
-  { file: 'src/app/privacy/page.tsx', route: '/privacy' },
-  { file: 'src/app/terms/page.tsx', route: '/terms' },
-  { file: 'src/app/tools/page.tsx', route: '/tools' },
-  { file: 'src/app/tools/apk-permissions-auditor/page.tsx', route: '/tools/apk-permissions-auditor' },
-  { file: 'src/app/tools/app-banner-generator/page.tsx', route: '/tools/app-banner-generator' },
-  { file: 'src/app/tools/app-mockup-framer/page.tsx', route: '/tools/app-mockup-framer' },
-  { file: 'src/app/tools/assetlinks-generator/page.tsx', route: '/tools/assetlinks-generator' },
-  { file: 'src/app/tools/icon-generator/page.tsx', route: '/tools/icon-generator' },
-  { file: 'src/app/tools/manifest-generator/page.tsx', route: '/tools/manifest-generator' },
-  { file: 'src/app/tools/play-data-safety/page.tsx', route: '/tools/play-data-safety' },
-  { file: 'src/app/tools/pwa-checker/page.tsx', route: '/tools/pwa-checker' },
-  { file: 'src/app/tools/qr-generator/page.tsx', route: '/tools/qr-generator' },
-];
+function findPublicPages(dir, baseDir = dir) {
+  let pages = [];
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      // Exclude private/internal directories
+      if (['api', 'dashboard', 'app', 'view', 'verify-email'].includes(entry.name)) {
+        continue;
+      }
+      pages = pages.concat(findPublicPages(fullPath, baseDir));
+    } else if (entry.isFile() && entry.name === 'page.tsx') {
+      const relPath = path.relative(baseDir, fullPath).replace(/\\/g, '/');
+      const route = relPath === 'page.tsx' ? '/' : '/' + relPath.replace(/\/page\.tsx$/, '');
+      pages.push({ file: 'src/app/' + relPath, route });
+    }
+  }
+
+  return pages;
+}
+
+const PUBLIC_PAGES = findPublicPages('src/app');
 
 let errors = 0;
 let warnings = 0;
 
-console.log('🔍 Running comprehensive SEO verification on all public pages...\n');
+console.log(`🔍 Running comprehensive dynamic SEO verification on ${PUBLIC_PAGES.length} public pages...\n`);
 
-for (const { file, route } of PUBLIC_ROUTES) {
+const sitemapContent = fs.readFileSync('src/app/sitemap.ts', 'utf8');
+const indexnowContent = fs.readFileSync('src/app/api/indexnow/route.ts', 'utf8');
+
+for (const { file, route } of PUBLIC_PAGES) {
   if (!fs.existsSync(file)) {
     console.error(`❌ [${route}] Missing file: ${file}`);
     errors++;
@@ -45,7 +52,7 @@ for (const { file, route } of PUBLIC_ROUTES) {
   // Check Title
   const titleMatch = content.match(/title:\s*['"`](.+?)['"`]/);
   if (!titleMatch) {
-    console.error(`❌ [${route}] Could not extract metadata.title`);
+    console.error(`❌ [${route}] Could not extract metadata.title in ${file}`);
     errors++;
   } else {
     const rawTitle = titleMatch[1];
@@ -55,7 +62,7 @@ for (const { file, route } of PUBLIC_ROUTES) {
     }
     const finalTitle = `${rawTitle} | Appifya`;
     if (finalTitle.length > 58) {
-      console.error(`❌ [${route}] Final Title exceeds 58 characters (${finalTitle.length} chars): "${finalTitle}"`);
+      console.error(`❌ [${route}] Final Title exceeds 58 characters (${finalTitle.length} chars, Bing limit is 60!): "${finalTitle}"`);
       errors++;
     } else {
       console.log(`  ✓ Title (${finalTitle.length} chars): "${finalTitle}"`);
@@ -65,15 +72,15 @@ for (const { file, route } of PUBLIC_ROUTES) {
   // Check Meta Description
   const descMatch = content.match(/description:\s*\n?\s*['"`]([\s\S]*?)['"`],/);
   if (!descMatch) {
-    console.error(`❌ [${route}] Could not extract metadata.description`);
+    console.error(`❌ [${route}] Could not extract metadata.description in ${file}`);
     errors++;
   } else {
     const desc = descMatch[1].replace(/\s+/g, ' ').trim();
     if (desc.length < 50) {
       console.error(`❌ [${route}] Description too short (< 50 chars, found ${desc.length}): "${desc}"`);
       errors++;
-    } else if (desc.length > 160) {
-      console.error(`❌ [${route}] Description too long (> 160 chars, Bing will flag as error! Found ${desc.length}): "${desc}"`);
+    } else if (desc.length > 158) {
+      console.error(`❌ [${route}] Description too long (> 158 chars, Bing will flag as error! Found ${desc.length}): "${desc}"`);
       errors++;
     } else {
       console.log(`  ✓ Description (${desc.length} chars): "${desc}"`);
@@ -83,7 +90,7 @@ for (const { file, route } of PUBLIC_ROUTES) {
   // Check Canonical
   const canonicalMatch = content.match(/canonical:\s*['"`](.+?)['"`]/);
   if (!canonicalMatch) {
-    console.error(`❌ [${route}] Missing canonical link in metadata.alternates`);
+    console.error(`❌ [${route}] Missing canonical link in metadata.alternates in ${file}`);
     errors++;
   } else {
     const canonical = canonicalMatch[1];
@@ -95,7 +102,21 @@ for (const { file, route } of PUBLIC_ROUTES) {
 
   // Check for invalid duplicate languages hreflang
   if (content.includes('languages:') && content.includes('x-default')) {
-    console.error(`❌ [${route}] Deprecated/conflicting hreflang languages found in alternates`);
+    console.error(`❌ [${route}] Deprecated/conflicting hreflang languages found in alternates in ${file}`);
+    errors++;
+  }
+
+  // Check presence in sitemap.ts
+  const sitemapRouteEntry = route === '/' ? "route: ''" : `route: '${route}'`;
+  if (!sitemapContent.includes(sitemapRouteEntry)) {
+    console.error(`❌ [${route}] Missing from src/app/sitemap.ts! (Expected ${sitemapRouteEntry})`);
+    errors++;
+  }
+
+  // Check presence in indexnow
+  const indexnowUrl = route === '/' ? "'https://www.appifya.app/'" : `'https://www.appifya.app${route}'`;
+  if (!indexnowContent.includes(indexnowUrl)) {
+    console.error(`❌ [${route}] Missing from src/app/api/indexnow/route.ts! (Expected ${indexnowUrl})`);
     errors++;
   }
 
@@ -113,7 +134,6 @@ for (const { file, route } of PUBLIC_ROUTES) {
 }
 
 // Check sitemap.ts
-const sitemapContent = fs.readFileSync('src/app/sitemap.ts', 'utf8');
 if (sitemapContent.includes('lastModified: new Date()')) {
   console.error(`❌ [sitemap.ts] Found dynamic 'lastModified: new Date()'. Use fixed versioned dates.`);
   errors++;
@@ -123,7 +143,7 @@ if (sitemapContent.includes('lastModified: new Date()')) {
 
 // Check robots.ts
 const robotsContent = fs.readFileSync('src/app/robots.ts', 'utf8');
-if (!robotsContent.includes('sitemap: `https://appifya.app/sitemap.xml`') && !robotsContent.includes('${siteUrl}/sitemap.xml')) {
+if (!robotsContent.includes('${siteUrl}/sitemap.xml')) {
   console.error(`❌ [robots.ts] Missing sitemap reference`);
   errors++;
 } else {
@@ -132,7 +152,7 @@ if (!robotsContent.includes('sitemap: `https://appifya.app/sitemap.xml`') && !ro
 
 console.log(`\n========================================`);
 if (errors === 0) {
-  console.log(`🎉 ALL SEO CHECKS PASSED PERFECTLY! (0 Errors, ${warnings} Warnings)`);
+  console.log(`🎉 ALL ${PUBLIC_PAGES.length} PAGES PASSED SEO CHECKS PERFECTLY! (0 Errors, ${warnings} Warnings)`);
   process.exit(0);
 } else {
   console.error(`💥 SEO VERIFICATION FAILED: ${errors} errors found!`);
