@@ -18,11 +18,11 @@ export const metadata: Metadata = {
     'Appifya tools',
   ],
   alternates: {
-    canonical: 'https://appifya.app/tools/manifest-generator',
+    canonical: 'https://www.appifya.app/tools/manifest-generator',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app/tools/manifest-generator',
+    url: 'https://www.appifya.app/tools/manifest-generator',
     title: 'Free PWA Manifest Generator | Appifya',
     description:
       'Generate a complete, standard-compliant Web App Manifest (manifest.json) for your Progressive Web App. Live preview, icon upload, and one-click download.',
@@ -53,7 +53,7 @@ export default function ManifestGeneratorPage() {
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'All',
     browserRequirements: 'Requires JavaScript',
-    url: 'https://appifya.app/tools/manifest-generator',
+    url: 'https://www.appifya.app/tools/manifest-generator',
     description:
       'Free online tool to generate standard-compliant manifest.json files for Progressive Web Apps.',
     offers: {

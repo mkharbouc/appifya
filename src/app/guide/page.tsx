@@ -15,11 +15,11 @@ export const metadata: Metadata = {
     'PWA install instructions',
   ],
   alternates: {
-    canonical: 'https://appifya.app/guide',
+    canonical: 'https://www.appifya.app/guide',
   },
   openGraph: {
     type: 'article',
-    url: 'https://appifya.app/guide',
+    url: 'https://www.appifya.app/guide',
     title: 'Installation Guide - Install Android APK & iOS PWA | Appifya',
     description:
       'Step-by-step instructions on installing your APK on Android devices and adding your PWA to iPhone and iPad home screens.',
@@ -45,19 +45,19 @@ export default function GuidePage() {
         '@type': 'HowToStep',
         name: 'Download the APK file',
         text: 'Download the APK file directly from your Appifya dashboard once compilation finishes.',
-        url: 'https://appifya.app/guide#step-download',
+        url: 'https://www.appifya.app/guide#step-download',
       },
       {
         '@type': 'HowToStep',
         name: 'Allow unknown sources',
         text: 'Enable installation from unknown sources in your Android security settings for your browser or file manager.',
-        url: 'https://appifya.app/guide#step-security',
+        url: 'https://www.appifya.app/guide#step-security',
       },
       {
         '@type': 'HowToStep',
         name: 'Open and install the APK',
         text: 'Tap the downloaded APK file in your Downloads folder and confirm installation.',
-        url: 'https://appifya.app/guide#step-install',
+        url: 'https://www.appifya.app/guide#step-install',
       },
     ],
   };

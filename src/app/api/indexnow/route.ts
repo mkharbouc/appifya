@@ -1,26 +1,26 @@
 import { NextResponse } from 'next/server';
 
 const INDEXNOW_KEY = 'c07886475f4e41b99cb5bb3a8f4cda1a';
-const HOST = 'appifya.app';
+const HOST = 'www.appifya.app';
 
 const PUBLIC_URLS = [
-  'https://appifya.app/',
-  'https://appifya.app/tools',
-  'https://appifya.app/guide',
-  'https://appifya.app/admob',
-  'https://appifya.app/tools/apk-permissions-auditor',
-  'https://appifya.app/tools/app-mockup-framer',
-  'https://appifya.app/tools/play-data-safety',
-  'https://appifya.app/tools/assetlinks-generator',
-  'https://appifya.app/tools/app-banner-generator',
-  'https://appifya.app/tools/manifest-generator',
-  'https://appifya.app/tools/icon-generator',
-  'https://appifya.app/tools/qr-generator',
-  'https://appifya.app/tools/pwa-checker',
-  'https://appifya.app/about',
-  'https://appifya.app/contact',
-  'https://appifya.app/privacy',
-  'https://appifya.app/terms',
+  'https://www.appifya.app/',
+  'https://www.appifya.app/tools',
+  'https://www.appifya.app/guide',
+  'https://www.appifya.app/admob',
+  'https://www.appifya.app/tools/apk-permissions-auditor',
+  'https://www.appifya.app/tools/app-mockup-framer',
+  'https://www.appifya.app/tools/play-data-safety',
+  'https://www.appifya.app/tools/assetlinks-generator',
+  'https://www.appifya.app/tools/app-banner-generator',
+  'https://www.appifya.app/tools/manifest-generator',
+  'https://www.appifya.app/tools/icon-generator',
+  'https://www.appifya.app/tools/qr-generator',
+  'https://www.appifya.app/tools/pwa-checker',
+  'https://www.appifya.app/about',
+  'https://www.appifya.app/contact',
+  'https://www.appifya.app/privacy',
+  'https://www.appifya.app/terms',
 ];
 
 export async function POST(request: Request) {

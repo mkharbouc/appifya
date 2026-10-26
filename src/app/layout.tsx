@@ -5,7 +5,7 @@ import ClientLayoutWrapper from "./ClientLayoutWrapper";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://appifya.app"),
+  metadataBase: new URL("https://www.appifya.app"),
   title: {
     default: "Appifya - Convert Store or Website to Fast Mobile PWA",
     template: "%s | Appifya",
@@ -29,12 +29,12 @@ export const metadata: Metadata = {
   authors: [{ name: "Appifya Team" }],
   creator: "Appifya",
   alternates: {
-    canonical: "https://appifya.app",
+    canonical: "https://www.appifya.app",
   },
   openGraph: {
     type: "website",
     locale: "ar_SA",
-    url: "https://appifya.app",
+    url: "https://www.appifya.app",
     siteName: "Appifya",
     title: "Appifya - Turn Any Website or Store into a Mobile App",
     description:
@@ -84,12 +84,12 @@ export default function RootLayout({
       '@context': 'https://schema.org',
       '@type': 'WebSite',
       name: 'Appifya',
-      url: 'https://appifya.app',
+      url: 'https://www.appifya.app',
       potentialAction: {
         '@type': 'SearchAction',
         target: {
           '@type': 'EntryPoint',
-          urlTemplate: 'https://appifya.app/?q={search_term_string}',
+          urlTemplate: 'https://www.appifya.app/?q={search_term_string}',
         },
         'query-input': 'required name=search_term_string',
       },
@@ -98,8 +98,8 @@ export default function RootLayout({
       '@context': 'https://schema.org',
       '@type': 'Organization',
       name: 'Appifya',
-      url: 'https://appifya.app',
-      logo: 'https://appifya.app/logo.jpg.jpeg',
+      url: 'https://www.appifya.app',
+      logo: 'https://www.appifya.app/logo.jpg.jpeg',
       sameAs: [
         'https://twitter.com/appifya',
         'https://github.com/appifya',
@@ -117,7 +117,7 @@ export default function RootLayout({
       name: 'Appifya',
       applicationCategory: 'DeveloperApplication',
       operatingSystem: 'Web, Android',
-      url: 'https://appifya.app',
+      url: 'https://www.appifya.app',
       description: metadata.description,
       offers: {
         '@type': 'Offer',

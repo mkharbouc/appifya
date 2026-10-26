@@ -18,11 +18,11 @@ export const metadata: Metadata = {
     'Appifya developer tools',
   ],
   alternates: {
-    canonical: 'https://appifya.app/tools/apk-permissions-auditor',
+    canonical: 'https://www.appifya.app/tools/apk-permissions-auditor',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app/tools/apk-permissions-auditor',
+    url: 'https://www.appifya.app/tools/apk-permissions-auditor',
     title: 'APK & AAB Permissions Auditor | Appifya',
     description:
       'Inspect APK and AAB manifests in your browser. Spot policy-violating SDKs, assess risk levels, and export removal snippets.',
@@ -53,7 +53,7 @@ export default function ApkPermissionsAuditorPage() {
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'Android, All',
     browserRequirements: 'Requires JavaScript, runs 100% in browser',
-    url: 'https://appifya.app/tools/apk-permissions-auditor',
+    url: 'https://www.appifya.app/tools/apk-permissions-auditor',
     description:
       'Free developer utility to inspect APK, AAB, and AndroidManifest.xml files locally in the browser to identify sensitive permissions, hidden SDKs, and Google Play policy violations.',
     offers: {

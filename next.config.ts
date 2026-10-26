@@ -9,19 +9,6 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   cacheComponents: true,
   partialPrefetching: true,
-  redirects: async () => [
-    {
-      source: '/:path*',
-      has: [
-        {
-          type: 'host',
-          value: 'www.appifya.app',
-        },
-      ],
-      destination: 'https://appifya.app/:path*',
-      permanent: true,
-    },
-  ],
   headers: async () => [
     {
       source: '/:path*',

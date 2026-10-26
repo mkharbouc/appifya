@@ -18,11 +18,11 @@ export const metadata: Metadata = {
     'Appifya tools',
   ],
   alternates: {
-    canonical: 'https://appifya.app/tools/assetlinks-generator',
+    canonical: 'https://www.appifya.app/tools/assetlinks-generator',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app/tools/assetlinks-generator',
+    url: 'https://www.appifya.app/tools/assetlinks-generator',
     title: 'Digital Asset Links Generator | Appifya',
     description:
       'Generate and validate assetlinks.json for Android App Links and TWA deep linking. Live SHA-256 format check and domain verifier.',
@@ -53,7 +53,7 @@ export default function AssetLinksGeneratorPage() {
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'All',
     browserRequirements: 'Requires JavaScript',
-    url: 'https://appifya.app/tools/assetlinks-generator',
+    url: 'https://www.appifya.app/tools/assetlinks-generator',
     description:
       'Free online tool to generate and verify assetlinks.json files for Android App Links, Trusted Web Activities (TWA), and domain verification.',
     offers: {

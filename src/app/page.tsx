@@ -6,11 +6,11 @@ export const metadata: Metadata = {
   description:
     'Convert your website or online store into a fast, installable PWA and Android APK in minutes. Simple setup, custom branding, and monetization with Appifya.',
   alternates: {
-    canonical: 'https://appifya.app',
+    canonical: 'https://www.appifya.app',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app',
+    url: 'https://www.appifya.app',
     title: 'Convert Website to PWA & Android APK | Appifya',
     description:
       'Turn your online store or landing page into a fast mobile PWA and Android APK. Zero coding required, instant APK build, and AdMob integration.',

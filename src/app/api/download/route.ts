@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     const id = searchParams.get('id');
 
     let appName = 'AppifyaStore';
-    let storeUrl = 'https://appifya.app';
+    let storeUrl = 'https://www.appifya.app';
 
     if (id) {
       try {

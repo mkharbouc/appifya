@@ -7,11 +7,11 @@ export const metadata: Metadata = {
     'Review the terms of service governing the usage of Appifya PWA builder, Android APK packaging tools, and mobile monetization features.',
   keywords: ['Appifya terms of service', 'usage terms', 'PWA builder agreement', 'legal terms'],
   alternates: {
-    canonical: 'https://appifya.app/terms',
+    canonical: 'https://www.appifya.app/terms',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app/terms',
+    url: 'https://www.appifya.app/terms',
     title: 'Terms of Service | Appifya',
     description: 'Terms and conditions for creating and managing mobile applications on Appifya.',
     siteName: 'Appifya',
@@ -30,7 +30,7 @@ export default function TermsPage() {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
     name: 'Terms of Service',
-    url: 'https://appifya.app/terms',
+    url: 'https://www.appifya.app/terms',
     description: 'Terms of service governing the usage of Appifya PWA builder and packaging tools.',
   };
 

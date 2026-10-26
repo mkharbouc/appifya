@@ -24,7 +24,7 @@ function getLogoUrl(appDoc: Record<string, unknown>): string {
     return storage.getFileView(BUCKET_ID, iconId).toString();
   }
 
-  return 'https://appifya.app/logo.jpg.jpeg';
+  return 'https://www.appifya.app/logo.jpg.jpeg';
 }
 
 export async function POST(req: NextRequest) {
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
       ? body.storeUrl
       : typeof appDoc.store_url === 'string'
         ? appDoc.store_url
-        : 'https://appifya.app';
+        : 'https://www.appifya.app';
 
     const themeColor = typeof body.themeColor === 'string' && body.themeColor
       ? body.themeColor

@@ -14,11 +14,11 @@ export const metadata: Metadata = {
     'Appifya AdMob setup',
   ],
   alternates: {
-    canonical: 'https://appifya.app/admob',
+    canonical: 'https://www.appifya.app/admob',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app/admob',
+    url: 'https://www.appifya.app/admob',
     title: 'Google AdMob Setup & App Monetization | Appifya',
     description:
       'Configure native AdMob banners and interstitial ads for your mobile app with a seamless guided wizard.',
@@ -38,7 +38,7 @@ export default function AdmobPage() {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
     name: 'Google AdMob Setup & Mobile Monetization Wizard',
-    url: 'https://appifya.app/admob',
+    url: 'https://www.appifya.app/admob',
     description: 'Integrate Google AdMob banner, interstitial, and rewarded ads into your mobile PWA.',
   };
 

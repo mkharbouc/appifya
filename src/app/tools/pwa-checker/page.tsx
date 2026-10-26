@@ -20,11 +20,11 @@ export const metadata: Metadata = {
     'Appifya tools',
   ],
   alternates: {
-    canonical: 'https://appifya.app/tools/pwa-checker',
+    canonical: 'https://www.appifya.app/tools/pwa-checker',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app/tools/pwa-checker',
+    url: 'https://www.appifya.app/tools/pwa-checker',
     title: 'Free PWA Readiness Checker | Appifya',
     description:
       'Paste your URL and instantly see how PWA-ready your site is: HTTPS, manifest, service worker, viewport, theme color, and more.',
@@ -47,7 +47,7 @@ export default function PwaCheckerPage() {
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'All',
     browserRequirements: 'Requires JavaScript',
-    url: 'https://appifya.app/tools/pwa-checker',
+    url: 'https://www.appifya.app/tools/pwa-checker',
     description:
       'Free online tool that checks whether a website meets the core requirements to become a Progressive Web App: HTTPS, web app manifest, service worker, viewport meta tag, theme color, and icon configuration.',
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },

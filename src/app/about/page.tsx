@@ -13,11 +13,11 @@ export const metadata: Metadata = {
     'e-commerce app builder',
   ],
   alternates: {
-    canonical: 'https://appifya.app/about',
+    canonical: 'https://www.appifya.app/about',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app/about',
+    url: 'https://www.appifya.app/about',
     title: 'About Us - Mission & Mobile Platform | Appifya',
     description:
       'Discover Appifya mission to provide fast, lightweight, and high-converting progressive web apps for online store owners.',
@@ -37,7 +37,7 @@ export default function AboutPage() {
     '@context': 'https://schema.org',
     '@type': 'AboutPage',
     name: 'About Appifya',
-    url: 'https://appifya.app/about',
+    url: 'https://www.appifya.app/about',
     description: 'Appifya empowers online stores and merchants to launch high-performance mobile apps without expensive development cycles.',
   };
 

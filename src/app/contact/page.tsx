@@ -14,11 +14,11 @@ export const metadata: Metadata = {
     'PWA customer support',
   ],
   alternates: {
-    canonical: 'https://appifya.app/contact',
+    canonical: 'https://www.appifya.app/contact',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app/contact',
+    url: 'https://www.appifya.app/contact',
     title: 'Contact Support | Appifya',
     description:
       '24/7 technical support and dedicated customer assistance for Appifya PWA Builder.',
@@ -38,13 +38,13 @@ export default function ContactPage() {
     '@context': 'https://schema.org',
     '@type': 'ContactPage',
     name: 'Appifya Support & Contact',
-    url: 'https://appifya.app/contact',
+    url: 'https://www.appifya.app/contact',
     description: 'Get in touch with the Appifya team for technical assistance, support, and sales inquiries.',
     mainEntity: {
       '@type': 'Organization',
       name: 'Appifya',
       email: 'support@appifya.app',
-      url: 'https://appifya.app',
+      url: 'https://www.appifya.app',
       contactPoint: {
         '@type': 'ContactPoint',
         contactType: 'technical support',

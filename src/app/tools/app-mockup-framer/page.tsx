@@ -17,11 +17,11 @@ export const metadata: Metadata = {
     'Appifya tools',
   ],
   alternates: {
-    canonical: 'https://appifya.app/tools/app-mockup-framer',
+    canonical: 'https://www.appifya.app/tools/app-mockup-framer',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app/tools/app-mockup-framer',
+    url: 'https://www.appifya.app/tools/app-mockup-framer',
     title: 'App Store Screenshots & Mockup Framer | Appifya',
     description:
       'Turn raw app screenshots into high-converting Google Play & App Store promotional graphics. Free ZIP export.',
@@ -52,7 +52,7 @@ export default function AppMockupFramerPage() {
     applicationCategory: 'DesignApplication',
     operatingSystem: 'All',
     browserRequirements: 'Requires JavaScript',
-    url: 'https://appifya.app/tools/app-mockup-framer',
+    url: 'https://www.appifya.app/tools/app-mockup-framer',
     description:
       'Free browser-based tool to frame app screenshots inside modern mobile devices with custom typography, gradients, and batch ZIP export for Google Play and App Store.',
     offers: {

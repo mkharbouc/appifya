@@ -245,7 +245,7 @@ export async function GET(req: NextRequest): Promise<NextResponse<CheckResponse>
   try {
     const res = await fetch(urlStr, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; AppifyaBot/1.0; +https://appifya.app)',
+        'User-Agent': 'Mozilla/5.0 (compatible; AppifyaBot/1.0; +https://www.appifya.app)',
         'Accept': 'text/html,application/xhtml+xml',
         'Accept-Language': 'en,ar;q=0.9',
       },

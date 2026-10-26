@@ -7,11 +7,11 @@ export const metadata: Metadata = {
     'Read the Appifya privacy policy to understand how we collect, handle, and protect user data across our mobile PWA and Android conversion platform.',
   keywords: ['Appifya privacy policy', 'data protection', 'PWA privacy', 'user data security'],
   alternates: {
-    canonical: 'https://appifya.app/privacy',
+    canonical: 'https://www.appifya.app/privacy',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app/privacy',
+    url: 'https://www.appifya.app/privacy',
     title: 'Privacy Policy | Appifya',
     description: 'Our commitment to data privacy, transparency, and personal security.',
     siteName: 'Appifya',
@@ -30,7 +30,7 @@ export default function PrivacyPage() {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
     name: 'Privacy Policy',
-    url: 'https://appifya.app/privacy',
+    url: 'https://www.appifya.app/privacy',
     description: 'Appifya data privacy, transparency, and personal security policies.',
   };
 

@@ -18,11 +18,11 @@ export const metadata: Metadata = {
     'Appifya tools',
   ],
   alternates: {
-    canonical: 'https://appifya.app/tools/play-data-safety',
+    canonical: 'https://www.appifya.app/tools/play-data-safety',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app/tools/play-data-safety',
+    url: 'https://www.appifya.app/tools/play-data-safety',
     title: 'Google Play Data Safety & Policy Generator | Appifya',
     description:
       'Avoid Google Play app rejections. Generate accurate Data Safety questionnaire responses and compliant privacy policies based on your SDKs.',
@@ -53,7 +53,7 @@ export default function PlayDataSafetyPage() {
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'All',
     browserRequirements: 'Requires JavaScript',
-    url: 'https://appifya.app/tools/play-data-safety',
+    url: 'https://www.appifya.app/tools/play-data-safety',
     description:
       'Free online tool providing step-by-step Google Play Console Data Safety questionnaire answers and customized privacy policies for Android apps and SDKs.',
     offers: {

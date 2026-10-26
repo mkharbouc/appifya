@@ -18,11 +18,11 @@ export const metadata: Metadata = {
     'Appifya tools',
   ],
   alternates: {
-    canonical: 'https://appifya.app/tools/app-banner-generator',
+    canonical: 'https://www.appifya.app/tools/app-banner-generator',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app/tools/app-banner-generator',
+    url: 'https://www.appifya.app/tools/app-banner-generator',
     title: 'Smart App Banner Code Generator | Appifya',
     description:
       'Generate a sleek, customizable Smart App Banner for Google Play. Lightweight, pure JS/HTML, zero dependencies.',
@@ -53,7 +53,7 @@ export default function AppBannerGeneratorPage() {
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'All',
     browserRequirements: 'Requires JavaScript',
-    url: 'https://appifya.app/tools/app-banner-generator',
+    url: 'https://www.appifya.app/tools/app-banner-generator',
     description:
       'Free online tool to generate pure HTML/JS Smart App Banners that prompt mobile website visitors to install your Google Play app.',
     offers: {

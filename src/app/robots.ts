@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const siteUrl = 'https://appifya.app';
+const siteUrl = 'https://www.appifya.app';
 
 export default function robots(): MetadataRoute.Robots {
   return {

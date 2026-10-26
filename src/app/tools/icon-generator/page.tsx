@@ -20,11 +20,11 @@ export const metadata: Metadata = {
     'Appifya tools',
   ],
   alternates: {
-    canonical: 'https://appifya.app/tools/icon-generator',
+    canonical: 'https://www.appifya.app/tools/icon-generator',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app/tools/icon-generator',
+    url: 'https://www.appifya.app/tools/icon-generator',
     title: 'Free PWA App Icon Generator | Appifya',
     description:
       'Upload one image and get every PWA icon size you need — 192x192, 512x512, maskable, Apple touch icon, favicon — packaged in a single ZIP.',
@@ -55,7 +55,7 @@ export default function IconGeneratorPage() {
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'All',
     browserRequirements: 'Requires JavaScript and Canvas API',
-    url: 'https://appifya.app/tools/icon-generator',
+    url: 'https://www.appifya.app/tools/icon-generator',
     description:
       'Free online tool to generate all required PWA app icon sizes from a single uploaded image. Outputs 192x192, 512x512, maskable, Apple touch icon, and favicon in a ZIP file.',
     offers: {

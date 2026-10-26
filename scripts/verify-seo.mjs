@@ -87,12 +87,8 @@ for (const { file, route } of PUBLIC_ROUTES) {
     errors++;
   } else {
     const canonical = canonicalMatch[1];
-    if (canonical.includes('www.appifya.app')) {
-      console.error(`❌ [${route}] Canonical must not use www: "${canonical}"`);
-      errors++;
-    }
-    if (!canonical.startsWith('https://appifya.app')) {
-      console.error(`❌ [${route}] Canonical must start with https://appifya.app: "${canonical}"`);
+    if (!canonical.startsWith('https://www.appifya.app')) {
+      console.error(`❌ [${route}] Canonical must start with https://www.appifya.app: "${canonical}"`);
       errors++;
     }
   }

@@ -21,11 +21,11 @@ export const metadata: Metadata = {
     'Appifya tools',
   ],
   alternates: {
-    canonical: 'https://appifya.app/tools/qr-generator',
+    canonical: 'https://www.appifya.app/tools/qr-generator',
   },
   openGraph: {
     type: 'website',
-    url: 'https://appifya.app/tools/qr-generator',
+    url: 'https://www.appifya.app/tools/qr-generator',
     title: 'Free App QR Code Generator with Custom Logo | Appifya',
     description:
       'Create custom, high-resolution QR codes for your PWA or mobile app. Embed your center logo, customize brand colors, add frames, and download vector SVG and print-ready PNG.',
@@ -56,7 +56,7 @@ export default function QrGeneratorPage() {
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'All',
     browserRequirements: 'Requires JavaScript and Canvas API',
-    url: 'https://appifya.app/tools/qr-generator',
+    url: 'https://www.appifya.app/tools/qr-generator',
     description:
       'Free online tool to generate professional QR codes for mobile apps and PWAs. Embed center logos, customize brand colors, add call-to-action frames, and export high-resolution PNG & SVG.',
     offers: {
@@ -133,19 +133,19 @@ export default function QrGeneratorPage() {
         '@type': 'HowToStep',
         name: 'Enter your destination URL',
         text: 'Type or paste the URL of your PWA, online store, or app download landing page.',
-        url: 'https://appifya.app/tools/qr-generator#input',
+        url: 'https://www.appifya.app/tools/qr-generator#input',
       },
       {
         '@type': 'HowToStep',
         name: 'Customize colors and upload app logo',
         text: 'Select your brand foreground color, background color, and upload an icon to place in the center of the QR code.',
-        url: 'https://appifya.app/tools/qr-generator#styling',
+        url: 'https://www.appifya.app/tools/qr-generator#styling',
       },
       {
         '@type': 'HowToStep',
         name: 'Download vector SVG or high-resolution PNG',
         text: 'Export your print-ready QR code in PNG or vector SVG format, or print a counter standee directly.',
-        url: 'https://appifya.app/tools/qr-generator#download',
+        url: 'https://www.appifya.app/tools/qr-generator#download',
       },
     ],
   };

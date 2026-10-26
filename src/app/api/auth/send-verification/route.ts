@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const token = generateVerificationToken(userId, cleanEmail);
 
     // Determine verification URL
-    const origin = req.nextUrl.origin || 'https://appifya.app';
+    const origin = req.nextUrl.origin || 'https://www.appifya.app';
     const verifyUrl = `${origin}/verify-email?token=${token}&userId=${encodeURIComponent(userId)}`;
 
     // Nodemailer configuration
