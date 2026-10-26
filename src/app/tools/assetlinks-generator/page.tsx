@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import AssetLinksGeneratorClient from './AssetLinksGeneratorClient';
 
 export const metadata: Metadata = {
-  title: 'Digital Asset Links Generator - Create assetlinks.json for Android & TWA',
+  title: 'Digital Asset Links Generator',
   description:
-    'Generate standard-compliant assetlinks.json for Android App Links, Trusted Web Activity (TWA), and Deep Linking. Live validation, SHA-256 formatter, and domain verifier. 100% free.',
+    'Generate standard assetlinks.json for Android App Links, Trusted Web Activity (TWA), and deep links. Free SHA-256 validator and domain tester.',
   keywords: [
     'assetlinks generator',
     'assetlinks json generator',
@@ -19,17 +19,11 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://appifya.app/tools/assetlinks-generator',
-    languages: {
-      ar: 'https://appifya.app/tools/assetlinks-generator',
-      en: 'https://appifya.app/tools/assetlinks-generator',
-      fr: 'https://appifya.app/tools/assetlinks-generator',
-      'x-default': 'https://appifya.app/tools/assetlinks-generator',
-    },
   },
   openGraph: {
     type: 'website',
     url: 'https://appifya.app/tools/assetlinks-generator',
-    title: 'Digital Asset Links Generator - Appifya',
+    title: 'Digital Asset Links Generator | Appifya',
     description:
       'Generate and validate assetlinks.json for Android App Links and TWA deep linking. Live SHA-256 format check and domain verifier.',
     siteName: 'Appifya',
@@ -44,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Digital Asset Links Generator - Create assetlinks.json Online',
+    title: 'Digital Asset Links Generator | Appifya',
     description:
       'Free generator for assetlinks.json required for Android App Links and Trusted Web Activity (TWA).',
     images: ['/logo.jpg.jpeg'],

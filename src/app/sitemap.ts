@@ -3,31 +3,35 @@ import type { MetadataRoute } from 'next';
 const siteUrl = 'https://appifya.app';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const routes = [
-    '',
-    '/about',
-    '/contact',
-    '/privacy',
-    '/terms',
-    '/guide',
-    '/admob',
-    '/dashboard',
-    '/tools',
-    '/tools/manifest-generator',
-    '/tools/icon-generator',
-    '/tools/pwa-checker',
-    '/tools/qr-generator',
-    '/tools/app-banner-generator',
-    '/tools/assetlinks-generator',
-    '/tools/app-mockup-framer',
-    '/tools/play-data-safety',
-    '/tools/apk-permissions-auditor',
+  const routes: Array<{
+    route: string;
+    lastModified: string;
+    changeFrequency: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+    priority: number;
+  }> = [
+    { route: '', lastModified: '2026-10-25', changeFrequency: 'weekly', priority: 1.0 },
+    { route: '/tools', lastModified: '2026-10-25', changeFrequency: 'weekly', priority: 0.9 },
+    { route: '/guide', lastModified: '2026-10-24', changeFrequency: 'monthly', priority: 0.8 },
+    { route: '/admob', lastModified: '2026-10-24', changeFrequency: 'monthly', priority: 0.8 },
+    { route: '/tools/apk-permissions-auditor', lastModified: '2026-10-25', changeFrequency: 'weekly', priority: 0.8 },
+    { route: '/tools/app-mockup-framer', lastModified: '2026-10-25', changeFrequency: 'weekly', priority: 0.8 },
+    { route: '/tools/play-data-safety', lastModified: '2026-10-25', changeFrequency: 'weekly', priority: 0.8 },
+    { route: '/tools/assetlinks-generator', lastModified: '2026-10-25', changeFrequency: 'monthly', priority: 0.7 },
+    { route: '/tools/app-banner-generator', lastModified: '2026-10-25', changeFrequency: 'monthly', priority: 0.7 },
+    { route: '/tools/manifest-generator', lastModified: '2026-10-25', changeFrequency: 'monthly', priority: 0.7 },
+    { route: '/tools/icon-generator', lastModified: '2026-10-25', changeFrequency: 'monthly', priority: 0.7 },
+    { route: '/tools/qr-generator', lastModified: '2026-10-25', changeFrequency: 'monthly', priority: 0.7 },
+    { route: '/tools/pwa-checker', lastModified: '2026-10-25', changeFrequency: 'monthly', priority: 0.7 },
+    { route: '/about', lastModified: '2026-10-24', changeFrequency: 'monthly', priority: 0.6 },
+    { route: '/contact', lastModified: '2026-10-24', changeFrequency: 'monthly', priority: 0.6 },
+    { route: '/privacy', lastModified: '2026-10-24', changeFrequency: 'yearly', priority: 0.3 },
+    { route: '/terms', lastModified: '2026-10-24', changeFrequency: 'yearly', priority: 0.3 },
   ];
 
-  return routes.map((route) => ({
-    url: `${siteUrl}${route}`,
-    lastModified: new Date(),
-    changeFrequency: route === '' ? 'weekly' : route === '/dashboard' ? 'daily' : 'monthly',
-    priority: route === '' ? 1 : route === '/dashboard' ? 0.8 : route === '/guide' || route === '/admob' ? 0.7 : 0.6,
+  return routes.map((item) => ({
+    url: `${siteUrl}${item.route}`,
+    lastModified: new Date(item.lastModified),
+    changeFrequency: item.changeFrequency,
+    priority: item.priority,
   }));
 }

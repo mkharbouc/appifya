@@ -45,6 +45,7 @@ import {
   Activity,
   Layers,
   Zap,
+  Mail,
 } from 'lucide-react';
 
 const BUILD_TIMEOUT_MS = 20 * 60 * 1000;
@@ -99,13 +100,35 @@ const formatTimer = (totalSeconds: number) => {
 };
 
 export default function DashboardPage() {
-  const { user, loading: authLoading, openAuthModal } = useAuth();
+  const { user, loading: authLoading, openAuthModal, sendVerificationEmail } = useAuth();
   const { lang } = useLanguage();
   const [apps, setApps] = useState<AppDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [buildingAppId, setBuildingAppId] = useState<string | null>(null);
   const [buildNoticeAppId, setBuildNoticeAppId] = useState<string | null>(null);
   const [builds, setBuilds] = useState<Record<string, { status: 'building' | 'completed' | 'failed'; downloadUrl?: string }>>({});
+
+  // Email verification state
+  const [resendVerificationLoading, setResendVerificationLoading] = useState(false);
+  const [verificationBannerMsg, setVerificationBannerMsg] = useState<string | null>(null);
+  const [verificationBannerStatus, setVerificationBannerStatus] = useState<'success' | 'error' | null>(null);
+
+  const handleSendVerification = async () => {
+    setResendVerificationLoading(true);
+    setVerificationBannerMsg(null);
+    setVerificationBannerStatus(null);
+    try {
+      const res = await sendVerificationEmail();
+      setVerificationBannerStatus(res.success ? 'success' : 'error');
+      setVerificationBannerMsg(res.message);
+    } catch (err: unknown) {
+      setVerificationBannerStatus('error');
+      const msg = err instanceof Error ? err.message : 'فشل إرسال رابط التأكيد، يرجى المحاولة لاحقاً.';
+      setVerificationBannerMsg(msg);
+    } finally {
+      setResendVerificationLoading(false);
+    }
+  };
 
   // App Deletion State
   const [appToDelete, setAppToDelete] = useState<AppDocument | null>(null);
@@ -208,8 +231,23 @@ export default function DashboardPage() {
     }
   }, []);
 
+  const clearBuildStart = (appId: string) => {
+    localStorage.removeItem(buildStartedStorageKey(appId));
+  };
+
+  const markBuildStarted = (appId: string) => {
+    // eslint-disable-next-line react-hooks/purity
+    localStorage.setItem(buildStartedStorageKey(appId), String(Date.now()));
+  };
+
+  const getBuildStartedAt = (appId: string) => {
+    const value = Number(localStorage.getItem(buildStartedStorageKey(appId)));
+    return Number.isFinite(value) && value > 0 ? value : null;
+  };
+
   useEffect(() => {
     if (!buildNoticeAppId || builds[buildNoticeAppId]?.status !== 'building') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setBuildElapsedSec(0);
       return;
     }
@@ -224,20 +262,6 @@ export default function DashboardPage() {
     const interval = window.setInterval(updateElapsed, 1000);
     return () => window.clearInterval(interval);
   }, [buildNoticeAppId, builds]);
-
-  const clearBuildStart = (appId: string) => {
-    localStorage.removeItem(buildStartedStorageKey(appId));
-  };
-
-  const markBuildStarted = (appId: string) => {
-    // eslint-disable-next-line react-hooks/purity
-    localStorage.setItem(buildStartedStorageKey(appId), String(Date.now()));
-  };
-
-  const getBuildStartedAt = (appId: string) => {
-    const value = Number(localStorage.getItem(buildStartedStorageKey(appId)));
-    return Number.isFinite(value) && value > 0 ? value : null;
-  };
 
   const loadUserApps = useCallback(async () => {
     if (!user) return;
@@ -928,6 +952,58 @@ export default function DashboardPage() {
         <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-xs font-bold text-emerald-300 flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
           <span>{deleteSuccessMsg}</span>
+        </div>
+      )}
+
+      {/* ── EMAIL VERIFICATION ALERT BANNER ── */}
+      {user && user.emailVerification === false && (
+        <div className="rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg shadow-amber-500/5">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+              <Mail className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-white">
+                  {lang === 'ar' ? 'بريدك الإلكتروني غير مفعّل بعد' : 'Email Address Not Verified'}
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  {lang === 'ar' ? 'مطلوب التفعيل' : 'Action Required'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-1">
+                {lang === 'ar'
+                  ? `يرجى تأكيد بريدك الإلكتروني (${user.email}) ليصبح حسابك موثقاً بالكامل باللون الأخضر وتأمين استقبال ملفات APK والتحديثات.`
+                  : `Please verify your email address (${user.email}) to activate full green verified status and ensure seamless delivery.`}
+              </p>
+              {verificationBannerMsg && (
+                <p className={`text-xs font-bold mt-1.5 flex items-center gap-1.5 animate-in fade-in ${
+                  verificationBannerStatus === 'error' ? 'text-red-400' : 'text-emerald-400'
+                }`}>
+                  {verificationBannerStatus === 'error' ? (
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  ) : (
+                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                  )}
+                  <span>{verificationBannerMsg}</span>
+                </p>
+              )}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSendVerification}
+            disabled={resendVerificationLoading}
+            className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all shrink-0 cursor-pointer disabled:opacity-60"
+          >
+            {resendVerificationLoading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="h-3.5 w-3.5" />
+            )}
+            <span>{lang === 'ar' ? 'إرسال رابط التفعيل إلى بريدي' : 'Send Verification Link'}</span>
+          </button>
         </div>
       )}
 

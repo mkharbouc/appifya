@@ -3,12 +3,25 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   experimental: {
     agentUpgrade: 'security',
-  } as any,
+  } as Record<string, unknown>,
   output: 'standalone',
   /* config options here */
   poweredByHeader: false,
   cacheComponents: true,
   partialPrefetching: true,
+  redirects: async () => [
+    {
+      source: '/:path*',
+      has: [
+        {
+          type: 'host',
+          value: 'www.appifya.app',
+        },
+      ],
+      destination: 'https://appifya.app/:path*',
+      permanent: true,
+    },
+  ],
   headers: async () => [
     {
       source: '/:path*',

@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import IconGeneratorClient from './IconGeneratorClient';
 
 export const metadata: Metadata = {
-  title: 'Free PWA App Icon Generator - All Sizes in One Click',
+  title: 'Free PWA App Icon Generator',
   description:
-    'Upload one image and instantly generate all required PWA app icons: 192x192, 512x512, maskable, Apple touch icon, and favicon. Download as a ready-to-use ZIP. 100% free, no sign-up.',
+    'Upload an image to generate all required PWA icons: 192x192, 512x512, maskable, Apple touch icon, and favicon. Instant free ZIP download.',
   keywords: [
     'PWA icon generator',
     'app icon generator',
@@ -21,17 +21,11 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://appifya.app/tools/icon-generator',
-    languages: {
-      ar: 'https://appifya.app/tools/icon-generator',
-      en: 'https://appifya.app/tools/icon-generator',
-      fr: 'https://appifya.app/tools/icon-generator',
-      'x-default': 'https://appifya.app/tools/icon-generator',
-    },
   },
   openGraph: {
     type: 'website',
     url: 'https://appifya.app/tools/icon-generator',
-    title: 'Free PWA App Icon Generator - All Sizes in One Click',
+    title: 'Free PWA App Icon Generator | Appifya',
     description:
       'Upload one image and get every PWA icon size you need — 192x192, 512x512, maskable, Apple touch icon, favicon — packaged in a single ZIP.',
     siteName: 'Appifya',
@@ -46,7 +40,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Free PWA App Icon Generator - All Sizes in One Click',
+    title: 'Free PWA App Icon Generator | Appifya',
     description:
       'Generate all required PWA icon sizes from one image. Download as ZIP instantly. Free, no sign-up.',
     images: ['/logo.jpg.jpeg'],

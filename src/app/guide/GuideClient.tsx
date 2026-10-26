@@ -1,0 +1,578 @@
+'use client';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { useLanguage } from '../lib/i18n';
+import {
+  Smartphone,
+  Download,
+  ShieldCheck,
+  Settings,
+  CheckCircle2,
+  AlertTriangle,
+  Globe2,
+  Share2,
+  PlusSquare,
+  LayoutDashboard,
+  ChevronDown,
+} from 'lucide-react';
+
+// ---------------------------------------------------------------------------
+// Inline SVG illustrations — Appifya brand colours (indigo / pink / slate)
+// ---------------------------------------------------------------------------
+
+function IllustrationDownload() {
+  return (
+    <svg viewBox="0 0 220 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
+      {/* Phone shell */}
+      <rect x="70" y="10" width="80" height="140" rx="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+      <rect x="76" y="22" width="68" height="116" rx="6" fill="#1e293b" />
+      {/* Notch */}
+      <rect x="95" y="14" width="30" height="6" rx="3" fill="#1e293b" />
+      {/* Home bar */}
+      <rect x="95" y="142" width="30" height="4" rx="2" fill="#334155" />
+      {/* Download arrow */}
+      <circle cx="110" cy="80" r="22" fill="#4f46e5" fillOpacity="0.15" />
+      <path d="M110 62v24M101 77l9 9 9-9" stroke="#818cf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="98" y="89" width="24" height="3" rx="1.5" fill="#818cf8" />
+      {/* Progress bar */}
+      <rect x="86" y="106" width="48" height="5" rx="2.5" fill="#1e3a5f" />
+      <rect x="86" y="106" width="32" height="5" rx="2.5" fill="#6366f1" />
+      {/* Glow */}
+      <ellipse cx="110" cy="158" rx="36" ry="6" fill="#6366f1" fillOpacity="0.18" />
+    </svg>
+  );
+}
+
+function IllustrationUnknownSources() {
+  return (
+    <svg viewBox="0 0 220 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
+      {/* Phone shell */}
+      <rect x="70" y="10" width="80" height="140" rx="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+      <rect x="76" y="22" width="68" height="116" rx="6" fill="#1e293b" />
+      <rect x="95" y="14" width="30" height="6" rx="3" fill="#1e293b" />
+      <rect x="95" y="142" width="30" height="4" rx="2" fill="#334155" />
+      {/* Settings gear icon (simplified) */}
+      <circle cx="110" cy="68" r="12" fill="#1e3a5f" />
+      <circle cx="110" cy="68" r="5" fill="#818cf8" />
+      <circle cx="110" cy="56" r="2.5" fill="#6366f1" />
+      <circle cx="110" cy="80" r="2.5" fill="#6366f1" />
+      <circle cx="98" cy="68" r="2.5" fill="#6366f1" />
+      <circle cx="122" cy="68" r="2.5" fill="#6366f1" />
+      {/* Toggle ON */}
+      <rect x="90" y="90" width="40" height="16" rx="8" fill="#4f46e5" />
+      <circle cx="122" cy="98" r="6" fill="white" />
+      <rect x="86" y="112" width="48" height="4" rx="2" fill="#334155" />
+      <rect x="86" y="120" width="34" height="4" rx="2" fill="#334155" />
+      <ellipse cx="110" cy="158" rx="36" ry="6" fill="#6366f1" fillOpacity="0.18" />
+    </svg>
+  );
+}
+
+function IllustrationInstall() {
+  return (
+    <svg viewBox="0 0 220 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
+      {/* Phone shell */}
+      <rect x="70" y="10" width="80" height="140" rx="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+      <rect x="76" y="22" width="68" height="116" rx="6" fill="#1e293b" />
+      <rect x="95" y="14" width="30" height="6" rx="3" fill="#1e293b" />
+      <rect x="95" y="142" width="30" height="4" rx="2" fill="#334155" />
+      {/* App icon on screen */}
+      <rect x="90" y="40" width="40" height="40" rx="10" fill="#4f46e5" />
+      <path d="M105 55l5 8 10-13" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      {/* Install button */}
+      <rect x="86" y="92" width="48" height="18" rx="9" fill="#6366f1" />
+      <text x="110" y="104" textAnchor="middle" fill="white" fontSize="7" fontWeight="bold" fontFamily="sans-serif">INSTALL</text>
+      {/* Confetti dots */}
+      <circle cx="88" cy="36" r="3" fill="#ec4899" />
+      <circle cx="132" cy="32" r="2" fill="#818cf8" />
+      <circle cx="135" cy="50" r="2.5" fill="#34d399" />
+      <circle cx="85" cy="52" r="2" fill="#fbbf24" />
+      <ellipse cx="110" cy="158" rx="36" ry="6" fill="#6366f1" fillOpacity="0.18" />
+    </svg>
+  );
+}
+
+function IllustrationPWAShare() {
+  return (
+    <svg viewBox="0 0 220 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
+      {/* Phone shell */}
+      <rect x="70" y="10" width="80" height="140" rx="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+      <rect x="76" y="22" width="68" height="116" rx="6" fill="#1e293b" />
+      <rect x="95" y="14" width="30" height="6" rx="3" fill="#1e293b" />
+      <rect x="95" y="142" width="30" height="4" rx="2" fill="#334155" />
+      {/* Browser bar */}
+      <rect x="80" y="26" width="60" height="10" rx="3" fill="#0f172a" />
+      <circle cx="88" cy="31" r="2" fill="#4f46e5" />
+      <rect x="93" y="28.5" width="40" height="5" rx="2" fill="#1e293b" />
+      {/* Share sheet */}
+      <rect x="80" y="110" width="60" height="22" rx="6" fill="#0f172a" stroke="#334155" strokeWidth="1" />
+      {/* Share icon in sheet */}
+      <path d="M100 121l10-5 10 5" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M110 116v12" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" />
+      {/* Page content lines */}
+      <rect x="84" y="44" width="52" height="5" rx="2" fill="#334155" />
+      <rect x="84" y="53" width="40" height="4" rx="2" fill="#1e3a5f" />
+      <rect x="84" y="61" width="44" height="4" rx="2" fill="#1e3a5f" />
+      <ellipse cx="110" cy="158" rx="36" ry="6" fill="#6366f1" fillOpacity="0.18" />
+    </svg>
+  );
+}
+
+function IllustrationAddToHome() {
+  return (
+    <svg viewBox="0 0 220 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden="true">
+      {/* Phone shell */}
+      <rect x="70" y="10" width="80" height="140" rx="14" fill="#0f172a" stroke="#334155" strokeWidth="2" />
+      <rect x="76" y="22" width="68" height="116" rx="6" fill="#1e293b" />
+      <rect x="95" y="14" width="30" height="6" rx="3" fill="#1e293b" />
+      <rect x="95" y="142" width="30" height="4" rx="2" fill="#334155" />
+      {/* Home screen grid */}
+      {[0, 1, 2].map((col) =>
+        [0, 1].map((row) => (
+          <rect
+            key={`${col}-${row}`}
+            x={84 + col * 20}
+            y={32 + row * 20}
+            width="14"
+            height="14"
+            rx="4"
+            fill="#1e3a5f"
+          />
+        ))
+      )}
+      {/* Highlighted new icon with + badge */}
+      <rect x="84" y="72" width="14" height="14" rx="4" fill="#4f46e5" />
+      <path d="M91 76v6M88 79h6" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+      {/* "Add to Home Screen" popup */}
+      <rect x="80" y="98" width="60" height="24" rx="6" fill="#0f172a" stroke="#4f46e5" strokeWidth="1" />
+      <rect x="86" y="103" width="36" height="4" rx="2" fill="#334155" />
+      <rect x="90" y="111" width="28" height="5" rx="2.5" fill="#6366f1" />
+      <ellipse cx="110" cy="158" rx="36" ry="6" fill="#6366f1" fillOpacity="0.18" />
+    </svg>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Accordion for FAQ / troubleshooting
+// ---------------------------------------------------------------------------
+
+function Accordion({ question, answer }: { question: string; answer: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left text-sm font-semibold text-white hover:bg-slate-800/40 transition-colors"
+        aria-expanded={open}
+      >
+        <span>{question}</span>
+        <ChevronDown className={`h-4 w-4 text-slate-400 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="px-5 pb-4 text-sm leading-7 text-slate-400 border-t border-slate-800">
+          <p className="pt-3">{answer}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Step card
+// ---------------------------------------------------------------------------
+
+function StepCard({
+  number,
+  icon: Icon,
+  title,
+  description,
+  illustration,
+}: {
+  number: string;
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  illustration: React.ReactNode;
+}) {
+  return (
+    <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 flex flex-col sm:flex-row items-start gap-6 hover:border-slate-700 transition-colors">
+      <div className="w-full sm:w-40 shrink-0 aspect-[11/8] rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
+        {illustration}
+      </div>
+      <div className="flex-1">
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-2xl font-black text-indigo-400">{number}</span>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+            <Icon className="h-4 w-4" />
+          </div>
+        </div>
+        <h3 className="text-base font-bold text-white mb-1">{title}</h3>
+        <p className="text-xs leading-6 text-slate-400">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
+
+export default function GuidePage() {
+  const { lang } = useLanguage();
+  const isRtl = lang === 'ar';
+
+  // Tab state: 'android' | 'ios'
+  const [tab, setTab] = useState<'android' | 'ios'>('android');
+
+  const androidSteps = [
+    {
+      number: '01',
+      icon: Download,
+      title:
+        lang === 'ar'
+          ? 'قم بتنزيل ملف APK'
+          : lang === 'fr'
+          ? 'Téléchargez le fichier APK'
+          : 'Download the APK file',
+      description:
+        lang === 'ar'
+          ? 'بعد اكتمال البناء في لوحة التحكم، انقر على زر "تنزيل APK". سيتم حفظ الملف في مجلد التنزيلات على جهازك.'
+          : lang === 'fr'
+          ? 'Une fois la compilation terminée dans votre tableau de bord, cliquez sur "Télécharger APK". Le fichier sera enregistré dans le dossier Téléchargements de votre appareil.'
+          : "Once the build finishes in your dashboard, tap \"Download APK\". The file will be saved to your device's Downloads folder.",
+      illustration: <IllustrationDownload />,
+    },
+    {
+      number: '02',
+      icon: Settings,
+      title:
+        lang === 'ar'
+          ? 'السماح بتثبيت التطبيقات من مصادر خارجية'
+          : lang === 'fr'
+          ? 'Autoriser les sources inconnues'
+          : 'Allow installation from unknown sources',
+      description:
+        lang === 'ar'
+          ? 'افتح الإعدادات ← الأمان (أو الخصوصية) ← ثبّت تطبيقات غير معروفة، ثم فعّل الخيار للمتصفح أو مدير الملفات الذي تستخدمه لفتح APK.'
+          : lang === 'fr'
+          ? `Ouvrez Paramètres → Sécurité (ou Confidentialité) → Installer des apps inconnues, puis activez l'option pour le navigateur ou le gestionnaire de fichiers que vous utilisez.`
+          : 'Go to Settings → Security (or Privacy) → Install unknown apps, then enable the option for the browser or file manager you used to open the APK.',
+      illustration: <IllustrationUnknownSources />,
+    },
+    {
+      number: '03',
+      icon: Smartphone,
+      title:
+        lang === 'ar'
+          ? 'افتح ملف APK وثبّت التطبيق'
+          : lang === 'fr'
+          ? 'Ouvrez le fichier APK et installez'
+          : 'Open the APK and install',
+      description:
+        lang === 'ar'
+          ? 'افتح مدير الملفات، انتقل إلى مجلد التنزيلات، واضغط على ملف APK. ستظهر شاشة التثبيت — انقر على "تثبيت" ثم "فتح" عند الانتهاء.'
+          : lang === 'fr'
+          ? `Ouvrez le gestionnaire de fichiers, accédez aux Téléchargements et appuyez sur le fichier APK. L'écran d'installation s'affiche — appuyez sur Installer puis Ouvrir.`
+          : 'Open your file manager, go to Downloads, and tap the APK file. The install screen will appear — tap Install then Open when done.',
+      illustration: <IllustrationInstall />,
+    },
+  ];
+
+  const iosSteps = [
+    {
+      number: '01',
+      icon: Globe2,
+      title:
+        lang === 'ar'
+          ? 'افتح رابط متجرك في Safari'
+          : lang === 'fr'
+          ? 'Ouvrez votre URL dans Safari'
+          : 'Open your store URL in Safari',
+      description:
+        lang === 'ar'
+          ? 'يجب استخدام Safari تحديداً لإضافة PWA إلى الشاشة الرئيسية على iPhone وiPad. المتصفحات الأخرى كـ Chrome لا تدعم هذه الميزة على iOS.'
+          : lang === 'fr'
+          ? `Vous devez utiliser Safari spécifiquement pour ajouter une PWA à l'écran d'accueil sur iPhone et iPad. Les autres navigateurs comme Chrome ne prennent pas en charge cette fonctionnalité sur iOS.`
+          : 'You must use Safari specifically to add a PWA to the home screen on iPhone and iPad. Other browsers like Chrome do not support this feature on iOS.',
+      illustration: <IllustrationPWAShare />,
+    },
+    {
+      number: '02',
+      icon: Share2,
+      title:
+        lang === 'ar'
+          ? 'اضغط على زر المشاركة'
+          : lang === 'fr'
+          ? 'Appuyez sur le bouton Partager'
+          : 'Tap the Share button',
+      description:
+        lang === 'ar'
+          ? 'في شريط أدوات Safari السفلي، اضغط على أيقونة المشاركة (المربع مع السهم للأعلى). ستنفتح قائمة خيارات المشاركة.'
+          : lang === 'fr'
+          ? `Dans la barre d'outils inférieure de Safari, appuyez sur l'icône de partage (carré avec flèche vers le haut). Le menu des options de partage s'ouvre.`
+          : "In Safari's bottom toolbar, tap the Share icon (square with an arrow pointing up). The share options sheet will open.",
+      illustration: <IllustrationPWAShare />,
+    },
+    {
+      number: '03',
+      icon: PlusSquare,
+      title:
+        lang === 'ar'
+          ? 'اختر "إضافة إلى الشاشة الرئيسية"'
+          : lang === 'fr'
+          ? `Choisissez "Sur l'écran d'accueil"`
+          : 'Choose "Add to Home Screen"',
+      description:
+        lang === 'ar'
+          ? 'قم بالتمرير في قائمة المشاركة حتى تجد "إضافة إلى الشاشة الرئيسية"، اضغط عليها، عدّل اسم التطبيق إذا أردت، ثم اضغط "إضافة". سيظهر أيقونة التطبيق على شاشتك الرئيسية.'
+          : lang === 'fr'
+          ? `Faites défiler la feuille de partage jusqu'à trouver "Sur l'écran d'accueil", appuyez dessus, modifiez éventuellement le nom, puis appuyez sur Ajouter. L'icône apparaît sur votre écran d'accueil.`
+          : 'Scroll in the share sheet to find "Add to Home Screen", tap it, optionally edit the app name, then tap Add. The icon will appear on your home screen.',
+      illustration: <IllustrationAddToHome />,
+    },
+  ];
+
+  const androidFaqs = [
+    {
+      q:
+        lang === 'ar'
+          ? 'ظهرت رسالة "تعذّر تثبيت التطبيق" — ماذا أفعل؟'
+          : lang === 'fr'
+          ? `Un message "Impossible d'installer l'application" s'affiche — que faire ?`
+          : '"App not installed" error appeared — what do I do?',
+      a:
+        lang === 'ar'
+          ? 'تأكد أولاً من تفعيل خيار "تثبيت تطبيقات غير معروفة" في الإعدادات. إذا استمرت المشكلة، جرب حذف نسخة سابقة من التطبيق إن وجدت، أو أعد تنزيل ملف APK من لوحة التحكم.'
+          : lang === 'fr'
+          ? `Vérifiez d'abord que l'option "Installer des apps inconnues" est activée. Si le problème persiste, essayez de désinstaller une version précédente de l'application, ou retéléchargez le fichier APK depuis votre tableau de bord.`
+          : 'First make sure the "Install unknown apps" option is enabled in your settings. If the problem persists, try uninstalling any previous version of the app, or re-download the APK from your dashboard.',
+    },
+    {
+      q:
+        lang === 'ar'
+          ? 'هل التطبيق آمن؟ لماذا يحذّرني Android؟'
+          : lang === 'fr'
+          ? `L'application est-elle sécurisée ? Pourquoi Android m'avertit-il ?`
+          : 'Is the app safe? Why does Android warn me?',
+      a:
+        lang === 'ar'
+          ? 'هذا التحذير طبيعي لأي تطبيق لم يُنشر عبر Google Play بعد. التطبيق الذي بنيته هو تطبيقك أنت — يحمل رابط متجرك فقط. يمكنك المتابعة بأمان بالضغط على "تثبيت على أي حال".'
+          : lang === 'fr'
+          ? `Cet avertissement est normal pour toute application non publiée sur Google Play. L'application que vous avez créée contient uniquement l'URL de votre boutique. Vous pouvez continuer en toute sécurité en appuyant sur "Installer quand même".`
+          : 'This warning is normal for any app not yet published on Google Play. The app you built contains only your store URL. You can safely proceed by tapping "Install anyway".',
+    },
+    {
+      q:
+        lang === 'ar'
+          ? 'كيف أنشر التطبيق على Google Play؟'
+          : lang === 'fr'
+          ? `Comment publier l'application sur Google Play ?`
+          : 'How do I publish the app on Google Play?',
+      a:
+        lang === 'ar'
+          ? 'ستحتاج إلى حساب مطور على Google Play (رسوم لمرة واحدة 25 دولار). بعد ذلك، ارفع ملف APK أو AAB عبر Google Play Console. تأكد من أن متجرك يعمل عبر HTTPS وأن الأيقونة بدقة عالية.'
+          : lang === 'fr'
+          ? `Vous aurez besoin d'un compte développeur Google Play (frais uniques de 25 $). Ensuite, téléversez le fichier APK ou AAB via Google Play Console. Assurez-vous que votre boutique fonctionne en HTTPS et que l'icône est en haute résolution.`
+          : "You'll need a Google Play developer account (one-time $25 fee). Then upload the APK or AAB file via the Google Play Console. Make sure your store runs on HTTPS and your icon is high resolution.",
+    },
+  ];
+
+  const iosFaqs = [
+    {
+      q:
+        lang === 'ar'
+          ? 'لا أجد خيار "إضافة إلى الشاشة الرئيسية" في Safari'
+          : lang === 'fr'
+          ? `Je ne trouve pas l'option "Sur l'écran d'accueil" dans Safari`
+          : "I can't find \"Add to Home Screen\" in Safari",
+      a:
+        lang === 'ar'
+          ? 'تأكد أنك تستخدم Safari وليس أي متصفح آخر. في بعض إصدارات iOS، يظهر الخيار بعد التمرير لأسفل في قائمة المشاركة. إذا لم يظهر، تأكد أن الموقع يعمل عبر HTTPS.'
+          : lang === 'fr'
+          ? `Assurez-vous d'utiliser Safari et non un autre navigateur. Sur certaines versions d'iOS, l'option apparaît après avoir fait défiler le menu de partage vers le bas. Si elle ne s'affiche pas, vérifiez que le site fonctionne en HTTPS.`
+          : "Make sure you're using Safari, not another browser. On some iOS versions, the option appears after scrolling down in the share sheet. If it still doesn't show, make sure the site runs on HTTPS.",
+    },
+    {
+      q:
+        lang === 'ar'
+          ? 'هل يعمل التطبيق بدون إنترنت على iOS؟'
+          : lang === 'fr'
+          ? `L'application fonctionne-t-elle hors ligne sur iOS ?`
+          : 'Does the app work offline on iOS?',
+      a:
+        lang === 'ar'
+          ? 'يعتمد ذلك على متجرك. إذا كان موقعك يدعم Service Workers والتخزين المؤقت، فستعمل بعض الصفحات بدون إنترنت. بشكل عام، تحتاج PWA إلى اتصال لتحميل المحتوى الديناميكي.'
+          : lang === 'fr'
+          ? `Cela dépend de votre boutique. Si votre site prend en charge les Service Workers et le cache, certaines pages fonctionneront hors ligne. En général, une PWA a besoin d'une connexion pour charger le contenu dynamique.`
+          : 'It depends on your store. If your site supports Service Workers and caching, some pages will work offline. Generally, a PWA needs a connection to load dynamic content.',
+    },
+  ];
+
+  const steps = tab === 'android' ? androidSteps : iosSteps;
+  const faqs = tab === 'android' ? androidFaqs : iosFaqs;
+
+  return (
+    <main className="theme-page flex-1 max-w-4xl mx-auto px-4 sm:px-6 py-14 space-y-14" dir={isRtl ? 'rtl' : 'ltr'}>
+
+      {/* Hero */}
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold">
+          <Smartphone className="h-3.5 w-3.5" />
+          <span>
+            {lang === 'ar'
+              ? 'دليل التثبيت'
+              : lang === 'fr'
+              ? `Guide d'installation`
+              : 'Installation Guide'}
+          </span>
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          {lang === 'ar'
+            ? 'كيف تثبّت تطبيقك بعد التنزيل؟'
+            : lang === 'fr'
+            ? 'Comment installer votre application après le téléchargement ?'
+            : 'How to install your app after downloading'}
+        </h1>
+        <p className="max-w-2xl mx-auto text-slate-400 text-sm leading-relaxed">
+          {lang === 'ar'
+            ? 'بعد اكتمال بناء تطبيقك عبر Appifya، اتبع الخطوات أدناه حسب نظام التشغيل المستهدف.'
+            : lang === 'fr'
+            ? `Une fois la compilation de votre application Appifya terminée, suivez les étapes ci-dessous selon le système d'exploitation cible.`
+            : 'Once your Appifya build is complete, follow the steps below for your target platform.'}
+        </p>
+      </div>
+
+      {/* Platform tabs */}
+      <div className="flex gap-3 justify-center">
+        <button
+          type="button"
+          onClick={() => setTab('android')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold border transition-all ${
+            tab === 'android'
+              ? 'bg-indigo-500/15 border-indigo-500/60 text-white shadow-sm ring-1 ring-indigo-500/20'
+              : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          {/* Android robot icon */}
+          <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+            <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48A5.84 5.84 0 0 0 12 1.5c-.96 0-1.86.23-2.66.63L7.85.63c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31A5.983 5.983 0 0 0 6 8h12a5.983 5.983 0 0 0-2.47-5.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z" />
+          </svg>
+          Android APK
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab('ios')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold border transition-all ${
+            tab === 'ios'
+              ? 'bg-indigo-500/15 border-indigo-500/60 text-white shadow-sm ring-1 ring-indigo-500/20'
+              : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+          }`}
+        >
+          {/* Apple icon */}
+          <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+          </svg>
+          iOS PWA
+        </button>
+      </div>
+
+      {/* Steps */}
+      <section aria-label={tab === 'android' ? 'Android installation steps' : 'iOS PWA steps'}>
+        <div className="space-y-4">
+          {steps.map((step) => (
+            <StepCard key={step.number} {...step} />
+          ))}
+        </div>
+      </section>
+
+      {/* Info banner */}
+      <div className={`flex items-start gap-3 p-4 rounded-2xl border text-sm leading-6 ${
+        tab === 'android'
+          ? 'bg-amber-500/5 border-amber-500/20 text-amber-300'
+          : 'bg-indigo-500/5 border-indigo-500/20 text-indigo-300'
+      }`}>
+        {tab === 'android' ? (
+          <ShieldCheck className="h-5 w-5 shrink-0 mt-0.5" />
+        ) : (
+          <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
+        )}
+        <p>
+          {tab === 'android'
+            ? lang === 'ar'
+              ? 'نصيحة: بعد التثبيت، يمكنك إعادة تعطيل خيار "تثبيت تطبيقات غير معروفة" في الإعدادات لحماية جهازك.'
+              : lang === 'fr'
+              ? `Conseil : après l'installation, vous pouvez désactiver à nouveau l'option "Installer des apps inconnues" dans les paramètres pour protéger votre appareil.`
+              : 'Tip: after installing, you can disable "Install unknown apps" again in settings to keep your device protected.'
+            : lang === 'ar'
+            ? 'ملاحظة: تطبيقات PWA على iOS لا تدعم الإشعارات الفورية حالياً إلا في iOS 16.4 والإصدارات الأحدث بعد إضافة التطبيق للشاشة الرئيسية.'
+            : lang === 'fr'
+            ? `Remarque : les PWA sur iOS ne prennent pas en charge les notifications push sur les versions antérieures à iOS 16.4. Après l'ajout à l'écran d'accueil, les notifications sont disponibles dès iOS 16.4.`
+            : "Note: PWAs on iOS don't support push notifications before iOS 16.4. After adding to the home screen, notifications are available from iOS 16.4 onward."}
+        </p>
+      </div>
+
+      {/* Troubleshooting */}
+      <section aria-labelledby="troubleshooting-title">
+        <div className="mb-6 flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />
+          <h2 id="troubleshooting-title" className="text-lg font-bold text-white">
+            {lang === 'ar'
+              ? 'حل المشكلات الشائعة'
+              : lang === 'fr'
+              ? 'Résolution des problèmes courants'
+              : 'Troubleshooting common issues'}
+          </h2>
+        </div>
+        <div className="space-y-3">
+          {faqs.map((faq) => (
+            <Accordion key={faq.q} question={faq.q} answer={faq.a} />
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <div className="bg-gradient-to-r from-indigo-950/40 via-zinc-900/60 to-violet-950/30 border border-zinc-800 rounded-3xl p-8 text-center space-y-4 shadow-xl">
+        <h2 className="text-xl font-bold text-white">
+          {lang === 'ar'
+            ? 'هل أنجزت التثبيت بنجاح؟'
+            : lang === 'fr'
+            ? 'Installation réussie ?'
+            : 'Installation complete?'}
+        </h2>
+        <p className="text-sm text-slate-400 max-w-md mx-auto">
+          {lang === 'ar'
+            ? 'عُد إلى لوحة التحكم لإدارة تطبيقاتك أو لبناء تطبيق جديد.'
+            : lang === 'fr'
+            ? 'Retournez au tableau de bord pour gérer vos applications ou en créer une nouvelle.'
+            : 'Head back to your dashboard to manage your apps or start building a new one.'}
+        </p>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/25 ring-1 ring-white/10 hover:opacity-90 transition-all"
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            {lang === 'ar'
+              ? 'لوحة التحكم'
+              : lang === 'fr'
+              ? 'Tableau de bord'
+              : 'Go to Dashboard'}
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 px-6 py-3 border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-sm rounded-xl hover:bg-slate-800 transition-colors"
+          >
+            {lang === 'ar'
+              ? 'إنشاء تطبيق جديد'
+              : lang === 'fr'
+              ? 'Créer une nouvelle app'
+              : 'Create a new app'}
+          </Link>
+        </div>
+      </div>
+
+    </main>
+  );
+}

@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 import PlayDataSafetyClient from './PlayDataSafetyClient';
 
 export const metadata: Metadata = {
-  title: 'Google Play Data Safety & Privacy Policy Generator - Free App Compliance Tool',
+  title: 'Play Store Data Safety Generator',
   description:
-    'Generate exact, step-by-step answers for the Google Play Console Data Safety questionnaire and create a matching privacy policy for AdMob, Firebase, OneSignal, and custom SDKs. 100% free.',
+    'Generate exact answers for the Google Play Data Safety questionnaire and create compliant privacy policies for AdMob, Firebase, and SDKs.',
   keywords: [
     'google play data safety generator',
     'play console data safety form',
@@ -19,17 +19,11 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://appifya.app/tools/play-data-safety',
-    languages: {
-      ar: 'https://appifya.app/tools/play-data-safety',
-      en: 'https://appifya.app/tools/play-data-safety',
-      fr: 'https://appifya.app/tools/play-data-safety',
-      'x-default': 'https://appifya.app/tools/play-data-safety',
-    },
   },
   openGraph: {
     type: 'website',
     url: 'https://appifya.app/tools/play-data-safety',
-    title: 'Google Play Data Safety & Privacy Form Generator - Appifya',
+    title: 'Google Play Data Safety & Policy Generator | Appifya',
     description:
       'Avoid Google Play app rejections. Generate accurate Data Safety questionnaire responses and compliant privacy policies based on your SDKs.',
     siteName: 'Appifya',
@@ -44,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Google Play Data Safety & Privacy Form Generator',
+    title: 'Google Play Data Safety & Policy Generator | Appifya',
     description:
       'Step-by-step answers for Google Play Console Data Safety section and tailored privacy policy.',
     images: ['/logo.jpg.jpeg'],

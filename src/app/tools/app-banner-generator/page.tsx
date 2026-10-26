@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import AppBannerGeneratorClient from './AppBannerGeneratorClient';
 
 export const metadata: Metadata = {
-  title: 'Smart App Banner Code Generator - Free Google Play Banner for Websites',
+  title: 'Smart App Banner Generator',
   description:
-    'Generate an elegant, lightweight, zero-dependency Smart App Banner for Android & Google Play. Boost app downloads directly from your website visitors. 100% free with live preview.',
+    'Generate lightweight Smart App Banners for Android and Google Play. Boost mobile app installs directly from your website visitors with zero bloat.',
   keywords: [
     'smart app banner generator',
     'google play smart banner',
@@ -19,17 +19,11 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://appifya.app/tools/app-banner-generator',
-    languages: {
-      ar: 'https://appifya.app/tools/app-banner-generator',
-      en: 'https://appifya.app/tools/app-banner-generator',
-      fr: 'https://appifya.app/tools/app-banner-generator',
-      'x-default': 'https://appifya.app/tools/app-banner-generator',
-    },
   },
   openGraph: {
     type: 'website',
     url: 'https://appifya.app/tools/app-banner-generator',
-    title: 'Smart App Banner Code Generator - Appifya',
+    title: 'Smart App Banner Code Generator | Appifya',
     description:
       'Generate a sleek, customizable Smart App Banner for Google Play. Lightweight, pure JS/HTML, zero dependencies.',
     siteName: 'Appifya',
@@ -44,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Smart App Banner Code Generator - Free Google Play Banner',
+    title: 'Smart App Banner Code Generator | Appifya',
     description:
       'Create an elegant, responsive banner promoting your Google Play app on your website.',
     images: ['/logo.jpg.jpeg'],

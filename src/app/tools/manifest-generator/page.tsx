@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import ManifestGeneratorClient from './ManifestGeneratorClient';
 
 export const metadata: Metadata = {
-  title: 'Free PWA Manifest Generator - Create manifest.json Online',
+  title: 'Free PWA Manifest Generator',
   description:
-    'Generate a complete, standard-compliant Web App Manifest (manifest.json) for your Progressive Web App. Live preview, icon upload, and one-click download. 100% free.',
+    'Generate a complete, standard-compliant Web App Manifest (manifest.json) for your Progressive Web App. Live preview and instant free download.',
   keywords: [
     'PWA manifest generator',
     'manifest.json generator',
@@ -19,17 +19,11 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://appifya.app/tools/manifest-generator',
-    languages: {
-      ar: 'https://appifya.app/tools/manifest-generator',
-      en: 'https://appifya.app/tools/manifest-generator',
-      fr: 'https://appifya.app/tools/manifest-generator',
-      'x-default': 'https://appifya.app/tools/manifest-generator',
-    },
   },
   openGraph: {
     type: 'website',
     url: 'https://appifya.app/tools/manifest-generator',
-    title: 'Free PWA Manifest Generator - Create manifest.json Online',
+    title: 'Free PWA Manifest Generator | Appifya',
     description:
       'Generate a complete, standard-compliant Web App Manifest (manifest.json) for your Progressive Web App. Live preview, icon upload, and one-click download.',
     siteName: 'Appifya',
@@ -44,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Free PWA Manifest Generator - Create manifest.json Online',
+    title: 'Free PWA Manifest Generator | Appifya',
     description:
       'Generate a complete, standard-compliant Web App Manifest (manifest.json) for your Progressive Web App.',
     images: ['/logo.jpg.jpeg'],

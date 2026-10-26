@@ -7,11 +7,11 @@ import { Analytics } from "@vercel/analytics/next";
 export const metadata: Metadata = {
   metadataBase: new URL("https://appifya.app"),
   title: {
-    default: "Appifya - Convert Your Store or Landing Page into a Fast Mobile PWA",
+    default: "Appifya - Convert Store or Website to Fast Mobile PWA",
     template: "%s | Appifya",
   },
   description:
-    "Appifya helps store owners and creators turn a website or online store into an installable PWA and Android APK with a simple, transparent workflow.",
+    "Convert your website or online store into an installable mobile PWA and Android APK. Fast workflow, custom branding, and built-in monetization with Appifya.",
   keywords: [
     "PWA Builder",
     "Convert store to app",
@@ -30,12 +30,6 @@ export const metadata: Metadata = {
   creator: "Appifya",
   alternates: {
     canonical: "https://appifya.app",
-    languages: {
-      ar: "https://appifya.app",
-      en: "https://appifya.app",
-      fr: "https://appifya.app",
-      "x-default": "https://appifya.app",
-    },
   },
   openGraph: {
     type: "website",
@@ -65,6 +59,13 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
   icons: {
     icon: "/icon.svg",

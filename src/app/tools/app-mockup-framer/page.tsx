@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import AppMockupFramerClient from './AppMockupFramerClient';
 
 export const metadata: Metadata = {
-  title: 'Free App Store & Google Play Screenshot Mockup Framer - Appifya',
+  title: 'App Store Screenshot Mockup Framer',
   description:
-    'Design modern, compliant Google Play & App Store screenshots with modern device frames (Pixel, iPhone), custom gradient backgrounds, marketing headlines, and one-click ZIP export. 100% free.',
+    'Create high-converting App Store and Google Play screenshots with device frames, gradient backgrounds, custom headlines, and one-click ZIP export.',
   keywords: [
     'app store screenshot generator',
     'google play screenshot framer',
@@ -18,17 +18,11 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://appifya.app/tools/app-mockup-framer',
-    languages: {
-      ar: 'https://appifya.app/tools/app-mockup-framer',
-      en: 'https://appifya.app/tools/app-mockup-framer',
-      fr: 'https://appifya.app/tools/app-mockup-framer',
-      'x-default': 'https://appifya.app/tools/app-mockup-framer',
-    },
   },
   openGraph: {
     type: 'website',
     url: 'https://appifya.app/tools/app-mockup-framer',
-    title: 'App Store Screenshots & Mockup Framer - Appifya',
+    title: 'App Store Screenshots & Mockup Framer | Appifya',
     description:
       'Turn raw app screenshots into high-converting Google Play & App Store promotional graphics. Free ZIP export.',
     siteName: 'Appifya',
@@ -43,7 +37,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'App Store & Google Play Screenshot Mockup Framer',
+    title: 'App Store & Play Store Screenshot Mockup Framer | Appifya',
     description:
       'Generate pixel-perfect app store promotional screenshots with device frames and gradient backgrounds.',
     images: ['/logo.jpg.jpeg'],

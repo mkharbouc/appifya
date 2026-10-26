@@ -260,6 +260,7 @@ export default function PlayDataSafetyClient() {
   const [currentDate, setCurrentDate] = useState('2026-10-24');
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentDate(new Date().toISOString().split('T')[0]);
   }, []);
 

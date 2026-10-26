@@ -4,9 +4,9 @@ import { ArrowRight, Sparkles, Wrench } from 'lucide-react';
 import ToolsListClient from './ToolsListClient';
 
 export const metadata: Metadata = {
-  title: 'Free PWA Developer Tools - Manifest Generator, Icon Generator & More',
+  title: 'Free PWA Developer Tools',
   description:
-    'A growing suite of free tools for Progressive Web App developers: manifest.json generator, app icon generator, PWA readiness checker, and more. No sign-up required.',
+    'Suite of free Progressive Web App developer tools: manifest generator, icon resizer, QR generator, assetlinks validator, and APK auditor.',
   keywords: [
     'PWA tools',
     'free PWA developer tools',
@@ -21,17 +21,11 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://appifya.app/tools',
-    languages: {
-      ar: 'https://appifya.app/tools',
-      en: 'https://appifya.app/tools',
-      fr: 'https://appifya.app/tools',
-      'x-default': 'https://appifya.app/tools',
-    },
   },
   openGraph: {
     type: 'website',
     url: 'https://appifya.app/tools',
-    title: 'Free PWA Developer Tools - Appifya',
+    title: 'Free PWA Developer Tools & Utilities | Appifya',
     description:
       'Manifest generator, icon generator, PWA readiness checker and more — all free, no sign-up required.',
     siteName: 'Appifya',
@@ -39,7 +33,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Free PWA Developer Tools - Appifya',
+    title: 'Free PWA Developer Tools & Utilities | Appifya',
     description: 'Manifest generator, icon generator, PWA readiness checker and more. Free, no sign-up.',
     images: ['/logo.jpg.jpeg'],
   },

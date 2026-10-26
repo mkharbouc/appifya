@@ -7,7 +7,7 @@ import type { NextRequest } from 'next/server';
  * and responds immediately with 404 without rendering any React tree, layout, or calling server components.
  * This saves Vercel free tier resources (Serverless Function invocations and execution time).
  */
-export function proxy(request: NextRequest) {
+export function proxy(_request: NextRequest) {
   return new NextResponse('Not Found', {
     status: 404,
     headers: {

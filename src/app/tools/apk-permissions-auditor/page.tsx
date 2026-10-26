@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 import ApkAuditorClient from './ApkAuditorClient';
 
 export const metadata: Metadata = {
-  title: 'Android AAB / APK Permissions & SDK Auditor - Google Play 2026 Compliance Tool',
+  title: 'APK & AAB Permissions Auditor',
   description:
-    'Free local, in-browser Android APK and AAB permissions auditor. Detect hidden third-party SDKs, high-risk permissions (QUERY_ALL_PACKAGES, location, camera), and generate tools:node="remove" manifest snippets.',
+    'Free in-browser APK and AAB permissions auditor. Detect hidden SDKs, sensitive permissions, and export Google Play compliant manifest fixes.',
   keywords: [
     'apk permissions auditor',
     'aab permissions checker',
@@ -19,19 +19,13 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://appifya.app/tools/apk-permissions-auditor',
-    languages: {
-      ar: 'https://appifya.app/tools/apk-permissions-auditor',
-      en: 'https://appifya.app/tools/apk-permissions-auditor',
-      fr: 'https://appifya.app/tools/apk-permissions-auditor',
-      'x-default': 'https://appifya.app/tools/apk-permissions-auditor',
-    },
   },
   openGraph: {
     type: 'website',
     url: 'https://appifya.app/tools/apk-permissions-auditor',
-    title: 'AAB / APK Permissions & SDK Auditor - Appifya',
+    title: 'APK & AAB Permissions Auditor | Appifya',
     description:
-      'Inspect APK and AAB manifests directly in your browser. Spot policy-violating SDKs, assess risk levels, and export removal snippets.',
+      'Inspect APK and AAB manifests in your browser. Spot policy-violating SDKs, assess risk levels, and export removal snippets.',
     siteName: 'Appifya',
     images: [
       {
@@ -44,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Android AAB / APK Permissions & SDK Auditor',
+    title: 'APK & AAB Permissions Auditor | Appifya',
     description:
       'Free in-browser tool to audit Android permissions and detected SDKs for Google Play Store compliance.',
     images: ['/logo.jpg.jpeg'],

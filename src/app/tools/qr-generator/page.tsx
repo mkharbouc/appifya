@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import QrGeneratorClient from './QrGeneratorClient';
 
 export const metadata: Metadata = {
-  title: 'Free App QR Code Generator with Custom Logo & Brand Colors - Appifya',
+  title: 'Free App QR Code Generator',
   description:
-    'Generate high-resolution QR codes for your PWA, mobile app, store, or website. Upload your app icon logo, customize brand colors, add scan-to-install frames, and download print-ready PNG & vector SVG. 100% free with no sign-up.',
+    'Create high-resolution QR codes for your mobile PWA, store, or website. Customize colors, add your app logo, and export print-ready PNG and SVG.',
   keywords: [
     'app QR code generator',
     'PWA QR code',
@@ -22,17 +22,11 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://appifya.app/tools/qr-generator',
-    languages: {
-      ar: 'https://appifya.app/tools/qr-generator',
-      en: 'https://appifya.app/tools/qr-generator',
-      fr: 'https://appifya.app/tools/qr-generator',
-      'x-default': 'https://appifya.app/tools/qr-generator',
-    },
   },
   openGraph: {
     type: 'website',
     url: 'https://appifya.app/tools/qr-generator',
-    title: 'Free App QR Code Generator with Custom Logo & Colors - Appifya',
+    title: 'Free App QR Code Generator with Custom Logo | Appifya',
     description:
       'Create custom, high-resolution QR codes for your PWA or mobile app. Embed your center logo, customize brand colors, add frames, and download vector SVG and print-ready PNG.',
     siteName: 'Appifya',
@@ -47,7 +41,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Free App QR Code Generator with Custom Logo & Colors - Appifya',
+    title: 'Free App QR Code Generator with Custom Logo | Appifya',
     description:
       'Generate customized QR codes for your app with center logo and brand colors. Download print-ready PNG & vector SVG. 100% free.',
     images: ['/logo.jpg.jpeg'],

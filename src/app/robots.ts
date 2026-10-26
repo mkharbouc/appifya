@@ -12,6 +12,7 @@ export default function robots(): MetadataRoute.Robots {
           '/dashboard',
           '/app/',
           '/view/',
+          '/verify-email',
           '/api/',
           '/auth/',
           '/_next/',
@@ -41,5 +42,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
+    host: siteUrl,
   };
 }

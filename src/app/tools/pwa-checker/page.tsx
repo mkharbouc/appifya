@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import PwaCheckerClient from './PwaCheckerClient';
 
 export const metadata: Metadata = {
-  title: 'Free PWA Readiness Checker - Test Your Site in Seconds',
+  title: 'Free PWA Readiness Checker',
   description:
-    'Instantly check if your website is ready to become a Progressive Web App. Tests HTTPS, manifest.json, service worker, viewport meta, theme color, and more. Free, no sign-up.',
+    'Check if your website is ready to become an installable PWA. Tests HTTPS, manifest.json, service worker, viewport, and theme colors instantly.',
   keywords: [
     'PWA readiness checker',
     'PWA checker',
@@ -21,17 +21,11 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://appifya.app/tools/pwa-checker',
-    languages: {
-      ar: 'https://appifya.app/tools/pwa-checker',
-      en: 'https://appifya.app/tools/pwa-checker',
-      fr: 'https://appifya.app/tools/pwa-checker',
-      'x-default': 'https://appifya.app/tools/pwa-checker',
-    },
   },
   openGraph: {
     type: 'website',
     url: 'https://appifya.app/tools/pwa-checker',
-    title: 'Free PWA Readiness Checker - Test Your Site in Seconds',
+    title: 'Free PWA Readiness Checker | Appifya',
     description:
       'Paste your URL and instantly see how PWA-ready your site is: HTTPS, manifest, service worker, viewport, theme color, and more.',
     siteName: 'Appifya',
@@ -39,8 +33,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Free PWA Readiness Checker - Test Your Site in Seconds',
-    description: 'Paste your URL and see exactly what\'s blocking your site from becoming a PWA. Free, instant results.',
+    title: 'Free PWA Readiness Checker | Appifya',
+    description: 'Paste your URL and see exactly what is blocking your site from becoming a PWA. Free, instant results.',
     images: ['/logo.jpg.jpeg'],
   },
 };
