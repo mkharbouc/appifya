@@ -97,6 +97,13 @@ const jsonLd = {
     },
     {
       '@type': 'WebApplication',
+      name: 'Push Notification Payload Builder & Tester',
+      url: 'https://www.appifya.app/tools/push-notification-tester',
+      applicationCategory: 'DeveloperApplication',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
+    {
+      '@type': 'WebApplication',
       name: 'Android AAB / APK Permissions & SDK Auditor',
       url: 'https://www.appifya.app/tools/apk-permissions-auditor',
       applicationCategory: 'DeveloperApplication',

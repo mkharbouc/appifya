@@ -13,6 +13,7 @@ import {
   KeyRound,
   ShieldCheck,
   ShieldAlert,
+  BellRing,
 } from 'lucide-react';
 
 interface Tool {
@@ -27,6 +28,24 @@ interface Tool {
 }
 
 const TOOLS: Tool[] = [
+  {
+    href: '/tools/push-notification-tester',
+    icon: BellRing,
+    iconColor: 'text-amber-400',
+    iconBg: 'bg-amber-500/15 border-amber-500/25',
+    badge: 'New',
+    title: {
+      ar: 'صانع ومختبر الإشعارات (Push Notification Tester)',
+      en: 'Push Notification Payload Builder & Tester',
+      fr: 'Générateur & Testeur de Notifications Push',
+    },
+    description: {
+      ar: 'صمم واختبر إشعاراتك بصرياً على شاشة قفل أندرويد الحقيقية مع توليد فوري لحمولة FCM HTTP v1 و Web Push واختبار مباشر بمتصفحك.',
+      en: 'Design, preview, and test push alerts visually on a real Android lock screen with instant FCM v1, Web Push, and cURL export.',
+      fr: 'Concevez et prévisualisez vos notifications sur écran de verrouillage Android avec export direct FCM v1, Web Push et test navigateur.',
+    },
+    cta: { ar: 'فتح مختبر الإشعارات', en: 'Open Push Tester', fr: 'Ouvrir le testeur' },
+  },
   {
     href: '/tools/apk-permissions-auditor',
     icon: ShieldAlert,

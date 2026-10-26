@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { route: '/tools', lastModified: '2026-10-25', changeFrequency: 'weekly', priority: 0.9 },
     { route: '/guide', lastModified: '2026-10-24', changeFrequency: 'monthly', priority: 0.8 },
     { route: '/admob', lastModified: '2026-10-24', changeFrequency: 'monthly', priority: 0.8 },
+    { route: '/tools/push-notification-tester', lastModified: '2026-10-26', changeFrequency: 'weekly', priority: 0.8 },
     { route: '/tools/apk-permissions-auditor', lastModified: '2026-10-25', changeFrequency: 'weekly', priority: 0.8 },
     { route: '/tools/app-mockup-framer', lastModified: '2026-10-25', changeFrequency: 'weekly', priority: 0.8 },
     { route: '/tools/play-data-safety', lastModified: '2026-10-25', changeFrequency: 'weekly', priority: 0.8 },
