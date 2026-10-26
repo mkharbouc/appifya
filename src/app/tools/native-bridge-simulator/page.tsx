@@ -5,7 +5,7 @@ import NativeBridgeClient from './NativeBridgeClient';
 export const metadata: Metadata = {
   title: 'Native-Bridge Simulator (JS-to-Android Hardware API Tester)',
   description:
-    'Interactive web playground to test and simulate mobile hardware JavaScript APIs: Haptics Vibration, Screen Wake Lock, Native Share, Orientation Lock, Camera, Battery, and Badging with zero-crash safe wrappers.',
+    'Test Android & PWA hardware APIs: Haptics, Screen Wake Lock, Native Share, and Orientation with live device simulation & safe zero-crash code.',
   keywords: [
     'native bridge simulator',
     'js to android bridge tester',
