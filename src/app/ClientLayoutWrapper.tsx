@@ -9,6 +9,7 @@ import {
   Globe, Sparkles, LayoutDashboard, LogOut, User, Moon, Sun,
   FileCode, ChevronDown, ImageIcon, Gauge, QrCode, Home, Info, BookOpen,
   DollarSign, Mail, ShieldCheck, FileText, PanelLeftClose, PanelLeftOpen, Wrench, X, Smartphone, KeyRound,
+  ShieldAlert,
 } from "lucide-react";
 
 // ─── Logo ──────────────────────────────────────────────────────────────────────
@@ -44,6 +45,7 @@ const NAV_ITEMS: NavItem[] = [
     labelEn: 'Tools',
     icon: <Wrench className="h-4 w-4" />,
     children: [
+      { href: '/tools/apk-permissions-auditor', labelAr: 'فاحص أذونات APK & SDKs', labelFr: 'Auditeur Permissions APK & SDK', labelEn: 'APK & SDK Auditor', icon: <ShieldAlert className="h-3.5 w-3.5 text-rose-400" />, descAr: 'فحص أذونات ومكاتب APK/AAB لـ Google Play', descFr: 'Audit permissions et SDKs APK/AAB', descEn: 'Audit APK/AAB permissions & SDKs' },
       { href: '/tools/play-data-safety', labelAr: 'سلامة البيانات Google Play', labelFr: 'Sécurité des données Play', labelEn: 'Play Data Safety', icon: <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />, descAr: 'استبيان سلامة البيانات وسياسة الخصوصية', descFr: 'Sécurité des données & politique de confidentialité', descEn: 'Data Safety questionnaire & privacy policy' },
       { href: '/tools/app-mockup-framer', labelAr: 'مصمم سكرين شوت المتجر', labelFr: 'Mockup Framer (Screenshots)', labelEn: 'App Mockup Framer', icon: <Smartphone className="h-3.5 w-3.5 text-violet-400" />, descAr: 'سكرين شوت المتجر بإطارات الأجهزة', descFr: 'Captures d\'écran de store avec cadres', descEn: 'Store screenshots with device frames' },
       { href: '/tools/assetlinks-generator', labelAr: 'مولد Asset Links (TWA)', labelFr: 'Générateur Asset Links', labelEn: 'Asset Links Generator', icon: <KeyRound className="h-3.5 w-3.5 text-cyan-400" />, descAr: 'ملف assetlinks.json لروابط التطبيق', descFr: 'assetlinks.json pour App Links & TWA', descEn: 'assetlinks.json for App Links & TWA' },
@@ -335,9 +337,24 @@ function SidebarNav({ onClose }: { onClose?: () => void }) {
               className="sidebar-nav-link flex-1 flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-slate-200 hover:text-white transition-colors min-w-0"
               title={!expanded && !isMobileDrawer ? (user.name || user.email.split('@')[0]) : undefined}
             >
-              <User className="h-4 w-4 shrink-0 text-indigo-400" />
+              <div className="relative shrink-0">
+                <User className="h-4 w-4 text-indigo-400" />
+                {!user.emailVerification && (
+                  <span
+                    className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-slate-900"
+                    title={lang === 'ar' ? 'البريد غير مفعّل' : 'Email not verified'}
+                  />
+                )}
+              </div>
               {(expanded || isMobileDrawer) && (
-                <span className="truncate text-xs font-medium">{user.name || user.email.split('@')[0]}</span>
+                <div className="flex items-center gap-1.5 truncate">
+                  <span className="truncate text-xs font-medium">{user.name || user.email.split('@')[0]}</span>
+                  {!user.emailVerification && (
+                    <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
+                      {lang === 'ar' ? 'غير مفعّل' : 'Unverified'}
+                    </span>
+                  )}
+                </div>
               )}
             </Link>
             <button
@@ -421,6 +438,7 @@ function SiteFooter() {
         <Link href="/tools/icon-generator" className="hover:text-white">{lang === 'ar' ? 'مولد الأيقونات' : lang === 'fr' ? 'Générateur d\'icônes' : 'Icon Generator'}</Link>
         <Link href="/tools/qr-generator" className="hover:text-white">{lang === 'ar' ? 'مولد رمز QR' : lang === 'fr' ? 'Générateur QR' : 'QR Generator'}</Link>
         <Link href="/tools/app-mockup-framer" className="hover:text-white">{lang === 'ar' ? 'مصمم سكرين شوت المتجر' : lang === 'fr' ? 'Mockup Framer' : 'Mockup Framer'}</Link>
+        <Link href="/tools/apk-permissions-auditor" className="hover:text-white">{lang === 'ar' ? 'فاحص أذونات APK & SDKs' : lang === 'fr' ? 'Auditeur Permissions APK' : 'APK & SDK Auditor'}</Link>
         <Link href="/tools/play-data-safety" className="hover:text-white">{lang === 'ar' ? 'سلامة البيانات Google Play' : lang === 'fr' ? 'Sécurité des données' : 'Play Data Safety'}</Link>
         <Link href="/tools/assetlinks-generator" className="hover:text-white">{lang === 'ar' ? 'مولد Asset Links' : lang === 'fr' ? 'Générateur Asset Links' : 'Asset Links Generator'}</Link>
         <Link href="/tools/app-banner-generator" className="hover:text-white">{lang === 'ar' ? 'شريط التطبيق الذكي (Smart Banner)' : lang === 'fr' ? 'Smart App Banner' : 'Smart App Banner'}</Link>
