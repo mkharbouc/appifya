@@ -1242,6 +1242,288 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── Wall of Trust & Comparison Section: Appifya vs. Manual Android Studio ── */}
+      <section id="comparison" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800/80">
+        
+        {/* Header */}
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3.5 py-1 text-xs font-bold text-indigo-300 mb-4">
+            <Zap className="h-3.5 w-3.5 text-indigo-400" />
+            <span>{lang === 'ar' ? 'مقارنة الحلول الذكية' : lang === 'fr' ? 'Comparatif Intelligent' : 'Smart Comparison'}</span>
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+            {lang === 'ar' ? (
+              <>
+                لماذا <span className="bg-gradient-to-r from-indigo-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent">Appifya</span> بدلاً من Android Studio اليدوي؟
+              </>
+            ) : lang === 'fr' ? (
+              <>
+                Pourquoi <span className="bg-gradient-to-r from-indigo-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent">Appifya</span> plutôt qu'Android Studio manuel ?
+              </>
+            ) : (
+              <>
+                Why <span className="bg-gradient-to-r from-indigo-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent">Appifya</span> over Manual Android Studio?
+              </>
+            )}
+          </h2>
+          <p className="mt-4 text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            {lang === 'ar'
+              ? 'وفّر ساعات من الإعداد التقني المعقد ومشاكل Gradle وSDK. إليك الفارق الحقيقي بين البناء السحابي الذكي والطريقة التقليدية.'
+              : lang === 'fr'
+              ? 'Économisez des heures de configuration complexe, d’erreurs Gradle et de SDK. Découvrez la vraie différence.'
+              : 'Save hours of complex tooling, Gradle dependency errors, and heavy installs. Here is the real difference between cloud automation and manual development.'}
+          </p>
+        </div>
+
+        {/* Wall of Trust Key Metrics */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-14">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 text-center">
+            <div className="text-2xl sm:text-3xl font-extrabold text-indigo-400 mb-1">~2 min</div>
+            <div className="text-xs font-semibold text-slate-200 mb-0.5">{lang === 'ar' ? 'وقت البناء السحابي' : lang === 'fr' ? 'Temps de build' : 'Cloud Build Time'}</div>
+            <div className="text-[11px] text-slate-500">{lang === 'ar' ? 'بدلاً من أيام من التطوير' : lang === 'fr' ? 'Au lieu de plusieurs jours' : 'Instead of days of setup'}</div>
+          </div>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 text-center">
+            <div className="text-2xl sm:text-3xl font-extrabold text-cyan-400 mb-1">0 GB</div>
+            <div className="text-xs font-semibold text-slate-200 mb-0.5">{lang === 'ar' ? 'مساحة تخزين مطلوبة' : lang === 'fr' ? 'Espace disque local' : 'Local Disk Space'}</div>
+            <div className="text-[11px] text-slate-500">{lang === 'ar' ? 'يعمل سحابياً 100%' : lang === 'fr' ? '100% dans le cloud' : '100% in the cloud'}</div>
+          </div>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 text-center">
+            <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400 mb-1">100%</div>
+            <div className="text-xs font-semibold text-slate-200 mb-0.5">{lang === 'ar' ? 'جاهزية Google Play' : lang === 'fr' ? 'Conforme Google Play' : 'Play Store Compliant'}</div>
+            <div className="text-[11px] text-slate-500">{lang === 'ar' ? 'حزم AAB و APK موثقة' : lang === 'fr' ? 'Packages signés AAB/APK' : 'Signed AAB & APK bundles'}</div>
+          </div>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 text-center">
+            <div className="text-2xl sm:text-3xl font-extrabold text-violet-400 mb-1">12+</div>
+            <div className="text-xs font-semibold text-slate-200 mb-0.5">{lang === 'ar' ? 'أداة تدقيق مدمجة' : lang === 'fr' ? 'Outils de diagnostic' : 'Integrated Audit Tools'}</div>
+            <div className="text-[11px] text-slate-500">{lang === 'ar' ? 'فحص الأذونات والسلامة' : lang === 'fr' ? 'Audit des permissions' : 'Permission & safety audits'}</div>
+          </div>
+        </div>
+
+        {/* Side-by-Side Comparison Table */}
+        <div className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/40 backdrop-blur-md shadow-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-slate-800/80">
+            
+            {/* Column 1: Manual Android Studio */}
+            <div className="p-6 sm:p-8 space-y-6 bg-slate-950/40">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-800/60">
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-rose-400">
+                    {lang === 'ar' ? 'الطريقة التقليدية' : lang === 'fr' ? 'Méthode Traditionnelle' : 'Traditional Approach'}
+                  </span>
+                  <h3 className="text-lg font-bold text-white mt-1">
+                    {lang === 'ar' ? 'تطوير يدوي عبر Android Studio' : lang === 'fr' ? 'Android Studio Manuel' : 'Manual Android Studio'}
+                  </h3>
+                </div>
+                <div className="h-10 w-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                  <X className="h-5 w-5" />
+                </div>
+              </div>
+
+              <div className="space-y-5 text-xs sm:text-sm text-slate-400">
+                <div className="flex items-start gap-3">
+                  <div className="h-5 w-5 rounded-full bg-rose-500/15 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <X className="h-3 w-3" />
+                  </div>
+                  <div>
+                    <strong className="text-slate-200 block text-xs sm:text-sm">
+                      {lang === 'ar' ? 'تثبيت ضخم يستهلك مساحة جهازك' : lang === 'fr' ? 'Installation lourde (3 Go+)' : 'Heavy 3GB+ Installation'}
+                    </strong>
+                    <p className="text-[12px] text-slate-500 mt-0.5 leading-relaxed">
+                      {lang === 'ar'
+                        ? 'تثبيت Android Studio بحجم 3GB+، بالإضافة لحزم SDK، وأدوات Build Tools، ومحاكيات تستهلك أكثر من 15GB من مساحة التخزين.'
+                        : 'Requires 3GB+ IDE download, plus Android SDKs, Java JDK, and emulators eating up over 15GB of disk space.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="h-5 w-5 rounded-full bg-rose-500/15 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <X className="h-3 w-3" />
+                  </div>
+                  <div>
+                    <strong className="text-slate-200 block text-xs sm:text-sm">
+                      {lang === 'ar' ? 'أخطاء Gradle وتعارض إصدارات SDK' : lang === 'fr' ? 'Erreurs Gradle & conflits SDK' : 'Gradle Errors & SDK Conflicts'}
+                    </strong>
+                    <p className="text-[12px] text-slate-500 mt-0.5 leading-relaxed">
+                      {lang === 'ar'
+                        ? 'ساعات من البحث لحل تعارض إصدارات Gradle، وتناقضات Java JDK Mismatch، وتحديثات واجهات برمجة التطبيقات المتعطلة.'
+                        : 'Endless debugging of Gradle dependency conflicts, JDK version mismatches, and broken compile options.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="h-5 w-5 rounded-full bg-rose-500/15 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <X className="h-3 w-3" />
+                  </div>
+                  <div>
+                    <strong className="text-slate-200 block text-xs sm:text-sm">
+                      {lang === 'ar' ? 'إعداد TWA والروابط يدوياً' : lang === 'fr' ? 'Configuration TWA manuelle' : 'Manual TWA & Intent Filters'}
+                    </strong>
+                    <p className="text-[12px] text-slate-500 mt-0.5 leading-relaxed">
+                      {lang === 'ar'
+                        ? 'كتابة ملف AndroidManifest.xml، وبرمجة Trusted Web Activity يدوياً، والتحقق الشاق من ملفات assetlinks.json.'
+                        : 'Writing AndroidManifest.xml, wiring Android intent-filters, and tedious manual assetlinks.json configuration.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="h-5 w-5 rounded-full bg-rose-500/15 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <X className="h-3 w-3" />
+                  </div>
+                  <div>
+                    <strong className="text-slate-200 block text-xs sm:text-sm">
+                      {lang === 'ar' ? 'صداع التوقيع الرقمي والـ Keystore' : lang === 'fr' ? 'Gestion complexe des Keystores' : 'Complex Keystore Signing'}
+                    </strong>
+                    <p className="text-[12px] text-slate-500 mt-0.5 leading-relaxed">
+                      {lang === 'ar'
+                        ? 'إنشاء ملفات Keytool عبر التيرمينال، وحساب SHA-256 Fingerprints، ومخاطر فقدان مفتاح التطبيق للأبد.'
+                        : 'Generating keystores via command line, SHA-256 fingerprint calculations, and the risk of losing signing keys.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="h-5 w-5 rounded-full bg-rose-500/15 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <X className="h-3 w-3" />
+                  </div>
+                  <div>
+                    <strong className="text-slate-200 block text-xs sm:text-sm">
+                      {lang === 'ar' ? 'مخاطر الرفض في Google Play' : lang === 'fr' ? 'Risques de rejet Play Store' : 'High Risk of Play Store Rejection'}
+                    </strong>
+                    <p className="text-[12px] text-slate-500 mt-0.5 leading-relaxed">
+                      {lang === 'ar'
+                        ? 'عدم معرفة الأذونات الحساسة المخفية، ورفض التطبيق بسبب استبيان سلامة البيانات (Data Safety) غير الدقيق.'
+                        : 'Hidden sensitive permissions, missing privacy policy clauses, and common rejections on the Data Safety form.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 2: With Appifya Cloud */}
+            <div className="p-6 sm:p-8 space-y-6 bg-gradient-to-b from-indigo-950/30 to-violet-950/20 relative">
+              <div className="absolute top-4 end-4">
+                <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+                  {lang === 'ar' ? 'الخيار الأسرع والذكي' : lang === 'fr' ? 'Solution Recommandée' : 'Smart & Recommended'}
+                </span>
+              </div>
+
+              <div className="pb-4 border-b border-indigo-500/20">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-400">
+                  {lang === 'ar' ? 'محرك Appifya السحابي' : lang === 'fr' ? 'Moteur Cloud Appifya' : 'Appifya Cloud Engine'}
+                </span>
+                <h3 className="text-lg font-bold text-white mt-1">
+                  {lang === 'ar' ? 'أتمتة سحابية كاملة في دقائق' : lang === 'fr' ? 'Automatisation Cloud Complète' : 'Fully Automated Cloud Pipeline'}
+                </h3>
+              </div>
+
+              <div className="space-y-5 text-xs sm:text-sm text-slate-300">
+                <div className="flex items-start gap-3">
+                  <div className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className="h-3.5 w-3.5" />
+                  </div>
+                  <div>
+                    <strong className="text-white block text-xs sm:text-sm">
+                      {lang === 'ar' ? '0GB على جهازك — يعمل سحابياً بالكامل' : lang === 'fr' ? '0 Go sur votre machine (Cloud 100%)' : '0GB on Your Machine (100% Cloud)'}
+                    </strong>
+                    <p className="text-[12px] text-slate-400 mt-0.5 leading-relaxed">
+                      {lang === 'ar'
+                        ? 'لا حاجة لتنزيل أي برامج أو حزم SDK. يعمل مباشرة من متصفحك أو من خلال GitHub Actions في خط الـ CI/CD.'
+                        : 'No downloads or SDK installations needed. Runs seamlessly in your browser or automatically via GitHub Actions.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className="h-3.5 w-3.5" />
+                  </div>
+                  <div>
+                    <strong className="text-white block text-xs sm:text-sm">
+                      {lang === 'ar' ? 'بناء مؤتمت خالٍ من أخطاء Gradle' : lang === 'fr' ? 'Build automatisé sans erreurs Gradle' : 'Automated Build With Zero Gradle Hell'}
+                    </strong>
+                    <p className="text-[12px] text-slate-400 mt-0.5 leading-relaxed">
+                      {lang === 'ar'
+                        ? 'محركات سحابية مُهيأة بأحدث أدوات البناء الرسمية تضمن إنتاج حزم نظيفة بدون أي تعارض في الإصدارات.'
+                        : 'Pre-configured cloud runners with tested, verified Android toolchains guarantee clean, reproducible builds.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className="h-3.5 w-3.5" />
+                  </div>
+                  <div>
+                    <strong className="text-white block text-xs sm:text-sm">
+                      {lang === 'ar' ? 'إعداد TWA وتوليد AssetLinks تلقائياً' : lang === 'fr' ? 'TWA & AssetLinks générés automatiquement' : 'Instant TWA & AssetLinks Setup'}
+                    </strong>
+                    <p className="text-[12px] text-slate-400 mt-0.5 leading-relaxed">
+                      {lang === 'ar'
+                        ? 'توليد ملفات manifest.json و assetlinks.json وربط النطاق بالكامل مع فتح الروابط داخل التطبيق بدون شريط المتصفح.'
+                        : 'Instant manifest and assetlinks generation with full Trusted Web Activity integration and no URL bar.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className="h-3.5 w-3.5" />
+                  </div>
+                  <div>
+                    <strong className="text-white block text-xs sm:text-sm">
+                      {lang === 'ar' ? 'توقيع وتشفير معتمد لـ Google Play' : lang === 'fr' ? 'Signature conforme Google Play' : 'Play Store Ready Code Signing'}
+                    </strong>
+                    <p className="text-[12px] text-slate-400 mt-0.5 leading-relaxed">
+                      {lang === 'ar'
+                        ? 'توقيع رقمي موثوق مع شهادات تشفير جاهزة للاختبار أو الرفع الفوري لحساب مطوري Google Play Console.'
+                        : 'Automated release-ready signing and keystore management meeting Google Play App Signing requirements.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className="h-3.5 w-3.5" />
+                  </div>
+                  <div>
+                    <strong className="text-white block text-xs sm:text-sm">
+                      {lang === 'ar' ? 'فحص تلقائي للأخطاء وسلامة البيانات' : lang === 'fr' ? 'Audit automatique et sécurité Play' : 'Automated Error & Data Safety Audit'}
+                    </strong>
+                    <p className="text-[12px] text-slate-400 mt-0.5 leading-relaxed">
+                      {lang === 'ar'
+                        ? 'فاحص أذونات مدمج، مولد إجابات سلامة البيانات (Play Data Safety)، ومصمم سكرين شوت المتجر لتجاوز مراجعات Google Play بسلاسة.'
+                        : 'Built-in permissions scanner, Google Play Data Safety answer generator, and screenshot framer for fast approvals.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Bottom Action Strip */}
+          <div className="border-t border-slate-800 bg-slate-950/80 px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-xs text-slate-400 text-center sm:text-start">
+              <span className="font-semibold text-white">
+                {lang === 'ar' ? 'جاهز لتحويل متجرك أو موقعك؟' : lang === 'fr' ? 'Prêt à convertir votre site ?' : 'Ready to turn your site into an app?'}
+              </span>{' '}
+              {lang === 'ar' ? 'احصل على أول ملف APK مجاناً في دقيقتين.' : lang === 'fr' ? 'Obtenez votre premier APK gratuit en 2 min.' : 'Get your first APK free in under 2 minutes.'}
+            </div>
+            <a
+              href="#builder"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-indigo-500/25 transition-all shrink-0"
+            >
+              <span>{lang === 'ar' ? 'ابدأ البناء الآن مجاناً' : lang === 'fr' ? 'Commencer Gratuitement' : 'Start Building For Free'}</span>
+              <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
+            </a>
+          </div>
+        </div>
+
+      </section>
+
       {/* ── Transparent SaaS Pricing Table (2 Plans: Free & Pro Studio) ── */}
       <section id="pricing" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800/80">
         <div className="text-center max-w-2xl mx-auto mb-16">
