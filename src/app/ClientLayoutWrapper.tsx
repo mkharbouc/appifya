@@ -431,46 +431,100 @@ function MobileTopBar({ onMenuOpen }: { onMenuOpen: () => void }) {
 function SiteFooter() {
   const { lang, t } = useLanguage();
 
+  const footerColumns = [
+    {
+      title: lang === 'ar' ? 'المنتجات والأدوات' : lang === 'fr' ? 'Produits & Outils' : 'Product & Tools',
+      links: [
+        { href: '/tools/manifest-generator', label: lang === 'ar' ? 'مولد Manifest' : lang === 'fr' ? 'Générateur Manifest' : 'Manifest Generator' },
+        { href: '/tools/icon-generator', label: lang === 'ar' ? 'مولد الأيقونات' : lang === 'fr' ? 'Générateur d\'icônes' : 'Icon Generator' },
+        { href: '/tools/qr-generator', label: lang === 'ar' ? 'مولد رمز QR' : lang === 'fr' ? 'Générateur QR' : 'QR Code Generator' },
+        { href: '/tools/app-mockup-framer', label: lang === 'ar' ? 'مصمم سكرين شوت المتجر' : lang === 'fr' ? 'Mockup Framer' : 'App Mockup Framer' },
+      ],
+    },
+    {
+      title: lang === 'ar' ? 'المطورين والتدقيق' : lang === 'fr' ? 'Développeurs & Audit' : 'Developer & Audit',
+      links: [
+        { href: '/tools/push-notification-tester', label: lang === 'ar' ? 'مختبر الإشعارات' : lang === 'fr' ? 'Testeur Push Notifications' : 'Push Notification Tester' },
+        { href: '/tools/apk-permissions-auditor', label: lang === 'ar' ? 'فاحص أذونات APK & SDKs' : lang === 'fr' ? 'Auditeur Permissions APK' : 'APK & SDK Auditor' },
+        { href: '/tools/play-data-safety', label: lang === 'ar' ? 'سلامة البيانات Google Play' : lang === 'fr' ? 'Sécurité des données' : 'Play Data Safety' },
+        { href: '/tools/assetlinks-generator', label: lang === 'ar' ? 'مولد Asset Links (TWA)' : lang === 'fr' ? 'Générateur Asset Links' : 'Asset Links Generator' },
+        { href: '/tools/pwa-checker', label: lang === 'ar' ? 'فاحص جاهزية PWA' : lang === 'fr' ? 'Vérificateur PWA' : 'PWA Checker' },
+      ],
+    },
+    {
+      title: lang === 'ar' ? 'المصادر والأدلة' : lang === 'fr' ? 'Ressources & Guides' : 'Resources & Guides',
+      links: [
+        { href: '/guide', label: lang === 'ar' ? 'دليل التثبيت' : lang === 'fr' ? 'Guide d\'installation' : 'Install Guide' },
+        { href: '/admob', label: lang === 'ar' ? 'إعداد AdMob' : lang === 'fr' ? 'Config. AdMob' : 'AdMob Setup' },
+        { href: '/tools/app-banner-generator', label: lang === 'ar' ? 'شريط التطبيق الذكي' : lang === 'fr' ? 'Smart App Banner' : 'Smart App Banner' },
+        { href: '/tools', label: lang === 'ar' ? 'جميع الأدوات' : lang === 'fr' ? 'Tous les outils' : 'All Developer Tools' },
+      ],
+    },
+    {
+      title: lang === 'ar' ? 'الشركة والقانونية' : lang === 'fr' ? 'Entreprise & Légal' : 'Company & Legal',
+      links: [
+        { href: '/about', label: t('navAbout') },
+        { href: '/contact', label: t('navContact') },
+        { href: '/privacy', label: lang === 'ar' ? 'سياسة الخصوصية' : lang === 'fr' ? 'Confidentialité' : 'Privacy Policy' },
+        { href: '/terms', label: lang === 'ar' ? 'شروط الخدمة' : lang === 'fr' ? 'Conditions' : 'Terms of Service' },
+      ],
+    },
+  ];
+
   return (
-    <footer className="site-footer border-t border-slate-800/80 bg-slate-950/60 py-8 px-6 text-center text-xs text-slate-500 space-y-4">
-      <div className="flex flex-wrap justify-center gap-6 text-slate-400 font-medium">
-        <Link href="/" className="hover:text-white">{lang === 'ar' ? 'الرئيسية' : lang === 'fr' ? 'Accueil' : 'Home'}</Link>
-        <Link href="/about" className="hover:text-white">{t('navAbout')}</Link>
-        <Link href="/guide" className="hover:text-white">{lang === 'ar' ? 'دليل التثبيت' : lang === 'fr' ? 'Guide' : 'Install Guide'}</Link>
-        <Link href="/admob" className="hover:text-white">{lang === 'ar' ? 'إعداد AdMob' : lang === 'fr' ? 'Config. AdMob' : 'AdMob Setup'}</Link>
-        <Link href="/tools/manifest-generator" className="hover:text-white">{lang === 'ar' ? 'مولد Manifest' : lang === 'fr' ? 'Générateur Manifest' : 'Manifest Generator'}</Link>
-        <Link href="/tools/icon-generator" className="hover:text-white">{lang === 'ar' ? 'مولد الأيقونات' : lang === 'fr' ? 'Générateur d\'icônes' : 'Icon Generator'}</Link>
-        <Link href="/tools/qr-generator" className="hover:text-white">{lang === 'ar' ? 'مولد رمز QR' : lang === 'fr' ? 'Générateur QR' : 'QR Generator'}</Link>
-        <Link href="/tools/app-mockup-framer" className="hover:text-white">{lang === 'ar' ? 'مصمم سكرين شوت المتجر' : lang === 'fr' ? 'Mockup Framer' : 'Mockup Framer'}</Link>
-        <Link href="/tools/push-notification-tester" className="hover:text-white">{lang === 'ar' ? 'مختبر الإشعارات' : lang === 'fr' ? 'Push Tester' : 'Push Notification Tester'}</Link>
-        <Link href="/tools/apk-permissions-auditor" className="hover:text-white">{lang === 'ar' ? 'فاحص أذونات APK & SDKs' : lang === 'fr' ? 'Auditeur Permissions APK' : 'APK & SDK Auditor'}</Link>
-        <Link href="/tools/play-data-safety" className="hover:text-white">{lang === 'ar' ? 'سلامة البيانات Google Play' : lang === 'fr' ? 'Sécurité des données' : 'Play Data Safety'}</Link>
-        <Link href="/tools/assetlinks-generator" className="hover:text-white">{lang === 'ar' ? 'مولد Asset Links' : lang === 'fr' ? 'Générateur Asset Links' : 'Asset Links Generator'}</Link>
-        <Link href="/tools/app-banner-generator" className="hover:text-white">{lang === 'ar' ? 'شريط التطبيق الذكي (Smart Banner)' : lang === 'fr' ? 'Smart App Banner' : 'Smart App Banner'}</Link>
-        <Link href="/tools/pwa-checker" className="hover:text-white">{lang === 'ar' ? 'فاحص PWA' : lang === 'fr' ? 'Vérificateur PWA' : 'PWA Checker'}</Link>
-        <Link href="/contact" className="hover:text-white">{t('navContact')}</Link>
-        <Link href="/privacy" className="hover:text-white">{lang === 'ar' ? 'سياسة الخصوصية' : lang === 'fr' ? 'Confidentialité' : 'Privacy Policy'}</Link>
-        <Link href="/terms" className="hover:text-white">{lang === 'ar' ? 'شروط الخدمة' : lang === 'fr' ? 'Conditions' : 'Terms of Service'}</Link>
+    <footer className="site-footer border-t border-slate-800/80 bg-slate-950/80 pt-12 pb-8 px-4 sm:px-6 lg:px-8 text-xs text-slate-400">
+      <div className="max-w-7xl mx-auto">
+        {/* Columns Layout */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10 text-start">
+          {footerColumns.map((col, idx) => (
+            <div key={idx} className="space-y-3.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                {col.title}
+              </h3>
+              <ul className="space-y-2.5">
+                {col.links.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-slate-400 hover:text-white transition-colors block text-xs"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-slate-800/80 pt-8 pb-4 space-y-4 text-center">
+          {/* Centered Responsive GitHub Badge */}
+          <div className="flex justify-center px-2">
+            <a
+              href="https://github.com/marketplace/actions/appifya-pwa-mobile-app-builder"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/20 px-3.5 py-1.5 text-xs font-semibold text-violet-300 transition-all shadow-sm group hover:scale-[1.02] text-center"
+              title="Appifya on GitHub Marketplace"
+            >
+              <img
+                src="https://img.shields.io/badge/GitHub_Marketplace-Appifya_Action-blueviolet?logo=github-actions"
+                alt="GitHub Action"
+                className="h-4 pointer-events-none shrink-0"
+              />
+              <span className="text-[11px] text-slate-300 group-hover:text-white transition-colors truncate">
+                {lang === 'ar' ? 'أداة الأتمتة على GitHub Marketplace' : lang === 'fr' ? 'Action CI/CD sur GitHub Marketplace' : 'CI/CD Action on GitHub Marketplace'}
+              </span>
+            </a>
+          </div>
+
+          {/* Copyright */}
+          <p className="text-[11px] text-slate-500">
+            © 2026 Appifya. {lang === 'ar' ? 'جميع الحقوق محفوظة.' : lang === 'fr' ? 'Tous droits réservés.' : 'All rights reserved.'}
+          </p>
+        </div>
       </div>
-      <div className="flex justify-center pt-1 pb-1">
-        <a
-          href="https://github.com/marketplace/actions/appifya-pwa-mobile-app-builder"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/20 px-3.5 py-1.5 text-xs font-semibold text-violet-300 transition-all shadow-sm group hover:scale-[1.02]"
-          title="Appifya on GitHub Marketplace"
-        >
-          <img
-            src="https://img.shields.io/badge/GitHub_Marketplace-Appifya_Action-blueviolet?logo=github-actions"
-            alt="GitHub Action"
-            className="h-4 pointer-events-none"
-          />
-          <span className="text-[11px] text-slate-300 group-hover:text-white transition-colors">
-            {lang === 'ar' ? 'أداة الأتمتة على GitHub Marketplace' : lang === 'fr' ? 'Action CI/CD sur GitHub Marketplace' : 'CI/CD Action on GitHub Marketplace'}
-          </span>
-        </a>
-      </div>
-      <p>© 2026 Appifya. {lang === 'ar' ? 'جميع الحقوق محفوظة.' : lang === 'fr' ? 'Tous droits réservés.' : 'All rights reserved.'}</p>
     </footer>
   );
 }
