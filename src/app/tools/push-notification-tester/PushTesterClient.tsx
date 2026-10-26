@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useId } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '../../lib/i18n';
 import {
-  DEFAULT_PUSH_FORM,
-  PRESET_EXAMPLES,
+  getDefaultPushForm,
+  getPresetPushForm,
+  PRESET_DEFINITIONS,
   generateFcmHttpV1Payload,
   generateWebPushPayload,
   generateOneSignalPayload,
@@ -13,6 +14,7 @@ import {
   generateNodeJsSnippet,
   generatePythonSnippet,
   type PushNotificationForm,
+  type SupportedLang,
 } from './pushPayloads';
 import {
   Bell,
@@ -49,8 +51,10 @@ import {
 export default function PushTesterClient() {
   const { lang } = useLanguage();
   const isRtl = lang === 'ar';
+  const supportedLang: SupportedLang = (lang === 'ar' || lang === 'fr') ? lang : 'en';
 
-  const [form, setForm] = useState<PushNotificationForm>(DEFAULT_PUSH_FORM);
+  const [selectedPreset, setSelectedPreset] = useState<string>('ecommerce');
+  const [form, setForm] = useState<PushNotificationForm>(() => getDefaultPushForm((lang === 'ar' || lang === 'fr') ? lang : 'en'));
   const [activeCodeTab, setActiveCodeTab] = useState<'fcm_v1' | 'webpush' | 'onesignal' | 'curl' | 'node' | 'python'>('fcm_v1');
   const [copied, setCopied] = useState(false);
   const [isExpandedPreview, setIsExpandedPreview] = useState(true);
@@ -59,6 +63,16 @@ export default function PushTesterClient() {
   const [browserTestStatus, setBrowserTestStatus] = useState<'idle' | 'success' | 'permission_denied' | 'unsupported'>('idle');
   const [testErrorMessage, setTestErrorMessage] = useState('');
 
+  // Automatically update the sample notification text when user changes site language
+  const prevLangRef = useRef(lang);
+  useEffect(() => {
+    if (prevLangRef.current !== lang) {
+      prevLangRef.current = lang;
+      const currentLang: SupportedLang = (lang === 'ar' || lang === 'fr') ? lang : 'en';
+      setForm(getPresetPushForm(selectedPreset, currentLang));
+    }
+  }, [lang, selectedPreset]);
+
   const t = (ar: string, en: string, fr: string) => {
     if (lang === 'ar') return ar;
     if (lang === 'fr') return fr;
@@ -66,17 +80,17 @@ export default function PushTesterClient() {
   };
 
   const handlePresetSelect = (key: string) => {
-    const preset = PRESET_EXAMPLES[key];
-    if (preset) {
-      setForm(preset.data);
-    }
+    setSelectedPreset(key);
+    setForm(getPresetPushForm(key, supportedLang));
   };
 
   const handleAddAction = () => {
     if (form.actions.length >= 3) return;
+    const n = form.actions.length + 1;
+    const defaultTitle = t(`زر ${n}`, `Button ${n}`, `Bouton ${n}`);
     setForm((prev) => ({
       ...prev,
-      actions: [...prev.actions, { action: `action_${prev.actions.length + 1}`, title: `زر ${prev.actions.length + 1}` }],
+      actions: [...prev.actions, { action: `action_${n}`, title: defaultTitle }],
     }));
   };
 
@@ -245,12 +259,16 @@ export default function PushTesterClient() {
           <Sparkles className="h-3.5 w-3.5 text-amber-400" />
           <span>{t('نماذج جاهزة:', 'Presets:', 'Modèles :')}</span>
         </span>
-        {Object.entries(PRESET_EXAMPLES).map(([key, item]) => (
+        {Object.entries(PRESET_DEFINITIONS).map(([key, item]) => (
           <button
             key={key}
             type="button"
             onClick={() => handlePresetSelect(key)}
-            className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-indigo-500/50 hover:bg-slate-850 transition-all cursor-pointer shadow-sm"
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-sm ${
+              selectedPreset === key
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-600/25'
+                : 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:border-indigo-500/50 hover:bg-slate-850'
+            }`}
           >
             {item.label[lang] || item.label.en}
           </button>
@@ -304,7 +322,7 @@ export default function PushTesterClient() {
                 type="text"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="تخفيضات نهاية الأسبوع..."
+                placeholder={t('تخفيضات نهاية الأسبوع...', 'Weekend Flash Sale...', 'Vente Flash du Week-end...')}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-medium"
               />
             </div>
@@ -320,7 +338,7 @@ export default function PushTesterClient() {
                 rows={3}
                 value={form.body}
                 onChange={(e) => setForm({ ...form, body: e.target.value })}
-                placeholder="اكتب محتوى الرسالة الترويجية أو التنبيه هنا..."
+                placeholder={t('اكتب محتوى الرسالة الترويجية أو التنبيه هنا...', 'Enter promotional message or alert content here...', 'Saisissez le contenu du message ici...')}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-medium resize-none leading-relaxed"
               />
             </div>
@@ -390,8 +408,8 @@ export default function PushTesterClient() {
                 onChange={(e) => setForm({ ...form, priority: e.target.value as 'high' | 'normal' })}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
               >
-                <option value="high">HIGH (إيقاظ فوري للشاشة)</option>
-                <option value="normal">NORMAL (عادي - توفير بطارية)</option>
+                <option value="high">{t('HIGH (إيقاظ فوري للشاشة)', 'HIGH (Instant wake-up alert)', 'HIGH (Réveil immédiat de l’écran)')}</option>
+                <option value="normal">{t('NORMAL (عادي - توفير بطارية)', 'NORMAL (Standard battery-saving)', 'NORMAL (Standard économie)')}</option>
               </select>
             </div>
 
