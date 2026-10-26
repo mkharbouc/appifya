@@ -154,6 +154,34 @@ export default function ToolsPage() {
           </p>
         </div>
 
+        {/* GitHub Action Marketplace Banner */}
+        <div className="mb-10 rounded-2xl border border-violet-500/25 bg-gradient-to-r from-violet-950/40 via-slate-900/60 to-indigo-950/40 p-5 sm:p-6 backdrop-blur-md shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4 text-center sm:text-start">
+            <div className="hidden sm:flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-600/20 border border-violet-500/30 text-violet-400">
+              <Sparkles className="h-6 w-6" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
+                <span className="text-sm font-bold text-white">Automate PWA CI/CD with GitHub Actions</span>
+                <span className="px-2 py-0.5 rounded-full bg-violet-500/20 border border-violet-500/30 text-[10px] font-bold text-violet-300 uppercase tracking-wider">Marketplace Official</span>
+              </div>
+              <p className="text-xs text-slate-400">
+                Audit PWA compliance, validate manifests, and prepare Android APKs directly in your GitHub workflows.
+              </p>
+            </div>
+          </div>
+          <a
+            href="https://github.com/marketplace/actions/appifya-pwa-mobile-app-builder"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-violet-600 hover:bg-violet-500 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-violet-600/25 transition-all"
+          >
+            <img src="https://img.shields.io/badge/Marketplace-Appifya-blueviolet?logo=github-actions" alt="Marketplace" className="h-4 pointer-events-none" />
+            <span>Install Action</span>
+            <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
+          </a>
+        </div>
+
         {/* Tool cards */}
         <ToolsListClient />
 

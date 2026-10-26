@@ -15,6 +15,7 @@ import {
   ShieldAlert,
   BellRing,
   Cpu,
+  Sparkles,
 } from 'lucide-react';
 
 interface Tool {
@@ -23,12 +24,32 @@ interface Tool {
   iconColor: string;
   iconBg: string;
   badge?: string;
+  isExternal?: boolean;
   title: { ar: string; en: string; fr: string };
   description: { ar: string; en: string; fr: string };
   cta: { ar: string; en: string; fr: string };
 }
 
 const TOOLS: Tool[] = [
+  {
+    href: 'https://github.com/marketplace/actions/appifya-pwa-mobile-app-builder',
+    icon: Sparkles,
+    iconColor: 'text-violet-400',
+    iconBg: 'bg-violet-500/15 border-violet-500/25',
+    badge: 'Marketplace',
+    isExternal: true,
+    title: {
+      ar: 'أداة الأتمتة على GitHub Marketplace',
+      en: 'GitHub Action: PWA Audit & Android Builder',
+      fr: 'GitHub Action: Audit PWA & Build Android',
+    },
+    description: {
+      ar: 'أتمت فحص توافق PWA والتحقق من المانيفست وبناء حزم أندرويد تلقائياً داخل خط أنابيب CI/CD مباشرة من GitHub Marketplace.',
+      en: 'Automate PWA compliance audits, manifest validation, and mobile builds directly inside your CI/CD pipelines via GitHub Marketplace.',
+      fr: 'Automatisez les audits PWA, la validation du manifest et les builds mobiles directement dans vos pipelines CI/CD.',
+    },
+    cta: { ar: 'تثبيت من GitHub Marketplace', en: 'Install on GitHub', fr: 'Installer sur GitHub' },
+  },
   {
     href: '/tools/native-bridge-simulator',
     icon: Cpu,
@@ -243,6 +264,8 @@ export default function ToolsListClient() {
           <Link
             key={tool.href}
             href={tool.href}
+            target={tool.isExternal ? '_blank' : undefined}
+            rel={tool.isExternal ? 'noopener noreferrer' : undefined}
             className="group relative flex flex-col gap-5 rounded-3xl border border-slate-800 bg-slate-900/70 p-7 hover:border-slate-700 hover:bg-slate-900 transition-all shadow-lg hover:shadow-indigo-500/5"
           >
             {tool.badge && (

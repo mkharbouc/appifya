@@ -452,6 +452,24 @@ function SiteFooter() {
         <Link href="/privacy" className="hover:text-white">{lang === 'ar' ? 'سياسة الخصوصية' : lang === 'fr' ? 'Confidentialité' : 'Privacy Policy'}</Link>
         <Link href="/terms" className="hover:text-white">{lang === 'ar' ? 'شروط الخدمة' : lang === 'fr' ? 'Conditions' : 'Terms of Service'}</Link>
       </div>
+      <div className="flex justify-center pt-1 pb-1">
+        <a
+          href="https://github.com/marketplace/actions/appifya-pwa-mobile-app-builder"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/20 px-3.5 py-1.5 text-xs font-semibold text-violet-300 transition-all shadow-sm group hover:scale-[1.02]"
+          title="Appifya on GitHub Marketplace"
+        >
+          <img
+            src="https://img.shields.io/badge/GitHub_Marketplace-Appifya_Action-blueviolet?logo=github-actions"
+            alt="GitHub Action"
+            className="h-4 pointer-events-none"
+          />
+          <span className="text-[11px] text-slate-300 group-hover:text-white transition-colors">
+            {lang === 'ar' ? 'أداة الأتمتة على GitHub Marketplace' : lang === 'fr' ? 'Action CI/CD sur GitHub Marketplace' : 'CI/CD Action on GitHub Marketplace'}
+          </span>
+        </a>
+      </div>
       <p>© 2026 Appifya. {lang === 'ar' ? 'جميع الحقوق محفوظة.' : lang === 'fr' ? 'Tous droits réservés.' : 'All rights reserved.'}</p>
     </footer>
   );

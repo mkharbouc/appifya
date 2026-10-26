@@ -1,6 +1,14 @@
 # Appifya
 
+[![GitHub Marketplace](https://img.shields.io/badge/GitHub_Marketplace-Appifya_Action-blueviolet?logo=github-actions)](https://github.com/marketplace/actions/appifya-pwa-mobile-app-builder)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Appifya converts a store or landing page into a configurable, installable PWA. Users can save applications in Appwrite, preview them, share an install page, and request an Android build through GitHub Actions.
+
+## 🚀 Official GitHub Action
+
+Appifya is available as an official **GitHub Action** in the **GitHub Marketplace**:
+- **[Appifya PWA Audit & Android Mobile Builder](https://github.com/marketplace/actions/appifya-pwa-mobile-app-builder)**: Automatically audit any URL for PWA compliance, validate Web App Manifests, and prepare Android APK/AAB packages directly inside your CI/CD workflow.
 
 ## Requirements
 
