@@ -7,7 +7,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test:seo": "node scripts/verify-seo.mjs"
+    "test:seo": "node scripts/verify-seo.mjs",
+    "health": "node scripts/health-check.mjs"
   },
   "dependencies": {
     "@types/archiver": "^8.0.0",

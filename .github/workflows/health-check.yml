@@ -1,0 +1,35 @@
+name: 'Appifya 24/7 Platform Health Probe'
+
+on:
+  schedule:
+    # Run every 6 hours automatically (00:00, 06:00, 12:00, 18:00 UTC)
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  probe:
+    name: 'Probe Live Service & Cloud Engine'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Ping Main Production Service'
+        run: |
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://www.appifya.app)
+          echo "Production homepage status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ne 200 ] && [ "$HTTP_STATUS" -ne 308 ]; then
+            echo "::error::Appifya homepage returned unexpected status: $HTTP_STATUS"
+            exit 1
+          fi
+
+      - name: 'Check API Diagnostics & Cloud Runner Status'
+        run: |
+          RESPONSE=$(curl -s https://www.appifya.app/api/health)
+          echo "Health probe response:"
+          echo "$RESPONSE"
+          
+          STATUS=$(echo "$RESPONSE" | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
+          echo "Overall Health Status: $STATUS"
+          
+          if [ "$STATUS" = "action_required" ]; then
+            echo "::error::Appifya health probe reports action_required! Check GitHub PAT or database settings."
+            exit 1
+          fi

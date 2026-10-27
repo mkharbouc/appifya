@@ -165,6 +165,18 @@ export default function DashboardPage() {
     isPro?: boolean;
   } | null>(null);
   const [buildElapsedSec, setBuildElapsedSec] = useState<number>(0);
+  const [runnerHealth, setRunnerHealth] = useState<{ status: string; message: string } | null>(null);
+
+  useEffect(() => {
+    fetch('/api/health', { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.checks?.cloud_runner) {
+          setRunnerHealth(data.checks.cloud_runner);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const isRtl = lang === 'ar';
 
@@ -909,6 +921,32 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── RUNNER HEALTH WARNING BANNER (ADMIN VISIBILITY) ── */}
+      {runnerHealth?.status === 'failed' && (
+        <div className="rounded-2xl border border-red-500/40 bg-red-950/40 p-4 text-xs text-red-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in shadow-lg shadow-red-500/10">
+          <div className="flex items-center gap-2.5">
+            <AlertTriangle className="h-5 w-5 text-red-400 shrink-0" />
+            <div>
+              <p className="font-bold text-white text-sm">
+                {lang === 'ar' ? 'تنبيه النظام: محرك البناء بحاجة لضبط GITHUB_PAT في Vercel' : 'System Notice: Cloud Build Runner requires GITHUB_PAT in Vercel'}
+              </p>
+              <p className="text-[11px] text-red-300/80 mt-0.5">
+                {runnerHealth.message}
+              </p>
+            </div>
+          </div>
+          <a
+            href="https://vercel.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3.5 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shrink-0 cursor-pointer shadow-md transition-colors"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            <span>{lang === 'ar' ? 'إضافة المفتاح في Vercel' : 'Add Key in Vercel'}</span>
+          </a>
         </div>
       )}
 
