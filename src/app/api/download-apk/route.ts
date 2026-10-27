@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const targetRepo = 'appifya-android-engine';
 
 function getConfig() {
-  const token = process.env.GITHUB_PAT || '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';
+  const token = process.env.GITHUB_PAT;
   const owner = process.env.GITHUB_OWNER || 'mkharbouc';
   return token && owner ? { token, owner } : null;
 }

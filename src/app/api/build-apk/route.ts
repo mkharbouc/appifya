@@ -4,7 +4,7 @@ import { databases, storage, DB_ID, TABLE_ID, BUCKET_ID } from '@/lib/appwrite';
 const targetRepo = 'appifya-android-engine';
 
 function getConfig() {
-  const token = process.env.GITHUB_PAT || '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';
+  const token = process.env.GITHUB_PAT;
   const owner = process.env.GITHUB_OWNER || 'mkharbouc';
   return token && owner ? { token, owner } : null;
 }
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       const errText = await response.text();
       console.error('GitHub dispatch failed:', response.status, errText);
-      return NextResponse.json({ error: `Failed to trigger build on cloud runner (${response.status})` }, { status: 502 });
+      return NextResponse.json({ error: `Failed to trigger build on cloud runner (${response.status})` }, { status: 400 });
     }
 
     return NextResponse.json({ success: true, message: 'Build started' });
