@@ -159,7 +159,7 @@ export function activateUserSubscription(
  */
 export function getAppBuildInfo(userId: string, appId: string) {
   const sub = getUserSubscription(userId);
-  const planBaseMax = sub.isActive ? 3 : 1; // 3 builds for paid plans, strictly 1 build for free trial
+  const planBaseMax = sub.isActive ? 3 : 1; // 3 builds for paid plans, 1 clean trial build for free users
 
   if (typeof window === 'undefined' || !appId) {
     return {
@@ -167,6 +167,7 @@ export function getAppBuildInfo(userId: string, appId: string) {
       maxBuilds: planBaseMax,
       buildsRemaining: planBaseMax,
       canBuild: true,
+      isWatermarked: false,
       plan: sub.plan,
       isPaid: sub.isActive,
     };
@@ -176,24 +177,26 @@ export function getAppBuildInfo(userId: string, appId: string) {
     const raw = localStorage.getItem(`${BUILDS_KEY_PREFIX}${appId}`);
     const record: AppBuildRecord = raw ? JSON.parse(raw) : { buildsUsed: 0, maxBuilds: planBaseMax, hasAdmob: false, hasKeystore: false };
     
-    // Strict enforcement: For free users, maximum is strictly 1 build for trial
-    // Overwrite legacy records where maxBuilds was erroneously set to 3 for free users
     let effectiveMax = planBaseMax;
     if (sub.isActive) {
       effectiveMax = Math.max(3, record.maxBuilds || 3);
     } else {
-      // If free user bought extra add-on pack (+3 rebuilds = $9), add that count
+      // If free user bought extra rebuilds addon (+3 rebuilds = $9), add that count
       effectiveMax = record.maxBuilds && record.maxBuilds > 3 ? record.maxBuilds - 2 : 1;
     }
 
     const used = record.buildsUsed || 0;
     const remaining = Math.max(0, effectiveMax - used);
+    // Free apps after trial build (buildsUsed >= 1) are generated with Appifya watermark & upgrade notice
+    const isWatermarked = !sub.isActive && used >= 1;
 
     return {
       buildsUsed: used,
       maxBuilds: effectiveMax,
       buildsRemaining: remaining,
-      canBuild: remaining > 0,
+      // Always allow building: trial build 1 is clean, builds 2+ have Appifya watermark for free users
+      canBuild: true,
+      isWatermarked,
       plan: sub.plan,
       isPaid: sub.isActive,
     };
@@ -203,6 +206,7 @@ export function getAppBuildInfo(userId: string, appId: string) {
       maxBuilds: planBaseMax,
       buildsRemaining: planBaseMax,
       canBuild: true,
+      isWatermarked: false,
       plan: sub.plan,
       isPaid: sub.isActive,
     };

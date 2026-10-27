@@ -88,10 +88,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'APK builder is not configured' }, { status: 503 });
     }
 
-    // Server-side strict build limit enforcement against GitHub releases
+    // Check existing releases for watermark determination & quota control
     const planTier = typeof body.planTier === 'string' ? body.planTier : 'free';
     const isPaidUser = isProBuild || planTier === 'standard' || planTier === 'agency' || planTier === 'admob_pro';
-    const maxAllowedBuilds = isPaidUser ? 3 : 1; // Free trial allows strictly 1 build
+    let isWatermarked = false;
 
     try {
       const quotaCheckRes = await fetch(
@@ -104,28 +104,9 @@ export async function POST(req: NextRequest) {
           item.tag_name.startsWith(`build-${appId}-`)
         ).length;
 
-        if (existingBuildsCount >= maxAllowedBuilds) {
-          if (!isPaidUser) {
-            return NextResponse.json(
-              {
-                error: 'لقد استنفدت عملية البناء التجريبية المجانية المتاحة لهذا التطبيق (1 من 1). يرجى ترقية الباقة لـ 29$ لفتح 3 محاولات بناء، ملف المتجر الرسمي AAB، وإعلانات AdMob مدى الحياة.',
-                limitReached: true,
-                maxBuilds: 1,
-                buildsUsed: existingBuildsCount,
-              },
-              { status: 403 }
-            );
-          } else {
-            return NextResponse.json(
-              {
-                error: `لقد استنفدت محاولات البناء المتاحة لهذا التطبيق (${maxAllowedBuilds} محاولات). يمكنك إضافة +3 محاولات إعادة بناء إضافية بـ 9$.`,
-                limitReached: true,
-                maxBuilds: maxAllowedBuilds,
-                buildsUsed: existingBuildsCount,
-              },
-              { status: 403 }
-            );
-          }
+        // If free user has already built once, subsequent builds are watermarked with Appifya branding
+        if (!isPaidUser && existingBuildsCount >= 1) {
+          isWatermarked = true;
         }
       }
     } catch (quotaErr) {
@@ -146,10 +127,11 @@ export async function POST(req: NextRequest) {
             store_url: storeUrl,
             theme_color: themeColor,
             logo_url: logoUrl,
-            package_type: isProBuild ? 'aab_bundle' : 'apk_direct',
+            package_type: isProBuild ? 'aab_bundle' : (isWatermarked ? 'apk_watermarked' : 'apk_direct'),
             admob_app_id: admobAppId,
             admob_banner_unit_id: admobBannerUnitId,
             admob_interstitial_unit_id: admobInterstitialUnitId,
+            is_watermarked: isWatermarked ? 'true' : 'false',
           },
         }),
       },

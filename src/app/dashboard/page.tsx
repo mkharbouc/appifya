@@ -392,27 +392,6 @@ export default function DashboardPage() {
       return;
     }
 
-    const buildInfo = getAppBuildInfo(user?.$id || '', app.$id);
-    if (!buildInfo.canBuild) {
-      if (!subscription.isActive) {
-        alert(
-          lang === 'ar'
-            ? 'لقد استنفدت عملية البناء التجريبية المجانية (1/1). يرجى الترقية إلى الباقة الاحترافية ($29) لفتح 3 محاولات بناء، ملف المتجر الرسمي AAB، وإعلانات AdMob مدى الحياة.'
-            : 'You have used your free trial build (1/1). Upgrade to Standard Pro ($29) for 3 rebuilds, Store AAB bundle and AdMob.'
-        );
-      } else {
-        alert(
-          lang === 'ar'
-            ? `لقد استنفدت محاولات البناء المتاحة لهذا التطبيق (${buildInfo.maxBuilds} محاولات). يمكنك إضافة +3 محاولات إعادة بناء إضافية بـ 9$.`
-            : `You have reached the build limit for this app (${buildInfo.maxBuilds} builds). You can add +3 extra rebuilds for $9.`
-        );
-      }
-      setSelectedUpgradeAppId(app.$id);
-      setUpgradeDefaultPlan('standard');
-      setShowPayModal(true);
-      return;
-    }
-
     try {
       setBuildingAppId(app.$id);
       const res = await fetch('/api/build-apk', {
@@ -445,13 +424,6 @@ export default function DashboardPage() {
         recordSuccessfulBuild(app.$id, Boolean(app.admob_app_id), subscription.isActive);
         setBuildVersion((v) => v + 1);
       } else {
-        if (data.limitReached) {
-          recordSuccessfulBuild(app.$id, Boolean(app.admob_app_id), subscription.isActive);
-          setBuildVersion((v) => v + 1);
-          setSelectedUpgradeAppId(app.$id);
-          setUpgradeDefaultPlan('standard');
-          setShowPayModal(true);
-        }
         alert(data.error || (lang === 'ar' ? 'فشل إرسال طلب البناء، يرجى المحاولة مرة أخرى.' : 'Build request failed, please try again.'));
       }
     } catch (err) {
@@ -1359,19 +1331,19 @@ export default function DashboardPage() {
                             </span>
                           )}
                           <span className={`px-2 py-0.5 rounded-md border font-semibold ${
-                            buildInfo.buildsRemaining > 0
+                            !isFreeTier || !buildInfo.isWatermarked
                               ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'
-                              : 'bg-red-500/10 text-red-300 border-red-500/20'
+                              : 'bg-amber-500/10 text-amber-300 border-amber-500/20'
                           }`}>
                             {isFreeTier
-                              ? (buildInfo.buildsRemaining > 0
-                                  ? (lang === 'ar' ? 'التجربة: 1 من 1 متاحة' : 'Trial: 1/1 available')
-                                  : (lang === 'ar' ? 'استنفدت التجربة (0 من 1)' : 'Trial Used (0/1)'))
+                              ? (!buildInfo.isWatermarked
+                                  ? (lang === 'ar' ? 'المحاولة 1: تجريبية نظيفة' : 'Trial 1: Clean build')
+                                  : (lang === 'ar' ? 'نسخ تجريبية (بشعار Appifya)' : 'Trial builds (Watermarked)'))
                               : (lang === 'ar'
                                   ? `البناء المتبقي: ${buildInfo.buildsRemaining} من ${buildInfo.maxBuilds}`
                                   : `Builds: ${buildInfo.buildsRemaining}/${buildInfo.maxBuilds} left`)}
                           </span>
-                          {isFreeTier && buildInfo.buildsRemaining === 0 && (
+                          {isFreeTier && (
                             <button
                               type="button"
                               onClick={() => {
@@ -1382,7 +1354,7 @@ export default function DashboardPage() {
                               className="px-2.5 py-0.5 rounded-md bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border border-amber-500/40 font-bold hover:bg-amber-500/30 cursor-pointer text-[10px] flex items-center gap-1 shadow-sm"
                             >
                               <Sparkles className="h-3 w-3 text-amber-300" />
-                              <span>{lang === 'ar' ? 'ترقية لـ 29$ (3 محاولات + AAB)' : 'Upgrade $29 (3 Builds + AAB)'}</span>
+                              <span>{lang === 'ar' ? 'إزالة الشعار + AAB بـ 29$' : 'Remove Watermark + AAB ($29)'}</span>
                             </button>
                           )}
                           {!isFreeTier && buildInfo.buildsRemaining === 0 && (
@@ -1434,33 +1406,20 @@ export default function DashboardPage() {
                       <Settings className="h-3.5 w-3.5" />
                     </Link>
 
-                    {/* Button 1: Free APK Build */}
+                    {/* Button 1: Free APK Build (Never disabled - always allows building) */}
                     {(() => {
                       const appBuildInfo = getAppBuildInfo(user?.$id || '', app.$id);
                       const isFreeTier = !subscription.isActive;
-                      const isFreeExhausted = isFreeTier && appBuildInfo.buildsRemaining <= 0;
 
                       return (
                         <button
                           type="button"
-                          onClick={() => {
-                            if (isFreeExhausted) {
-                              setSelectedUpgradeAppId(app.$id);
-                              setUpgradeDefaultPlan('standard');
-                              setShowPayModal(true);
-                              return;
-                            }
-                            handleTriggerBuild(app, false);
-                          }}
-                          disabled={buildingAppId === app.$id || isFreeExhausted}
-                          className={`flex-1 min-w-[120px] flex items-center justify-center gap-1.5 px-3 py-2 border text-xs font-semibold rounded-xl transition-all ${
-                            isFreeExhausted
-                              ? 'bg-slate-900/60 border-slate-800 text-slate-500 cursor-not-allowed opacity-60'
-                              : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-white cursor-pointer'
-                          }`}
+                          onClick={() => handleTriggerBuild(app, false)}
+                          disabled={buildingAppId === app.$id}
+                          className="flex-1 min-w-[120px] flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold rounded-xl transition-all cursor-pointer"
                           title={
-                            isFreeExhausted
-                              ? (lang === 'ar' ? 'استنفدت المحاولة المجانية (1/1) - قم بالترقية لمتابعة البناء' : 'Free build limit reached (1/1)')
+                            isFreeTier && appBuildInfo.isWatermarked
+                              ? (lang === 'ar' ? 'بناء نسخة تجريبية إضافية (تتضمن شاشة وشعار Appifya)' : 'Build trial APK (with Appifya branding)')
                               : (lang === 'ar' ? 'بناء ملف APK تجريبي مجاني' : 'Build Free APK (Clean)')
                           }
                         >
@@ -1472,8 +1431,8 @@ export default function DashboardPage() {
                           <span>
                             {buildingAppId === app.$id
                               ? getTxt('buildStarting')
-                              : isFreeExhausted
-                                ? (lang === 'ar' ? 'استنفدت التجربة (0/1)' : 'Trial Used (0/1)')
+                              : isFreeTier && appBuildInfo.isWatermarked
+                                ? (lang === 'ar' ? 'بناء APK (مع شعار)' : 'Build APK (Trial)')
                                 : (lang === 'ar' ? 'بناء APK (تجريبي)' : 'Free APK')}
                           </span>
                         </button>
