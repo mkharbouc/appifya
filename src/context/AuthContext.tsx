@@ -40,6 +40,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [onSuccess, setOnSuccess] = useState<(() => void) | null>(null);
   const [verificationSentNotice, setVerificationSentNotice] = useState(false);
   const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [checkVerificationLoading, setCheckVerificationLoading] = useState(false);
+  const [checkVerificationFeedback, setCheckVerificationFeedback] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+  const [resendNoticeLoading, setResendNoticeLoading] = useState(false);
+  const [resendNoticeFeedback, setResendNoticeFeedback] = useState<string | null>(null);
 
   const checkUser = useCallback(async () => {
     try {
@@ -127,7 +131,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAuthError('');
     setVerificationSentNotice(false);
     setVerificationError(null);
+    setCheckVerificationFeedback(null);
+    setResendNoticeFeedback(null);
     setIsOpen(true);
+  };
+
+  const handleCheckVerification = async () => {
+    setCheckVerificationLoading(true);
+    setCheckVerificationFeedback(null);
+    try {
+      const freshUser = await account.get();
+      setUser(freshUser);
+      if (freshUser.emailVerification) {
+        setCheckVerificationFeedback({
+          type: 'success',
+          text: 'تم التحقق من بريدك بنجاح! جاري تحويلك إلى حسابك...',
+        });
+        setTimeout(() => {
+          setIsOpen(false);
+          setVerificationSentNotice(false);
+          if (onSuccess) {
+            onSuccess();
+            setOnSuccess(null);
+          }
+        }, 1200);
+      } else {
+        setCheckVerificationFeedback({
+          type: 'error',
+          text: 'لم يتم رصد التفعيل بعد! يرجى فتح البريد الإلكتروني والضغط على زر التأكيد أولاً ثم المحاولة ثانية.',
+        });
+      }
+    } catch (err: unknown) {
+      setCheckVerificationFeedback({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'تعذر التحقق من حالة التفعيل حالياً، يرجى المحاولة بعد قليل.',
+      });
+    } finally {
+      setCheckVerificationLoading(false);
+    }
+  };
+
+  const handleResendInModal = async () => {
+    setResendNoticeLoading(true);
+    setResendNoticeFeedback(null);
+    try {
+      const res = await sendVerificationEmail();
+      setResendNoticeFeedback(res.message);
+    } catch {
+      setResendNoticeFeedback('حدث خطأ أثناء محاولة إرسال الرابط.');
+    } finally {
+      setResendNoticeLoading(false);
+    }
+  };
+
+  const handleCancelAndLogout = async () => {
+    await logout();
+    setIsOpen(false);
+    setVerificationSentNotice(false);
+    setVerificationError(null);
+    setCheckVerificationFeedback(null);
+    setResendNoticeFeedback(null);
+    setOnSuccess(null);
   };
 
   const handleGoogleSignIn = async () => {
@@ -205,6 +269,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setVerificationError(autoVerificationErr);
         setVerificationSentNotice(true);
       } else {
+        if (!currentUser.emailVerification) {
+          setVerificationSentNotice(true);
+          return;
+        }
         setIsOpen(false);
         if (onSuccess) {
           onSuccess();
@@ -235,8 +303,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           <div className="relative w-full max-w-md my-auto bg-slate-900/95 border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-indigo-500/20 text-right" dir="rtl">
             <button
               onClick={() => {
-                setIsOpen(false);
-                setVerificationSentNotice(false);
+                if (verificationSentNotice) {
+                  void handleCancelAndLogout();
+                } else {
+                  setIsOpen(false);
+                  setVerificationSentNotice(false);
+                }
               }}
               className="absolute top-5 left-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
             >
@@ -251,7 +323,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                       <AlertCircle className="h-8 w-8" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-black text-white mb-1">تم إنشاء الحساب بنجاح! ⚠️</h3>
+                      <h3 className="text-xl font-black text-white mb-1">تم إنشاء الحساب! ⚠️</h3>
                       <p className="text-xs text-slate-300 leading-relaxed max-w-xs mx-auto">
                         تم إنشاء حسابك، لكن خادم Appwrite أرجع استجابة عند إرسال رابط التأكيد إلى:
                         <br />
@@ -271,38 +343,87 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 ) : (
                   <>
                     <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                      <CheckCircle2 className="h-8 w-8" />
+                      <Mail className="h-8 w-8 animate-pulse text-emerald-400" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-black text-white mb-1">تم إرسال رابط التفعيل! 🎉</h3>
+                      <h3 className="text-xl font-black text-white mb-1">تم إرسال رابط التفعيل! ✉️</h3>
                       <p className="text-xs text-slate-300 leading-relaxed max-w-xs mx-auto">
-                        تم إنشاء حسابك وإرسال رابط تفعيل رسمي إلى:
+                        تم إرسال رابط تأكيد رسمي إلى بريدك الإلكتروني:
                         <br />
-                        <span className="font-mono text-indigo-300 font-bold text-sm block mt-1" dir="ltr">{email}</span>
+                        <span className="font-mono text-indigo-300 font-bold text-sm block mt-1 select-all" dir="ltr">{email}</span>
                       </p>
                     </div>
-                    <div className="p-3.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs text-indigo-300 text-right space-y-1.5">
-                      <p className="font-bold">✓ لتفعيل حسابك باللون الأخضر:</p>
-                      <p className="text-[11px] text-slate-400 leading-relaxed">
-                        افتح رسائل بريدك الإلكتروني واضغط على زر التأكيد لتفعيل الحساب فوراً. تفقد أيضاً مجلد الرسائل غير المرغوبة (Spam) أو الترويجية إن لم تجدها في الوارد.
+                    <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 text-right space-y-1.5">
+                      <div className="flex items-center gap-2 font-bold text-amber-200">
+                        <AlertCircle className="h-4 w-4 shrink-0 text-amber-400" />
+                        <span>تأكيد البريد الإلكتروني إلزامي للمتابعة</span>
+                      </div>
+                      <p className="text-[11px] text-slate-300 leading-relaxed">
+                        لحماية بياناتك ومنع الحسابات الوهمية، لن تتمكن من الدخول إلى لوحة التحكم أو بناء تطبيقات الأندرويد حتى تضغط على رابط التأكيد في رسالتك.
                       </p>
                     </div>
                   </>
                 )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    setVerificationSentNotice(false);
-                    if (onSuccess) {
-                      onSuccess();
-                      setOnSuccess(null);
-                    }
-                  }}
-                  className="w-full py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:opacity-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-indigo-500/25 transition-all"
-                >
-                  متابعة إلى حسابي
-                </button>
+
+                {checkVerificationFeedback && (
+                  <div className={`p-3 rounded-xl text-xs font-semibold text-right flex items-start gap-2 ${
+                    checkVerificationFeedback.type === 'success'
+                      ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300'
+                      : 'bg-red-500/15 border border-red-500/30 text-red-300'
+                  }`}>
+                    {checkVerificationFeedback.type === 'success' ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-emerald-400" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-red-400" />
+                    )}
+                    <span>{checkVerificationFeedback.text}</span>
+                  </div>
+                )}
+
+                {resendNoticeFeedback && (
+                  <div className="p-3 rounded-xl text-xs font-semibold text-right bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-indigo-400" />
+                    <span>{resendNoticeFeedback}</span>
+                  </div>
+                )}
+
+                <div className="space-y-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleCheckVerification}
+                    disabled={checkVerificationLoading}
+                    className="w-full py-3.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-600 hover:opacity-95 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  >
+                    {checkVerificationLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="h-4 w-4" />
+                    )}
+                    <span>لقد قمت بالتأكيد، تحقق من الحساب والدخول الآن 🔄</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleResendInModal}
+                    disabled={resendNoticeLoading}
+                    className="w-full py-2.5 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white font-semibold text-xs rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  >
+                    {resendNoticeLoading ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Mail className="h-3.5 w-3.5" />
+                    )}
+                    <span>إعادة إرسال رابط التفعيل إلى بريدي</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCancelAndLogout}
+                    className="w-full py-2 text-xs text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+                  >
+                    تسجيل الخروج أو استخدام بريد إلكتروني آخر 🚪
+                  </button>
+                </div>
               </div>
             ) : (
               <>

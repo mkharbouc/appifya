@@ -389,6 +389,16 @@ export default function HomePage() {
       return;
     }
 
+    if (user.emailVerification === false) {
+      setStatusMsg({
+        type: 'error',
+        text: lang === 'ar'
+          ? 'يرجى تفعيل بريدك الإلكتروني أولاً لتتمكن من حفظ وتصدير التطبيق.'
+          : 'Please verify your email address first before creating or exporting apps.',
+      });
+      return;
+    }
+
     executeSaveApp(user.$id);
   };
 

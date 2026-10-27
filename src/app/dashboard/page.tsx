@@ -107,7 +107,7 @@ const formatTimer = (totalSeconds: number) => {
 };
 
 export default function DashboardPage() {
-  const { user, loading: authLoading, openAuthModal, sendVerificationEmail } = useAuth();
+  const { user, loading: authLoading, openAuthModal, sendVerificationEmail, refreshUser, logout } = useAuth();
   const { lang } = useLanguage();
   const [apps, setApps] = useState<AppDocument[]>([]);
   const [loading, setLoading] = useState(true);
@@ -119,6 +119,41 @@ export default function DashboardPage() {
   const [resendVerificationLoading, setResendVerificationLoading] = useState(false);
   const [verificationBannerMsg, setVerificationBannerMsg] = useState<string | null>(null);
   const [verificationBannerStatus, setVerificationBannerStatus] = useState<'success' | 'error' | null>(null);
+  const [checkingVerification, setCheckingVerification] = useState(false);
+  const [checkStatusFeedback, setCheckStatusFeedback] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+
+  const handleManualCheckVerification = async () => {
+    setCheckingVerification(true);
+    setCheckStatusFeedback(null);
+    try {
+      await refreshUser();
+      const { account } = await import('@/lib/appwrite');
+      const current = await account.get();
+      if (current.emailVerification) {
+        setCheckStatusFeedback({
+          type: 'success',
+          text: lang === 'ar' ? 'تم تأكيد الحساب بنجاح! جاري فتح لوحة التحكم...' : 'Account verified successfully! Loading dashboard...',
+        });
+        setTimeout(() => {
+          if (typeof window !== 'undefined') window.location.reload();
+        }, 1000);
+      } else {
+        setCheckStatusFeedback({
+          type: 'error',
+          text: lang === 'ar'
+            ? 'لم يتم رصد التفعيل بعد! يرجى فتح البريد الإلكتروني والضغط على زر التأكيد في الرسالة أولاً، ثم إعادة الضغط هنا.'
+            : 'Verification not detected yet! Please click the verification link in your email and try again.',
+        });
+      }
+    } catch (err: unknown) {
+      setCheckStatusFeedback({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'تعذر التحقق من الحالة حالياً، يرجى المحاولة بعد قليل.',
+      });
+    } finally {
+      setCheckingVerification(false);
+    }
+  };
 
   const handleSendVerification = async () => {
     setResendVerificationLoading(true);
@@ -644,6 +679,133 @@ export default function DashboardPage() {
           {getTxt('signInBtn')}
         </button>
       </div>
+    );
+  }
+
+  // ── STRICT GATE: LOCK DASHBOARD FOR UNVERIFIED ACCOUNTS ──
+  if (user && user.emailVerification === false) {
+    return (
+      <main className="theme-page flex-1 max-w-2xl w-full mx-auto px-4 sm:px-6 py-12 flex flex-col items-center justify-center min-h-[75vh]" dir={isRtl ? 'rtl' : 'ltr'}>
+        <div className="w-full rounded-3xl border border-amber-500/30 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 p-6 sm:p-10 shadow-2xl shadow-amber-500/10 text-center space-y-6">
+          
+          {/* Animated Shield / Lock Icon */}
+          <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
+            <span className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping opacity-60"></span>
+            <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-xl shadow-amber-500/25">
+              <Mail className="h-10 w-10 text-slate-950 animate-bounce" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold">
+              <ShieldAlert className="h-4 w-4 shrink-0 text-amber-400" />
+              <span>{lang === 'ar' ? 'تأكيد الحساب إلزامي' : 'Mandatory Verification'}</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-white">
+              {lang === 'ar' ? 'يرجى تأكيد بريدك الإلكتروني للمتابعة' : 'Please Verify Your Email First'}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+              {lang === 'ar'
+                ? 'لحماية المنصة وضمان وصول ملفات APK وتحديثاتها إليك بأمان، تم قفل لوحة التحكم وبناء التطبيقات حتى تقوم بتأكيد بريدك الإلكتروني.'
+                : 'To protect platform security and ensure reliable delivery of your APK files, dashboard access and app building are locked until email verification.'}
+            </p>
+          </div>
+
+          {/* User Email Monospace Box */}
+          <div className="p-4 rounded-2xl border border-slate-800 bg-slate-950/80 space-y-1 text-center">
+            <p className="text-xs text-slate-400">{lang === 'ar' ? 'تم إرسال رابط التأكيد إلى البريد الإلكتروني:' : 'Verification email sent to:'}</p>
+            <p className="text-base font-mono font-bold text-indigo-400 select-all" dir="ltr">{user.email}</p>
+          </div>
+
+          {/* Quick Steps Guide */}
+          <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-4 text-xs text-slate-300 space-y-2.5 text-right" dir="rtl">
+            <p className="font-bold text-white flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-amber-400 shrink-0" />
+              <span>خطوات سريعة لإتمام التفعيل بدقيقة واحدة:</span>
+            </p>
+            <ol className="list-decimal list-inside space-y-1.5 text-slate-300 text-[11px] leading-relaxed pr-1">
+              <li>افتح تطبيق أو موقع بريدك الإلكتروني (Gmail، Outlook، الخ).</li>
+              <li>تفقد صندوق الوارد أو مجلد الرسائل غير المرغوبة (Spam / Junk).</li>
+              <li>اضغط على زر <strong>&quot;تأكيد البريد الإلكتروني&quot;</strong> داخل الرسالة.</li>
+              <li>بعد الضغط، ارجع إلى هنا واضغط على زر <strong>&quot;فحص وتحديث الحالة الآن&quot;</strong> بالأسفل.</li>
+            </ol>
+          </div>
+
+          {/* Check verification feedback */}
+          {checkStatusFeedback && (
+            <div className={`p-3.5 rounded-2xl text-xs font-bold text-right flex items-center gap-2.5 ${
+              checkStatusFeedback.type === 'success'
+                ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300'
+                : 'bg-red-500/15 border border-red-500/30 text-red-300'
+            }`}>
+              {checkStatusFeedback.type === 'success' ? (
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+              ) : (
+                <AlertTriangle className="h-4 w-4 shrink-0 text-red-400" />
+              )}
+              <span>{checkStatusFeedback.text}</span>
+            </div>
+          )}
+
+          {/* Resend verification feedback */}
+          {verificationBannerMsg && (
+            <div className={`p-3.5 rounded-2xl text-xs font-bold text-right flex items-center gap-2.5 ${
+              verificationBannerStatus === 'error'
+                ? 'bg-red-500/15 border border-red-500/30 text-red-300'
+                : 'bg-indigo-500/15 border border-indigo-500/30 text-indigo-300'
+            }`}>
+              {verificationBannerStatus === 'error' ? (
+                <AlertTriangle className="h-4 w-4 shrink-0 text-red-400" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-indigo-400" />
+              )}
+              <span>{verificationBannerMsg}</span>
+            </div>
+          )}
+
+          {/* Action CTAs */}
+          <div className="space-y-3 pt-2">
+            <button
+              type="button"
+              onClick={handleManualCheckVerification}
+              disabled={checkingVerification}
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-600 hover:opacity-95 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/20 transition-all cursor-pointer disabled:opacity-60"
+            >
+              {checkingVerification ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )}
+              <span>{lang === 'ar' ? 'لقد قمت بالتأكيد، فحص وتحديث الحالة الآن 🔄' : 'I have verified, check & refresh status now 🔄'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSendVerification}
+              disabled={resendVerificationLoading}
+              className="w-full py-3 px-4 rounded-2xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
+            >
+              {resendVerificationLoading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Mail className="h-3.5 w-3.5" />
+              )}
+              <span>{lang === 'ar' ? 'إعادة إرسال رابط التفعيل إلى بريدي ✉️' : 'Resend Verification Email ✉️'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={async () => {
+                await logout();
+              }}
+              className="w-full py-2 text-xs text-slate-400 hover:text-rose-400 font-semibold transition-colors cursor-pointer"
+            >
+              {lang === 'ar' ? 'تسجيل الخروج أو التبديل لحساب آخر 🚪' : 'Log out or switch account 🚪'}
+            </button>
+          </div>
+
+        </div>
+      </main>
     );
   }
 
