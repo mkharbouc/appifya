@@ -93,11 +93,11 @@ const PIPELINE_STEPS = [
 ];
 
 const getPipelineProgress = (sec: number) => {
-  if (sec < 15) return { stepIndex: 0, percent: Math.min(22, Math.max(10, 10 + sec * 0.8)) };
-  if (sec < 35) return { stepIndex: 1, percent: Math.min(42, 22 + (sec - 15) * 1.0) };
-  if (sec < 65) return { stepIndex: 2, percent: Math.min(68, 42 + (sec - 35) * 0.86) };
-  if (sec < 95) return { stepIndex: 3, percent: Math.min(88, 68 + (sec - 65) * 0.66) };
-  return { stepIndex: 4, percent: Math.min(96, 88 + (sec - 95) * 0.2) };
+  if (sec < 20) return { stepIndex: 0, percent: Math.min(20, Math.max(8, 8 + sec * 0.6)) };
+  if (sec < 50) return { stepIndex: 1, percent: Math.min(40, 20 + (sec - 20) * 0.66) };
+  if (sec < 110) return { stepIndex: 2, percent: Math.min(65, 40 + (sec - 50) * 0.41) };
+  if (sec < 180) return { stepIndex: 3, percent: Math.min(88, 65 + (sec - 110) * 0.32) };
+  return { stepIndex: 4, percent: Math.min(98, 88 + (sec - 180) * 0.1) };
 };
 
 const formatTimer = (totalSeconds: number) => {
