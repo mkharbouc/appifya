@@ -1,16 +1,21 @@
 import { Client, Databases, Storage, Account } from 'appwrite';
 
-const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
-const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '';
+function cleanEnv(val: string | undefined, fallback: string = ''): string {
+  if (!val) return fallback;
+  return val.trim().replace(/^["']|["']$/g, '');
+}
+
+const endpoint = cleanEnv(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT, 'https://fra.cloud.appwrite.io/v1');
+const projectId = cleanEnv(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID, '');
 const client = new Client().setEndpoint(endpoint).setProject(projectId);
 
 export const account = new Account(client);
 export const databases = new Databases(client);
 export const storage = new Storage(client);
 
-export const DB_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || '';
-export const TABLE_ID = process.env.NEXT_PUBLIC_APPWRITE_TABLE_ID || '';
-export const BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID || '';
+export const DB_ID = cleanEnv(process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID, '');
+export const TABLE_ID = cleanEnv(process.env.NEXT_PUBLIC_APPWRITE_TABLE_ID, '');
+export const BUCKET_ID = cleanEnv(process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID, '');
 
 export const appwriteConfigMissing = [
   ['NEXT_PUBLIC_APPWRITE_PROJECT_ID', projectId],

@@ -9,9 +9,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'معرف المستخدم (userId) مطلوب' }, { status: 400 });
     }
 
-    const apiKey = process.env.APPWRITE_API_KEY;
-    const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://fra.cloud.appwrite.io/v1';
-    const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '6ace9263003199cf4b6f';
+    const apiKey = (process.env.APPWRITE_API_KEY || '').trim().replace(/^["']|["']$/g, '');
+    const endpoint = (process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://fra.cloud.appwrite.io/v1').trim().replace(/^["']|["']$/g, '');
+    const projectId = (process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '6ace9263003199cf4b6f').trim().replace(/^["']|["']$/g, '');
 
     if (!apiKey) {
       return NextResponse.json({ error: 'مفتاح APPWRITE_API_KEY غير موجود في الخادم' }, { status: 500 });

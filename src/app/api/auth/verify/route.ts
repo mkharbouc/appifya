@@ -21,9 +21,9 @@ export async function POST(req: NextRequest) {
     }
 
     // If APPWRITE_API_KEY is configured, update Appwrite server-side directly to turn the badge GREEN!
-    const apiKey = process.env.APPWRITE_API_KEY;
-    const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://fra.cloud.appwrite.io/v1';
-    const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '6ace9263003199cf4b6f';
+    const apiKey = (process.env.APPWRITE_API_KEY || '').trim().replace(/^["']|["']$/g, '');
+    const endpoint = (process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://fra.cloud.appwrite.io/v1').trim().replace(/^["']|["']$/g, '');
+    const projectId = (process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || '6ace9263003199cf4b6f').trim().replace(/^["']|["']$/g, '');
 
     let appwriteServerUpdated = false;
 
