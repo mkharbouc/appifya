@@ -1,50 +1,81 @@
 // ---------------------------------------------------------------------------
-// AdMob Monetization & Subscription Management
-// Plan: $19 / Month via PayPal (kharbouch.km@gmail.com)
+// Appifya Pricing, Plans & Monetization Management
+// Model: Pay-Once Lifetime Access (Per-App / Agency Pack)
 // ---------------------------------------------------------------------------
 
 export const PAYPAL_EMAIL = 'kharbouch.km@gmail.com';
-export const SUBSCRIPTION_PRICE_USD = 19;
-export const RETENTION_DAYS = 10; // Auto-delete server files after 10 days
-export const PAYPAL_DIRECT_PAY_URL = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(PAYPAL_EMAIL)}&currency_code=USD&amount=${SUBSCRIPTION_PRICE_USD}&item_name=${encodeURIComponent('Appifya Pro Studio Plan')}`;
 
+export const PLAN_PRICES = {
+  free: 0,
+  standard: 29, // $29 one-time for 1 app
+  agency: 99,   // $99 one-time for 5 apps (~$20/app)
+} as const;
 
-export interface AdMobSubscription {
+export const ADDON_PRICES = {
+  build_reset: 9,    // +3 Rebuilds pack ($9)
+  admob_setup: 15,   // Full AdMob configuration setup ($15)
+  assetlinks: 9,     // Digital Asset Links setup for Fullscreen ($9)
+} as const;
+
+export const RETENTION_DAYS = 10; // Server retention for builds before auto-cleanup
+
+export type PlanType = 'free' | 'standard' | 'agency' | 'admob_pro';
+
+export interface UserSubscription {
   isActive: boolean;
-  plan: 'admob_pro' | 'free';
-  expiresAt: string | null;
-  daysRemaining: number;
+  plan: PlanType;
+  licensedAppsCount?: number; // 1 for standard, 5 for agency
   txnId?: string;
-  isExpiringSoon7d: boolean; // 7 days or less
-  isExpiringSoon3d: boolean; // 3 days or less
-  isExpired: boolean;
   activatedAt?: string;
+  addons?: string[];
+  daysRemaining?: number; // legacy support
+  expiresAt?: string | null; // legacy support
+  isExpired?: boolean;
+  isExpiringSoon7d?: boolean;
+  isExpiringSoon3d?: boolean;
 }
 
-export interface AdMobUnitsConfig {
-  appId: string;
-  bannerId?: string;
-  interstitialId?: string;
-  rewardedId?: string;
-  appOpenId?: string;
-  nativeId?: string;
+// Backwards compatibility alias
+export type AdMobSubscription = UserSubscription;
+
+export interface AppBuildRecord {
+  buildsUsed: number;
+  maxBuilds: number;
+  lastBuiltAt?: string;
+  hasAdmob: boolean;
+  hasKeystore: boolean;
 }
 
 const STORAGE_KEY_PREFIX = 'appifya_sub_';
+const BUILDS_KEY_PREFIX = 'appifya_builds_';
 
 /**
- * Get the current AdMob subscription for a user.
+ * Generate a direct PayPal checkout URL with custom item name and amount
  */
-export function getUserSubscription(userId: string): AdMobSubscription {
+export function getPayPalCheckoutUrl(amount: number, itemName: string): string {
+  return `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(
+    PAYPAL_EMAIL
+  )}&currency_code=USD&amount=${amount}&item_name=${encodeURIComponent(itemName)}`;
+}
+
+export const PAYPAL_STANDARD_URL = getPayPalCheckoutUrl(PLAN_PRICES.standard, 'Appifya Standard Pro (1 App Lifetime)');
+export const PAYPAL_AGENCY_URL = getPayPalCheckoutUrl(PLAN_PRICES.agency, 'Appifya Agency Pack (5 Apps Lifetime)');
+export const PAYPAL_DIRECT_PAY_URL = PAYPAL_STANDARD_URL; // default fallback
+export const SUBSCRIPTION_PRICE_USD = PLAN_PRICES.standard;
+
+/**
+ * Get the current plan for a user
+ */
+export function getUserSubscription(userId: string): UserSubscription {
   if (typeof window === 'undefined' || !userId) {
     return {
       isActive: false,
       plan: 'free',
-      expiresAt: null,
-      daysRemaining: 0,
+      licensedAppsCount: 0,
+      daysRemaining: 9999,
+      isExpired: false,
       isExpiringSoon7d: false,
       isExpiringSoon3d: false,
-      isExpired: false,
     };
   }
 
@@ -54,84 +85,64 @@ export function getUserSubscription(userId: string): AdMobSubscription {
       return {
         isActive: false,
         plan: 'free',
-        expiresAt: null,
-        daysRemaining: 0,
+        licensedAppsCount: 0,
+        daysRemaining: 9999,
+        isExpired: false,
         isExpiringSoon7d: false,
         isExpiringSoon3d: false,
-        isExpired: false,
       };
     }
 
     const data = JSON.parse(raw);
-    const expiresAt = data.expiresAt ? new Date(data.expiresAt) : null;
-    if (!expiresAt || isNaN(expiresAt.getTime())) {
-      return {
-        isActive: false,
-        plan: 'free',
-        expiresAt: null,
-        daysRemaining: 0,
-        isExpiringSoon7d: false,
-        isExpiringSoon3d: false,
-        isExpired: false,
-      };
-    }
-
-    const now = new Date();
-    const diffMs = expiresAt.getTime() - now.getTime();
-    const daysRemaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-    const isExpired = diffMs <= 0;
-    const isActive = !isExpired && data.plan === 'admob_pro';
-    const isExpiringSoon7d = isActive && daysRemaining <= 7 && daysRemaining > 3;
-    const isExpiringSoon3d = isActive && daysRemaining <= 3;
+    const plan: PlanType = data.plan || 'free';
+    const isPaid = plan === 'standard' || plan === 'agency' || plan === 'admob_pro';
 
     return {
-      isActive,
-      plan: isActive ? 'admob_pro' : 'free',
-      expiresAt: data.expiresAt,
-      daysRemaining,
+      isActive: isPaid,
+      plan,
+      licensedAppsCount: plan === 'agency' ? 5 : plan === 'standard' || plan === 'admob_pro' ? 1 : 0,
       txnId: data.txnId,
-      isExpiringSoon7d,
-      isExpiringSoon3d,
-      isExpired,
       activatedAt: data.activatedAt,
+      addons: data.addons || [],
+      daysRemaining: 9999, // Lifetime
+      expiresAt: null,
+      isExpired: false,
+      isExpiringSoon7d: false,
+      isExpiringSoon3d: false,
     };
   } catch {
     return {
       isActive: false,
       plan: 'free',
-      expiresAt: null,
-      daysRemaining: 0,
+      licensedAppsCount: 0,
+      daysRemaining: 9999,
+      isExpired: false,
       isExpiringSoon7d: false,
       isExpiringSoon3d: false,
-      isExpired: false,
     };
   }
 }
 
 /**
- * Activate or renew AdMob Pro subscription ($19/month).
+ * Activate or upgrade user subscription to Standard ($29) or Agency ($99)
  */
 export function activateUserSubscription(
   userId: string,
   txnId: string,
-  days = 30
-): AdMobSubscription {
+  targetPlan: PlanType | number = 'standard',
+  selectedAddons: string[] = []
+): UserSubscription {
+  const plan: PlanType = typeof targetPlan === 'string' ? targetPlan : 'standard';
   const now = new Date();
-  const current = getUserSubscription(userId);
-
-  // If already active, extend from current expiry date; otherwise from now
-  const baseDate = current.isActive && current.expiresAt ? new Date(current.expiresAt) : now;
-  const newExpiry = new Date(baseDate.getTime() + days * 24 * 60 * 60 * 1000);
+  const licensedAppsCount = plan === 'agency' ? 5 : 1;
 
   const payload = {
-    plan: 'admob_pro',
-    expiresAt: newExpiry.toISOString(),
+    plan,
+    licensedAppsCount,
     activatedAt: now.toISOString(),
     txnId: txnId.trim() || `PP-MANUAL-${Date.now()}`,
-    remindersSent: {
-      sevenDay: false,
-      threeDay: false,
-    },
+    addons: selectedAddons,
+    isLifetime: true,
   };
 
   try {
@@ -144,7 +155,86 @@ export function activateUserSubscription(
 }
 
 /**
- * Calculate file retention and 10-day auto-deletion.
+ * Get build allowance and usage for a specific application
+ */
+export function getAppBuildInfo(userId: string, appId: string) {
+  const sub = getUserSubscription(userId);
+  const maxBuilds = sub.isActive ? 3 : 1; // 3 builds for paid plans, 1 build for free trial
+
+  if (typeof window === 'undefined' || !appId) {
+    return {
+      buildsUsed: 0,
+      maxBuilds,
+      buildsRemaining: maxBuilds,
+      canBuild: true,
+      plan: sub.plan,
+      isPaid: sub.isActive,
+    };
+  }
+
+  try {
+    const raw = localStorage.getItem(`${BUILDS_KEY_PREFIX}${appId}`);
+    const record: AppBuildRecord = raw ? JSON.parse(raw) : { buildsUsed: 0, maxBuilds, hasAdmob: false, hasKeystore: false };
+    const effectiveMax = record.maxBuilds || maxBuilds;
+    const remaining = Math.max(0, effectiveMax - (record.buildsUsed || 0));
+
+    return {
+      buildsUsed: record.buildsUsed || 0,
+      maxBuilds: effectiveMax,
+      buildsRemaining: remaining,
+      canBuild: remaining > 0,
+      plan: sub.plan,
+      isPaid: sub.isActive,
+    };
+  } catch {
+    return {
+      buildsUsed: 0,
+      maxBuilds,
+      buildsRemaining: maxBuilds,
+      canBuild: true,
+      plan: sub.plan,
+      isPaid: sub.isActive,
+    };
+  }
+}
+
+/**
+ * Increment the build usage counter upon a successful build
+ */
+export function recordSuccessfulBuild(appId: string, hasAdmob = false) {
+  if (typeof window === 'undefined' || !appId) return;
+
+  try {
+    const raw = localStorage.getItem(`${BUILDS_KEY_PREFIX}${appId}`);
+    const record: AppBuildRecord = raw ? JSON.parse(raw) : { buildsUsed: 0, maxBuilds: 3, hasAdmob: false, hasKeystore: true };
+    record.buildsUsed = (record.buildsUsed || 0) + 1;
+    record.lastBuiltAt = new Date().toISOString();
+    record.hasAdmob = hasAdmob;
+    record.hasKeystore = true;
+    localStorage.setItem(`${BUILDS_KEY_PREFIX}${appId}`, JSON.stringify(record));
+  } catch (err) {
+    console.error('Failed to record build:', err);
+  }
+}
+
+/**
+ * Add +3 rebuilds to an application (e.g. after purchasing Build Reset add-on)
+ */
+export function addAppBuildCredits(appId: string, extraCount = 3) {
+  if (typeof window === 'undefined' || !appId) return;
+
+  try {
+    const raw = localStorage.getItem(`${BUILDS_KEY_PREFIX}${appId}`);
+    const record: AppBuildRecord = raw ? JSON.parse(raw) : { buildsUsed: 0, maxBuilds: 3, hasAdmob: false, hasKeystore: true };
+    record.maxBuilds = (record.maxBuilds || 3) + extraCount;
+    localStorage.setItem(`${BUILDS_KEY_PREFIX}${appId}`, JSON.stringify(record));
+  } catch (err) {
+    console.error('Failed to add build credits:', err);
+  }
+}
+
+/**
+ * Calculate file retention status for 10-day server auto-deletion
  */
 export function getFileRetentionStatus(createdAt: string | number | Date) {
   const createdDate = new Date(createdAt);

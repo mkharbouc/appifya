@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import confetti from 'canvas-confetti';
+import PlanUpgradeModal from '@/components/PlanUpgradeModal';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '../lib/i18n';
 import { databases, storage, DB_ID, TABLE_ID, BUCKET_ID } from '@/lib/appwrite';
@@ -608,9 +609,9 @@ export default function AdMobPage() {
         </h2>
         <p className="text-xs text-slate-400 max-w-md mb-6 leading-relaxed">
           {t(
-            'سجل دخولك لحفظ معرّفات إعلاناتك، رفع تطبيقاتك، وتفعيل اشتراك تحقيق الأرباح بـ 19$ شهرياً.',
-            'Connectez-vous pour gérer vos annonces AdMob et activer votre abonnement.',
-            'Sign in to manage AdMob ad units, upload your applications, and activate your monetization subscription.',
+            'سجل دخولك لحفظ معرّفات إعلاناتك، رفع تطبيقاتك، وتفعيل باقة تحقيق الأرباح مدى الحياة.',
+            'Connectez-vous pour gérer vos annonces AdMob et activer votre forfait à vie.',
+            'Sign in to manage AdMob ad units, upload your applications, and activate your lifetime monetization plan.',
           )}
         </p>
         <button
@@ -814,9 +815,9 @@ export default function AdMobPage() {
         </h1>
         <p className="max-w-2xl mx-auto text-slate-400 text-xs sm:text-sm leading-relaxed">
           {t(
-            'ارفع ملف تطبيقك (APK / AAB) أو اختر تطبيقك من المنصة، أدخل معرّفات AdMob التي تريد تفعيلها، واشترك بـ 19$ شهرياً لإضافة الإعلانات بلا حدود طيلة الشهر.',
-            'Téléversez votre fichier APK/AAB ou sélectionnez une app existante. Intégrez vos bannières, interstitiels et vidéos récompensées en illimité pour 19$/mois.',
-            'Upload your APK/AAB app file or pick an existing app. Add Banners, Interstitials, Rewarded & App Open units with unlimited ad builds for $19/month.',
+            'ارفع ملف تطبيقك (APK / AAB) أو اختر تطبيقك من المنصة، أدخل معرّفات AdMob، وامتلك شفرات إعلاناتك وحزم المتجر مدى الحياة بدفع لمرة واحدة فقط.',
+            'Téléversez votre fichier APK/AAB ou sélectionnez une app existante. Intégrez vos annonces AdMob à vie avec un paiement unique.',
+            'Upload your APK/AAB app file or pick an existing app. Add Banners, Interstitials, Rewarded & App Open units with lifetime ownership.',
           )}
         </p>
       </div>
@@ -827,37 +828,35 @@ export default function AdMobPage() {
           <div className={`h-11 w-11 rounded-xl flex items-center justify-center font-bold ${
             subscription.isActive
               ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
-              : 'bg-amber-500/15 border border-amber-500/30 text-amber-400'
+              : 'bg-indigo-500/15 border border-indigo-500/30 text-indigo-400'
           }`}>
-            <CreditCard className="h-5 w-5" />
+            <Sparkles className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-white">
-                {subscription.isActive
-                  ? t('اشتراك AdMob Pro (نشط)', 'Abonnement AdMob Pro (Actif)', 'AdMob Pro Active')
-                  : t('خطة تسييل التطبيقات (غير مفعلة)', 'Plan Monétisation (Inactif)', 'Monetization Plan (Inactive)')}
+                {subscription.plan === 'agency'
+                  ? t('حزمة الوكالات (نشطة · 5 تطبيقات)', 'Pack Agence (Actif · 5 apps)', 'Agency Pack Active (5 Apps)')
+                  : subscription.isActive
+                  ? t('باقة Standard Pro (نشطة · مدى الحياة)', 'Standard Pro (Actif · À vie)', 'Standard Pro Active (Lifetime)')
+                  : t('باقة تسييل التطبيقات (غير مفعلة)', 'Plan Monétisation (Inactif)', 'Monetization Plan (Inactive)')}
               </span>
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                 subscription.isActive
                   ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                   : 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/25'
               }`}>
-                ${SUBSCRIPTION_PRICE_USD} / {t('شهر', 'mois', 'mo')}
+                {subscription.plan === 'agency'
+                  ? '$99 / lifetime'
+                  : subscription.isActive
+                  ? '$29 / lifetime'
+                  : '$29 / one-time'}
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              {subscription.isActive ? (
-                <>
-                  {t('متبقي', 'Reste', 'Remaining')}:{' '}
-                  <strong className={subscription.isExpiringSoon3d ? 'text-red-400' : subscription.isExpiringSoon7d ? 'text-amber-400' : 'text-emerald-400'}>
-                    {subscription.daysRemaining} {t('يوماً', 'jours', 'days')}
-                  </strong>{' '}
-                  · {t('إعلانات وتطبيقات غير محدودة', 'Annonces & apps illimitées', 'Unlimited ads & apps')}
-                </>
-              ) : (
-                t('أضف الإعلانات لتطبيقاتك قدر ما تشاء طيلة الشهر مع تنبيهات التجديد', 'Ajoutez des publicités à volonté tout le mois', 'Add ads to unlimited apps all month long')
-              )}
+              {subscription.isActive
+                ? t('ترخيص دائم للأبد · أرباح الإعلانات 100% لك دون أي وسيط', 'Licence permanente à vie', 'Lifetime license · 100% ad revenue directly yours')
+                : t('ادفع لمرة واحدة ($29) وامتلك شفرات AdMob وحزم AAB + APK الرسمية مدى الحياة', 'Payez une seule fois (29$) pour débloquer AdMob à vie', 'Pay once ($29) to own AdMob ads and Google Play binaries forever')}
             </p>
           </div>
         </div>
@@ -872,53 +871,10 @@ export default function AdMobPage() {
           }`}
         >
           {subscription.isActive
-            ? t('تفاصيل الاشتراك / تجديد', 'Gérer / Renouveler', 'Manage / Renew')
-            : t('تفعيل الاشتراك (19$ شهرياً)', 'Activer (19$/mois)', 'Activate ($19/mo)')}
+            ? t('ترقية / خدمات إضافية', 'Gérer / Options', 'Upgrade / Add-ons')
+            : t('تفعيل الباقة ($29 لمرة واحدة)', 'Activer (29$ à vie)', 'Activate ($29 Lifetime)')}
         </button>
       </div>
-
-      {/* Subscription Warnings (7d / 3d) */}
-      {subscription.isActive && subscription.isExpiringSoon3d && (
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-300 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <ShieldAlert className="h-5 w-5 text-red-400 shrink-0" />
-            <span>
-              {t(
-                `🚨 تنبيه عاجل: بقي ${subscription.daysRemaining} أيام فقط على انتهاء اشتراكك في إعلانات AdMob! يرجى التجديد لتفادي توقف الخدمة.`,
-                `🚨 Urgent : Il ne reste que ${subscription.daysRemaining} jours sur votre abonnement AdMob !`,
-                `🚨 Urgent: Only ${subscription.daysRemaining} days left on your AdMob subscription! Please renew to avoid service disruption.`,
-              )}
-            </span>
-          </div>
-          <button
-            onClick={() => setShowPayModal(true)}
-            className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg text-xs cursor-pointer shrink-0"
-          >
-            {t('تجديد الآن', 'Renouveler', 'Renew Now')}
-          </button>
-        </div>
-      )}
-
-      {subscription.isActive && subscription.isExpiringSoon7d && !subscription.isExpiringSoon3d && (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-300 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <Clock className="h-5 w-5 text-amber-400 shrink-0" />
-            <span>
-              {t(
-                `⚠️ تذكير: بقي أسبوع (${subscription.daysRemaining} أيام) على انتهاء اشتراك AdMob Pro. يمكنك التجديد الآن لمواصلة تفعيل الإعلانات.`,
-                `⚠️ Rappel : Il reste une semaine (${subscription.daysRemaining} jours) sur votre abonnement AdMob Pro.`,
-                `⚠️ Reminder: 1 week (${subscription.daysRemaining} days) left on your AdMob Pro plan. You can renew now to continue uninterrupted.`,
-              )}
-            </span>
-          </div>
-          <button
-            onClick={() => setShowPayModal(true)}
-            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg text-xs cursor-pointer shrink-0"
-          >
-            {t('تجديد الاشتراك', 'Renouveler', 'Renew')}
-          </button>
-        </div>
-      )}
 
       {/* Success alert when subscription activated */}
       {subSuccessMsg && (
@@ -1385,13 +1341,13 @@ export default function AdMobPage() {
               <div>
                 <p className="font-bold">
                   {subscription.isActive
-                    ? t('اشتراك AdMob Pro نشط · مؤهل لتضمين الإعلانات بلا حدود', 'AdMob Pro actif · Illimité', 'AdMob Pro Active · Unlimited Ad Builds')
-                    : t('يتطلب تفعيل اشتراك AdMob Pro (19$ شهرياً) لإتمام الحفظ وبناء التطبيق', 'Abonnement requis (19$/mois)', 'AdMob Pro Subscription Required ($19/mo)')}
+                    ? t('باقة AdMob Pro مفعلة مدى الحياة · مؤهل لتضمين الإعلانات وحزم المتجر', 'AdMob Pro à vie actif', 'Lifetime AdMob Pro Active · Store Bundles Ready')
+                    : t('يتطلب تفعيل باقة Standard Pro ($29 تدفع مرة واحدة) لإتمام الحفظ وتضمين AdMob للأبد', 'Forfait Standard Pro requis (29$ à vie)', 'Standard Pro Lifetime Plan Required ($29 One-Time)')}
                 </p>
                 <p className="text-[11px] opacity-80 mt-0.5">
                   {subscription.isActive
-                    ? `${t('صالح لمدة', 'Valide pour', 'Valid for')} ${subscription.daysRemaining} ${t('يوماً إضافية', 'jours restants', 'days remaining')}`
-                    : t('ادفع عبر PayPal واستمتع بإضافة وتحديث الإعلانات لكافة تطبيقاتك طوال الشهر', 'Payez via PayPal pour débloquer les publicités', 'Pay via PayPal to unlock unlimited ads for 30 days')}
+                    ? t('ترخيص دائم للأبد · أرباح الإعلانات 100% لك دون أي وسيط', 'Licence permanente à vie', 'Lifetime license · 100% ad revenue directly yours')
+                    : t('ادفع لمرة واحدة وامتلك شفرات AdMob وحزم AAB + APK الرسمية لمتجر Google Play للأبد', 'Payez une seule fois pour débloquer AdMob à vie', 'Pay once to own your AdMob ads and Google Play binaries forever')}
                 </p>
               </div>
             </div>
@@ -1400,9 +1356,9 @@ export default function AdMobPage() {
               <button
                 type="button"
                 onClick={() => setShowPayModal(true)}
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs cursor-pointer shrink-0"
+                className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-xl text-xs cursor-pointer shrink-0 shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.02]"
               >
-                {t('تفعيل بـ 19$', 'Activer (19$)', 'Activate ($19)')}
+                {t('تفعيل بـ 29$ لمرة واحدة', 'Activer (29$ à vie)', 'Activate ($29 Lifetime)')}
               </button>
             )}
           </div>
@@ -1518,120 +1474,17 @@ export default function AdMobPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* PAYPAL SUBSCRIPTION ACTIVATION MODAL ($19 / MONTH)                 */}
+      {/* PAYPAL SUBSCRIPTION / PLAN UPGRADE MODAL                            */}
       {/* ------------------------------------------------------------------ */}
-      {showPayModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto" role="dialog" aria-modal="true">
-          <div className="relative w-full max-w-lg bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6" dir={isRtl ? 'rtl' : 'ltr'}>
-            <button
-              type="button"
-              onClick={() => setShowPayModal(false)}
-              className="absolute top-5 left-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            <div className="text-center space-y-2">
-              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25 mb-1">
-                <DollarSign className="h-7 w-7" />
-              </div>
-              <h3 className="text-2xl font-black text-white">
-                {t('اشتراك إعلانات AdMob غير المحدود', 'Abonnement AdMob Illimité', 'Unlimited AdMob Subscription')}
-              </h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
-                {t(
-                  'أضف وحدث إعلانات Google AdMob لجميع تطبيقاتك بدون حدود طيلة الشهر مقابل 19$ فقط.',
-                  'Intégrez des publicités AdMob à volonté sur toutes vos applications pour 19$/mois.',
-                  'Add and update Google AdMob ads for all your apps without limits for just $19/month.',
-                )}
-              </p>
-            </div>
-
-            {/* Price highlight */}
-            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center">
-              <span className="text-3xl font-black text-white">$19</span>
-              <span className="text-xs text-emerald-400 font-bold ms-1.5">/ {t('شهرياً (30 يوماً)', 'par mois (30 jours)', 'per month (30 days)')}</span>
-              <p className="text-[11px] text-slate-400 mt-1">
-                {t('يشمل Banner, Interstitial, Rewarded, App Open, Native وتطبيقات غير محدودة', 'Tous les formats et apps illimités inclus', 'All ad formats and unlimited apps included')}
-              </p>
-            </div>
-
-            {/* PayPal Payment Instructions */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-3">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400">{t('الدفع المباشر عبر حساب PayPal:', 'Paiement direct via PayPal :', 'Direct Payment via PayPal:')}</span>
-                <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  <span>Verified Account</span>
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5" dir="ltr">
-                <span className="font-mono text-sm text-indigo-300 font-bold select-all">{PAYPAL_EMAIL}</span>
-                <button
-                  type="button"
-                  onClick={copyPayPalEmail}
-                  className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
-                  title="Copy email"
-                >
-                  {copiedEmail ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
-                </button>
-              </div>
-
-              <a
-                href={PAYPAL_DIRECT_PAY_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:scale-[1.01]"
-              >
-                <ExternalLink className="h-4 w-4" />
-                <span>{t('الذهاب للدفع عبر PayPal مباشرة ($19)', 'Payer 19$ directement via PayPal', 'Pay $19 via PayPal Checkout')}</span>
-              </a>
-            </div>
-
-            {/* Enter Transaction ID or Sender Email */}
-            <div className="space-y-3">
-              <label className="block text-xs font-semibold text-slate-300">
-                {t('رقم المعاملة (Transaction ID) أو بريد حساب PayPal المُرسل منه:', 'Identifiant de transaction ou e-mail de paiement :', 'Transaction ID or Sender PayPal Email:')}
-              </label>
-              <input
-                type="text"
-                value={txnInput}
-                onChange={(e) => setTxnInput(e.target.value)}
-                placeholder="PP-123456789 or your-paypal@gmail.com"
-                dir="ltr"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs sm:text-sm font-mono text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500"
-              />
-              <p className="text-[11px] text-slate-500 leading-relaxed">
-                {t(
-                  'سيتم تفعيل الاشتراك فوراً لمدة 30 يوماً وإرسال إشعارات التجديد إلى بريدك قبل أسبوع ثم قبل 3 أيام من الانتهاء.',
-                  'Votre abonnement sera activé pour 30 jours avec des rappels à 7 jours et 3 jours.',
-                  'Your plan will activate for 30 days immediately with renewal reminders sent 7 days and 3 days prior to expiry.',
-                )}
-              </p>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setShowPayModal(false)}
-                className="flex-1 py-3 border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-xs rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                {t('إلغاء', 'Annuler', 'Cancel')}
-              </button>
-              <button
-                type="button"
-                onClick={handleActivatePayPal}
-                disabled={subActivating}
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/25 transition-all cursor-pointer"
-              >
-                {subActivating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                <span>{subActivating ? t('جاري التفعيل...', 'Activation...', 'Activating...') : t('تأكيد وتفعيل الاشتراك', 'Confirmer et Activer', 'Confirm & Activate')}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PlanUpgradeModal
+        isOpen={showPayModal}
+        onClose={() => setShowPayModal(false)}
+        onSuccess={() => {
+          refreshSubscription();
+        }}
+        defaultPlan="standard"
+        appId={selectedAppId || undefined}
+      />
 
     </main>
   );

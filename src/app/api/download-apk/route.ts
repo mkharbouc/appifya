@@ -11,6 +11,7 @@ function getConfig() {
 export async function GET(req: NextRequest) {
   const searchParams = new URL(req.url).searchParams;
   const appId = searchParams.get('appId');
+  const fileType = (searchParams.get('type') || 'apk').toLowerCase();
 
   if (!appId) {
     return NextResponse.json({ error: 'appId parameter is required' }, { status: 400 });
@@ -60,14 +61,29 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'No build release found for this application' }, { status: 404 });
     }
 
-    const apkAsset = release.assets?.find((asset) => asset.name.toLowerCase().endsWith('.apk'));
-    if (!apkAsset) {
-      return NextResponse.json({ error: 'APK binary asset not found in release' }, { status: 404 });
+    // Identify target asset by requested type (.aab, .keystore/.jks, or .apk)
+    let targetAsset = release.assets?.find((asset) => {
+      const name = asset.name.toLowerCase();
+      if (fileType === 'aab') return name.endsWith('.aab');
+      if (fileType === 'keystore') return name.endsWith('.jks') || name.endsWith('.keystore') || name.includes('keystore');
+      return name.endsWith('.apk');
+    });
+
+    // Fallback: If AAB was requested but not generated yet, try APK
+    if (!targetAsset && fileType === 'aab') {
+      targetAsset = release.assets?.find((asset) => asset.name.toLowerCase().endsWith('.apk'));
     }
 
-    // 2. Stream APK binary directly from GitHub API using authenticated Bearer token
+    if (!targetAsset) {
+      return NextResponse.json(
+        { error: `Requested ${fileType.toUpperCase()} asset not found in release` },
+        { status: 404 }
+      );
+    }
+
+    // 2. Stream binary directly from GitHub API using authenticated Bearer token
     const assetRes = await fetch(
-      `https://api.github.com/repos/${config.owner}/${targetRepo}/releases/assets/${apkAsset.id}`,
+      `https://api.github.com/repos/${config.owner}/${targetRepo}/releases/assets/${targetAsset.id}`,
       {
         headers: {
           Accept: 'application/octet-stream',
@@ -78,15 +94,18 @@ export async function GET(req: NextRequest) {
     );
 
     if (!assetRes.ok) {
-      // Fallback: If direct streaming fails, redirect to browser download URL
-      return NextResponse.redirect(apkAsset.browser_download_url);
+      return NextResponse.redirect(targetAsset.browser_download_url);
     }
 
+    const contentType = targetAsset.name.endsWith('.apk')
+      ? 'application/vnd.android.package-archive'
+      : 'application/octet-stream';
+
     const headers = new Headers();
-    headers.set('Content-Type', 'application/vnd.android.package-archive');
-    headers.set('Content-Disposition', `attachment; filename="${apkAsset.name || 'app-release.apk'}"`);
-    if (apkAsset.size) {
-      headers.set('Content-Length', String(apkAsset.size));
+    headers.set('Content-Type', contentType);
+    headers.set('Content-Disposition', `attachment; filename="${targetAsset.name}"`);
+    if (targetAsset.size) {
+      headers.set('Content-Length', String(targetAsset.size));
     }
     headers.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
 
@@ -96,7 +115,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    console.error('Download APK failed:', msg);
-    return NextResponse.json({ error: 'Unable to stream APK download: ' + msg }, { status: 500 });
+    console.error('Download binary failed:', msg);
+    return NextResponse.json({ error: 'Unable to stream download: ' + msg }, { status: 500 });
   }
 }

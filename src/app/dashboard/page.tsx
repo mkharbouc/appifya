@@ -12,12 +12,16 @@ import {
   getUserSubscription,
   activateUserSubscription,
   getFileRetentionStatus,
+  getAppBuildInfo,
+  recordSuccessfulBuild,
+  addAppBuildCredits,
   PAYPAL_EMAIL,
   PAYPAL_DIRECT_PAY_URL,
   SUBSCRIPTION_PRICE_USD,
   RETENTION_DAYS,
   type AdMobSubscription,
 } from '@/lib/subscription';
+import PlanUpgradeModal from '@/components/PlanUpgradeModal';
 import confetti from 'canvas-confetti';
 import {
   Smartphone,
@@ -46,6 +50,8 @@ import {
   Layers,
   Zap,
   Mail,
+  Briefcase,
+  Key,
 } from 'lucide-react';
 
 const BUILD_TIMEOUT_MS = 20 * 60 * 1000;
@@ -357,8 +363,25 @@ export default function DashboardPage() {
     void restoreBuildStatuses();
   }, [apps]);
 
+  const [selectedUpgradeAppId, setSelectedUpgradeAppId] = useState<string | null>(null);
+  const [upgradeDefaultPlan, setUpgradeDefaultPlan] = useState<'standard' | 'agency'>('standard');
+
   const handleTriggerBuild = async (app: AppDocument, isProBuild: boolean = false) => {
     if (isProBuild && !subscription.isActive) {
+      setSelectedUpgradeAppId(app.$id);
+      setUpgradeDefaultPlan('standard');
+      setShowPayModal(true);
+      return;
+    }
+
+    const buildInfo = getAppBuildInfo(user?.$id || '', app.$id);
+    if (!buildInfo.canBuild) {
+      alert(
+        lang === 'ar'
+          ? `لقد استنفدت محاولات البناء المتاحة لهذا التطبيق (${buildInfo.maxBuilds} محاولات). يمكنك إضافة +3 محاولات إعادة بناء إضافية بـ 9$.`
+          : `You have reached the build limit for this app (${buildInfo.maxBuilds} builds). You can add +3 extra rebuilds for $9.`
+      );
+      setSelectedUpgradeAppId(app.$id);
       setShowPayModal(true);
       return;
     }
@@ -376,6 +399,7 @@ export default function DashboardPage() {
           themeColor: app.theme_color,
           iconId: app.icon_id,
           isProBuild,
+          planTier: subscription.plan,
           admobAppId: app.admob_app_id,
           admobBannerUnitId: app.admob_banner_unit_id,
           admobInterstitialUnitId: app.admob_interstitial_unit_id,
@@ -432,6 +456,10 @@ export default function DashboardPage() {
             const appName = appDoc?.app_name || (lang === 'ar' ? 'تطبيقك' : 'Your App');
             const hasAdmob = Boolean(appDoc?.admob_app_id || appDoc?.admob_banner_unit_id);
             const isPro = subscription.isActive || hasAdmob;
+
+            // Record successful build in quota tracker
+            recordSuccessfulBuild(appId, hasAdmob);
+
             setCelebrationApp({
               id: appId,
               name: appName,
@@ -818,21 +846,48 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            {/* Big Action Download Button */}
+            {/* Download Buttons Suite (APK, AAB Bundle, Release Keystore) */}
             <div className="space-y-3 pt-2">
-              <a
-                href={celebrationApp.downloadUrl?.startsWith('http') && !celebrationApp.downloadUrl?.includes('/api/download-apk') ? `/api/download-apk?appId=${celebrationApp.id}` : (celebrationApp.downloadUrl || `/api/download-apk?appId=${celebrationApp.id}`)}
-                download={`${celebrationApp.name || 'app'}.apk`}
-                onClick={() => triggerCelebration()}
-                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-sm sm:text-base flex items-center justify-center gap-3 shadow-xl shadow-emerald-500/30 transition-all hover:scale-[1.02] cursor-pointer"
-              >
-                <Download className="h-5 w-5 animate-bounce" />
-                <span>
-                  {celebrationApp.hasAdmob
-                    ? (lang === 'ar' ? '📥 تنزيل ملف الـ APK (المجهز بإعلانات AdMob)' : '📥 Download Monetized APK Now')
-                    : (lang === 'ar' ? '📥 تنزيل ملف الـ APK الآن' : '📥 Download APK Now')}
-                </span>
-              </a>
+              <div className="flex flex-col sm:flex-row gap-2.5">
+                <a
+                  href={`/api/download-apk?appId=${celebrationApp.id}&type=apk`}
+                  download={`${celebrationApp.name || 'app'}.apk`}
+                  onClick={() => triggerCelebration()}
+                  className="flex-1 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/25 transition-all hover:scale-[1.01] cursor-pointer"
+                >
+                  <Download className="h-4 w-4 shrink-0" />
+                  <span>
+                    {celebrationApp.hasAdmob
+                      ? (lang === 'ar' ? '📥 تنزيل APK (AdMob مفعل)' : '📥 Download AdMob APK')
+                      : (lang === 'ar' ? '📥 تنزيل ملف APK' : '📥 Download APK')}
+                  </span>
+                </a>
+
+                {celebrationApp.isPro && (
+                  <a
+                    href={`/api/download-apk?appId=${celebrationApp.id}&type=aab`}
+                    download={`${celebrationApp.name || 'app'}.aab`}
+                    onClick={() => triggerCelebration()}
+                    className="flex-1 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl shadow-indigo-600/25 transition-all hover:scale-[1.01] cursor-pointer"
+                  >
+                    <Download className="h-4 w-4 shrink-0" />
+                    <span>{lang === 'ar' ? '📦 حزمة المتجر (AAB Bundle)' : '📦 Google Play (AAB)'}</span>
+                  </a>
+                )}
+              </div>
+
+              {celebrationApp.isPro && (
+                <div>
+                  <a
+                    href={`/api/download-apk?appId=${celebrationApp.id}&type=keystore`}
+                    download={`${celebrationApp.name || 'app'}-release.keystore`}
+                    className="w-full py-2.5 px-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <Key className="h-3.5 w-3.5 text-amber-400" />
+                    <span>{lang === 'ar' ? '🔑 تنزيل مفتاح التوقيع الرقمي (Release Keystore)' : '🔑 Download Dedicated Release Keystore'}</span>
+                  </a>
+                </div>
+              )}
 
               <div className="flex items-center justify-center gap-4 text-xs">
                 <button
@@ -1007,43 +1062,57 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* AdMob Subscription Status Bar */}
+      {/* Lifetime Plan & Monetization Status Bar */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className={`h-11 w-11 rounded-xl flex items-center justify-center font-bold ${
-            subscription.isActive
+            subscription.plan === 'agency'
               ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
-              : 'bg-indigo-500/15 border border-indigo-500/30 text-indigo-400'
+              : subscription.isActive
+              ? 'bg-indigo-500/15 border border-indigo-500/30 text-indigo-400'
+              : 'bg-slate-800 border border-slate-700 text-slate-400'
           }`}>
-            <DollarSign className="h-5 w-5" />
+            {subscription.plan === 'agency' ? (
+              <Briefcase className="h-5 w-5 text-emerald-400" />
+            ) : subscription.isActive ? (
+              <Sparkles className="h-5 w-5 text-indigo-400" />
+            ) : (
+              <DollarSign className="h-5 w-5" />
+            )}
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-bold text-white">
-                {subscription.isActive
-                  ? (lang === 'ar' ? 'اشتراك إعلانات AdMob (نشط)' : 'AdMob Pro Active')
-                  : (lang === 'ar' ? 'خدمة إعلانات AdMob غير المحدودة' : 'Unlimited AdMob Service')}
+                {subscription.plan === 'agency'
+                  ? (lang === 'ar' ? 'حزمة الوكالات (Agency Pack · 5 تطبيقات)' : 'Agency Pack Active (5 Apps Lifetime)')
+                  : subscription.isActive
+                  ? (lang === 'ar' ? 'الباقة الاحترافية (Standard Pro · مدى الحياة)' : 'Standard Pro Active (Lifetime)')
+                  : (lang === 'ar' ? 'الباقة التجريبية (Free Starter)' : 'Free Starter Plan')}
               </span>
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                 subscription.isActive
                   ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                   : 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/25'
               }`}>
-                ${SUBSCRIPTION_PRICE_USD} / {lang === 'ar' ? 'شهرياً' : 'month'}
+                {subscription.plan === 'agency'
+                  ? '$99 / lifetime'
+                  : subscription.isActive
+                  ? '$29 / lifetime'
+                  : '$0 / free'}
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              {subscription.isActive ? (
-                <>
-                  {lang === 'ar' ? 'متبقي' : 'Remaining'}:{' '}
-                  <strong className={subscription.isExpiringSoon3d ? 'text-red-400' : subscription.isExpiringSoon7d ? 'text-amber-400' : 'text-emerald-400'}>
-                    {subscription.daysRemaining} {lang === 'ar' ? 'يوماً' : 'days'}
-                  </strong>{' '}
-                  · {lang === 'ar' ? 'إعلانات وتطبيقات غير محدودة طيلة الشهر' : 'Unlimited ad injection across all apps'}
-                </>
-              ) : (
-                lang === 'ar' ? 'فعّل إعلانات AdMob لجميع تطبيقاتك بدون حدود عبر PayPal' : 'Activate unlimited AdMob ads for all apps via PayPal'
-              )}
+              {subscription.plan === 'agency'
+                ? (lang === 'ar'
+                    ? 'رصيد دائم لـ 5 تطبيقات كاملة مع إعلانات AdMob وحزم AAB لكل تطبيق وشاشات White-label.'
+                    : 'Lifetime credit for 5 apps with AdMob, Google Play AAB bundles & White-label splash.')
+                : subscription.isActive
+                ? (lang === 'ar'
+                    ? 'ترخيص دائم للأبد · يشمل حزم متجر Play الرسمية (AAB + APK) ودمج AdMob الكامل و3 محاولات بناء.'
+                    : 'Lifetime license · Includes Google Play AAB bundles, full AdMob ads & 3 builds.')
+                : (lang === 'ar'
+                    ? 'جرّب بناء APK للتأكد من توافق موقعك. قم بالترقية للحصول على حزم المتجر (AAB) و AdMob للأبد.'
+                    : 'Test APK build to ensure compatibility. Upgrade once to unlock Google Play AAB and AdMob forever.')}
             </p>
           </div>
         </div>
@@ -1057,7 +1126,10 @@ export default function DashboardPage() {
           </Link>
           <button
             type="button"
-            onClick={() => setShowPayModal(true)}
+            onClick={() => {
+              setSelectedUpgradeAppId(null);
+              setShowPayModal(true);
+            }}
             className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer ${
               subscription.isActive
                 ? 'border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700'
@@ -1065,50 +1137,11 @@ export default function DashboardPage() {
             }`}
           >
             {subscription.isActive
-              ? (lang === 'ar' ? 'تجديد الاشتراك' : 'Renew Plan')
-              : (lang === 'ar' ? 'ترقية بـ 19$' : 'Upgrade ($19)')}
+              ? (lang === 'ar' ? 'ترقية / شراء إضافات' : 'Upgrade / Add-ons')
+              : (lang === 'ar' ? 'ترقية الباقة ($29)' : 'Upgrade ($29)')}
           </button>
         </div>
       </div>
-
-      {/* Subscription Warnings (7 days & 3 days) */}
-      {subscription.isActive && subscription.isExpiringSoon3d && (
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-300 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <ShieldAlert className="h-5 w-5 text-red-400 shrink-0" />
-            <span>
-              {lang === 'ar'
-                ? `🚨 تنبيه عاجل: بقي ${subscription.daysRemaining} أيام فقط على انتهاء اشتراكك في إعلانات AdMob! يرجى التجديد لتفادي توقف الخدمة.`
-                : `🚨 Urgent: Only ${subscription.daysRemaining} days left on your AdMob subscription! Please renew.`}
-            </span>
-          </div>
-          <button
-            onClick={() => setShowPayModal(true)}
-            className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg text-xs cursor-pointer shrink-0"
-          >
-            {lang === 'ar' ? 'تجديد الآن' : 'Renew Now'}
-          </button>
-        </div>
-      )}
-
-      {subscription.isActive && subscription.isExpiringSoon7d && !subscription.isExpiringSoon3d && (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-300 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <Clock className="h-5 w-5 text-amber-400 shrink-0" />
-            <span>
-              {lang === 'ar'
-                ? `⚠️ تذكير: بقي أسبوع (${subscription.daysRemaining} أيام) على انتهاء اشتراك AdMob Pro. يمكنك التجديد الآن لمواصلة إضافة الإعلانات.`
-                : `⚠️ Reminder: 1 week (${subscription.daysRemaining} days) left on your AdMob Pro plan.`}
-            </span>
-          </div>
-          <button
-            onClick={() => setShowPayModal(true)}
-            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg text-xs cursor-pointer shrink-0"
-          >
-            {lang === 'ar' ? 'تجديد' : 'Renew'}
-          </button>
-        </div>
-      )}
 
       {/* 10-day retention notice banner */}
       <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5 flex items-start gap-3 text-xs text-slate-400">
@@ -1222,29 +1255,55 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Status badges & Retention countdown */}
-                  <div className="space-y-1.5 mb-4 text-[11px]">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
-                        {getTxt('active')}
-                      </span>
-                      {app.admob_app_id && (
-                        <span className="px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium flex items-center gap-1">
-                          <DollarSign className="h-3 w-3" />
-                          <span>AdMob</span>
-                        </span>
-                      )}
-                    </div>
+                  {(() => {
+                    const buildInfo = getAppBuildInfo(user?.$id || '', app.$id);
+                    return (
+                      <div className="space-y-1.5 mb-4 text-[11px]">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                            {getTxt('active')}
+                          </span>
+                          {app.admob_app_id && (
+                            <span className="px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium flex items-center gap-1">
+                              <DollarSign className="h-3 w-3" />
+                              <span>AdMob</span>
+                            </span>
+                          )}
+                          <span className={`px-2 py-0.5 rounded-md border font-semibold ${
+                            buildInfo.buildsRemaining > 0
+                              ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'
+                              : 'bg-red-500/10 text-red-300 border-red-500/20'
+                          }`}>
+                            {lang === 'ar'
+                              ? `البناء المتبقي: ${buildInfo.buildsRemaining} من ${buildInfo.maxBuilds}`
+                              : `Builds: ${buildInfo.buildsRemaining}/${buildInfo.maxBuilds} left`}
+                          </span>
+                          {buildInfo.buildsRemaining === 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedUpgradeAppId(app.$id);
+                                setShowPayModal(true);
+                              }}
+                              className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold hover:bg-amber-500/30 cursor-pointer text-[10px]"
+                            >
+                              {lang === 'ar' ? '+3 محاولات بـ 9$' : '+3 Builds ($9)'}
+                            </button>
+                          )}
+                        </div>
 
-                    {/* 10-Day File Retention Countdown Badge */}
-                    <div className="flex items-center gap-1.5 text-slate-500 text-[10px]">
-                      <Clock className="h-3 w-3 text-amber-400/80 shrink-0" />
-                      <span>
-                        {retention.isExpired
-                          ? (lang === 'ar' ? 'انتهت مدة حفظ الملف على الخادم (10 أيام)' : 'Server 10-day retention expired')
-                          : (lang === 'ar' ? `حفظ الملف بالسيرفر: متبقي ${retention.daysLeft} أيام` : `Server retention: ${retention.daysLeft} days left`)}
-                      </span>
-                    </div>
-                  </div>
+                        {/* 10-Day File Retention Countdown Badge */}
+                        <div className="flex items-center gap-1.5 text-slate-500 text-[10px]">
+                          <Clock className="h-3 w-3 text-amber-400/80 shrink-0" />
+                          <span>
+                            {retention.isExpired
+                              ? (lang === 'ar' ? 'انتهت مدة حفظ الملف على الخادم (10 أيام)' : 'Server 10-day retention expired')
+                              : (lang === 'ar' ? `حفظ الملف بالسيرفر: متبقي ${retention.daysLeft} أيام` : `Server retention: ${retention.daysLeft} days left`)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Action buttons */}
@@ -1377,19 +1436,44 @@ export default function DashboardPage() {
                         </button>
                       </div>
 
-                      <a
-                        href={builds[app.$id].downloadUrl?.startsWith('http') && !builds[app.$id].downloadUrl?.includes('/api/download-apk') ? `/api/download-apk?appId=${app.$id}` : (builds[app.$id].downloadUrl || `/api/download-apk?appId=${app.$id}`)}
-                        download={`${app.app_name || 'app'}.apk`}
-                        onClick={() => triggerCelebration()}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/25 transition-all hover:scale-[1.01]"
-                      >
-                        <Download className="h-4 w-4" />
-                        <span>
-                          {app.admob_app_id
-                            ? (lang === 'ar' ? 'تنزيل APK (AdMob مفعل)' : 'Download APK (AdMob Active)')
-                            : getTxt('downloadApk')}
-                        </span>
-                      </a>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <a
+                          href={builds[app.$id].downloadUrl?.startsWith('http') && !builds[app.$id].downloadUrl?.includes('/api/download-apk') ? `/api/download-apk?appId=${app.$id}&type=apk` : (builds[app.$id].downloadUrl || `/api/download-apk?appId=${app.$id}&type=apk`)}
+                          download={`${app.app_name || 'app'}.apk`}
+                          onClick={() => triggerCelebration()}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/25 transition-all hover:scale-[1.01] cursor-pointer"
+                        >
+                          <Download className="h-4 w-4 shrink-0" />
+                          <span>
+                            {app.admob_app_id
+                              ? (lang === 'ar' ? 'تنزيل APK' : 'APK (AdMob)')
+                              : getTxt('downloadApk')}
+                          </span>
+                        </a>
+
+                        {(subscription.isActive || app.admob_app_id) && (
+                          <a
+                            href={`/api/download-apk?appId=${app.$id}&type=aab`}
+                            download={`${app.app_name || 'app'}.aab`}
+                            onClick={() => triggerCelebration()}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-black rounded-xl shadow-lg shadow-indigo-600/25 transition-all hover:scale-[1.01] cursor-pointer"
+                          >
+                            <Download className="h-4 w-4 shrink-0" />
+                            <span>{lang === 'ar' ? 'حزمة AAB' : 'AAB Bundle'}</span>
+                          </a>
+                        )}
+                      </div>
+
+                      {(subscription.isActive || app.admob_app_id) && (
+                        <a
+                          href={`/api/download-apk?appId=${app.$id}&type=keystore`}
+                          download={`${app.app_name || 'app'}-release.keystore`}
+                          className="w-full flex items-center justify-center gap-1.5 py-1.5 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white text-[10px] font-semibold rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Key className="h-3 w-3 text-amber-400" />
+                          <span>{lang === 'ar' ? 'تنزيل مفتاح Keystore' : 'Download Keystore'}</span>
+                        </a>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1399,109 +1483,19 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* PAYPAL SUBSCRIPTION ACTIVATION MODAL ($19/MO) */}
-      {showPayModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto" role="dialog" aria-modal="true">
-          <div className="relative w-full max-w-lg bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6" dir={isRtl ? 'rtl' : 'ltr'}>
-            <button
-              type="button"
-              onClick={() => setShowPayModal(false)}
-              className="absolute top-5 left-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            <div className="text-center space-y-2">
-              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/25 mb-1">
-                <Sparkles className="h-7 w-7 text-amber-300" />
-              </div>
-              <h3 className="text-2xl font-black text-white">
-                {lang === 'ar' ? 'ترقية استوديو برو (Pro Studio)' : 'Upgrade to Pro Studio Plan'}
-              </h3>
-              <p className="text-xs text-slate-300 max-w-sm mx-auto leading-relaxed">
-                {lang === 'ar'
-                  ? 'احصل على حزم Google Play الرسمية (Android AAB + APK) وفعّل إعلانات AdMob غير المحدودة وأرباح 100% لك مقابل 19$ فقط.'
-                  : 'Build official Google Play release bundles (AAB + APK) and monetize unlimited apps with AdMob for just $19/mo.'}
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-4 text-center">
-              <span className="text-3xl font-black text-white">$19</span>
-              <span className="text-xs text-indigo-300 font-bold ms-1.5">/ {lang === 'ar' ? 'شهرياً عبر PayPal' : 'per month via PayPal'}</span>
-              <p className="text-[11px] text-slate-300 mt-1">
-                {lang === 'ar' ? 'يشمل حزم المتجر AAB وإعلانات AdMob وبناء تطبيقات غير محدودة' : 'Includes official Store AAB bundles, AdMob ads & unlimited builds'}
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-3">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400">{lang === 'ar' ? 'حساب PayPal المعتمد للتحويل:' : 'Official PayPal Account:'}</span>
-                <span className="text-[11px] font-bold text-emerald-400">Verified</span>
-              </div>
-
-              <div className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5" dir="ltr">
-                <span className="font-mono text-sm text-indigo-300 font-bold select-all">{PAYPAL_EMAIL}</span>
-                <button
-                  type="button"
-                  onClick={copyPayPalEmail}
-                  className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
-                  title="Copy email"
-                >
-                  {copiedEmail ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
-                </button>
-              </div>
-
-              <a
-                href={PAYPAL_DIRECT_PAY_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:scale-[1.01]"
-              >
-                <ExternalLink className="h-4 w-4" />
-                <span>{lang === 'ar' ? 'الذهاب للدفع عبر PayPal مباشرة ($19)' : 'Pay $19 via PayPal Checkout'}</span>
-              </a>
-            </div>
-
-            <div className="space-y-3">
-              <label className="block text-xs font-semibold text-slate-300">
-                {lang === 'ar' ? 'رقم المعاملة (Transaction ID) أو بريد PayPal المُرسل منه:' : 'Transaction ID or Sender PayPal Email:'}
-              </label>
-              <input
-                type="text"
-                value={txnInput}
-                onChange={(e) => setTxnInput(e.target.value)}
-                placeholder="PP-123456789 or your-paypal@gmail.com"
-                dir="ltr"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs sm:text-sm font-mono text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500"
-              />
-              <p className="text-[11px] text-slate-500 leading-relaxed">
-                {lang === 'ar'
-                  ? 'سيتم تفعيل الاشتراك فوراً لمدة 30 يوماً وإرسال إشعارات التجديد إلى بريدك قبل أسبوع ثم قبل 3 أيام من الانتهاء.'
-                  : 'Your plan will activate for 30 days immediately with renewal reminders sent 7 days and 3 days prior to expiry.'}
-              </p>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setShowPayModal(false)}
-                className="flex-1 py-3 border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-xs rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                {lang === 'ar' ? 'إلغاء' : 'Cancel'}
-              </button>
-              <button
-                type="button"
-                onClick={handleActivatePayPal}
-                disabled={subActivating}
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/25 transition-all cursor-pointer"
-              >
-                {subActivating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                <span>{subActivating ? (lang === 'ar' ? 'جاري التفعيل...' : 'Activating...') : (lang === 'ar' ? 'تأكيد وتفعيل الاشتراك' : 'Confirm & Activate')}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* LIFETIME PLAN ACTIVATION & UPGRADE MODAL */}
+      <PlanUpgradeModal
+        isOpen={showPayModal}
+        onClose={() => {
+          setShowPayModal(false);
+          setSelectedUpgradeAppId(null);
+        }}
+        onSuccess={() => {
+          setSubscription(getUserSubscription(user?.$id || ''));
+        }}
+        defaultPlan={upgradeDefaultPlan}
+        appId={selectedUpgradeAppId || undefined}
+      />
 
     </main>
   );

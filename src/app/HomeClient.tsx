@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import CustomerStoriesShowcase from './CustomerStoriesShowcase';
+import PlanUpgradeModal from '@/components/PlanUpgradeModal';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from './lib/i18n';
 import { databases, storage } from '@/lib/appwrite';
@@ -48,6 +49,7 @@ import {
   X,
   Lock,
   ExternalLink,
+  Briefcase,
 } from 'lucide-react';
 
 const faqSchema = (lang: 'ar' | 'en' | 'fr') => ({
@@ -142,6 +144,10 @@ export default function HomePage() {
   const [featurePush, setFeaturePush] = useState(true);
   const [featureOffline, setFeatureOffline] = useState(true);
   const [featureBio, setFeatureBio] = useState(false);
+
+  // Upgrade Modal State
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeDefaultPlan, setUpgradeDefaultPlan] = useState<'standard' | 'agency'>('standard');
 
   // Pipeline simulation state
   const [isBuilding, setIsBuilding] = useState(false);
@@ -1641,64 +1647,72 @@ export default function HomePage() {
 
       </section>
 
-      {/* ── Transparent SaaS Pricing Table (2 Plans: Free & Pro Studio) ── */}
+      {/* ── Transparent SaaS Pricing Table (3 Lifetime Plans: Free, Standard Pro, Agency) ── */}
       <section id="pricing" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800/80">
         <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span>{lang === 'ar' ? 'ادفع مرة واحدة · امتلك تطبيقك للأبد' : 'Pay Once · Lifetime Ownership'}</span>
+          </div>
           <h2 className="text-xs font-bold text-indigo-400 uppercase tracking-widest">
-            {lang === 'ar' ? 'أسعار واضحة وبسيطة' : 'Transparent Pricing'}
+            {lang === 'ar' ? 'أسعار واضحة بدون اشتراكات شهرية' : 'Transparent Pricing · No Recurring Subscriptions'}
           </h2>
           <p className="mt-2 text-3xl font-extrabold text-white">
-            {lang === 'ar' ? 'خطتان واضحتان تناسبان احتياجك' : 'Two Simple Plans for Your Needs'}
+            {lang === 'ar' ? 'اختر الباقة المناسبة لمشروعك' : 'Choose the Perfect Plan for Your Needs'}
           </p>
           <p className="mt-3 text-slate-400 text-sm">
             {lang === 'ar'
-              ? 'ابدأ مجاناً 100% لبناء وتجربة تطبيقك، أو فعّل إعلانات AdMob لتحقيق الأرباح باشتراك شهري ثابت.'
-              : 'Start 100% free to build your app, or unlock AdMob monetization with an affordable monthly plan.'}
+              ? 'جرّب مجاناً لتتأكد من توافق موقعك، أو احصل على حزم Google Play الرسمية (AAB + APK) مع AdMob لمرة واحدة مدى الحياة.'
+              : 'Try for free to test compatibility, or get official Google Play bundles (AAB + APK) with AdMob lifetime.'}
           </p>
         </div>
 
-        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
           
-          {/* Plan 1: Starter / Free */}
-          <div className="glass-card rounded-3xl p-8 border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition-all">
+          {/* Plan 1: Free Starter */}
+          <div className="glass-card rounded-3xl p-7 border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition-all bg-slate-900/60">
             <div className="space-y-4">
               <div className="inline-block px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-[10px] font-bold uppercase tracking-wider">
-                {lang === 'ar' ? 'مجاناً للجميع' : 'Free Forever'}
+                {lang === 'ar' ? 'التجريبية (Free Starter)' : 'Free Starter'}
               </div>
-              <h3 className="text-xl font-bold text-white">{lang === 'ar' ? 'خطة البداية (Starter)' : 'Starter Plan'}</h3>
+              <h3 className="text-xl font-bold text-white">{lang === 'ar' ? 'جرب قبل أن تشتري' : 'Try Before You Buy'}</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
                 {lang === 'ar'
-                  ? 'مثالية لتجربة تحويل موقعك أو متجرك إلى تطبيق أندرويد و PWA بدون أي تكلفة وبدون إعلانات.'
-                  : 'Perfect for converting your store or landing page into a PWA & Android app with zero cost and no ads.'}
+                  ? 'مثالية لاختبار سرعة وتوافق موقعك كتطبيق أندرويد وتجربته على هاتفك الشخصي.'
+                  : 'Test your web app compatibility and install it directly on your personal Android device.'}
               </p>
               <div className="pt-2">
                 <span className="text-4xl font-extrabold text-white">$0</span>
-                <span className="text-slate-400 text-sm">{lang === 'ar' ? ' / مجاناً مدى الحياة' : ' / free forever'}</span>
+                <span className="text-slate-400 text-xs ms-1">{lang === 'ar' ? ' / مجاناً للأبد' : ' / free forever'}</span>
               </div>
-              <ul className="space-y-3 pt-4 text-xs text-slate-300">
+              <ul className="space-y-3 pt-4 text-xs text-slate-300 border-t border-slate-800/80">
                 <li className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>{lang === 'ar' ? 'تحويل أي موقع متوافق مع HTTPS إلى PWA' : 'Convert any HTTPS store to PWA'}</span>
+                  <span>{lang === 'ar' ? 'ملف APK تجريبي فقط (للتثبيت محلياً)' : 'Test APK only (for local installation)'}</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>{lang === 'ar' ? 'توليد ملف APK جاهز للتثبيت والتجربة' : 'Build & download installable APK'}</span>
+                  <span>{lang === 'ar' ? 'دعم PWA والعمل بدون إنترنت (Offline)' : 'PWA offline caching & service worker'}</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>{lang === 'ar' ? 'دعم العمل بدون إنترنت (PWA Offline Caching)' : 'PWA offline caching & service worker'}</span>
+                  <span>{lang === 'ar' ? 'عملية بناء واحدة (تنزيل متاح لـ 48 ساعة)' : '1 build attempt (48h retention)'}</span>
                 </li>
-                <li className="flex items-center gap-2.5">
-                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>{lang === 'ar' ? 'تخصيص الأيقونة والاسم ولون الهوية' : 'Custom app name, icon & branding color'}</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>{lang === 'ar' ? 'كود شريط التحميل الذكي (Smart Banner)' : 'Smart App Banner code for your site'}</span>
+                <li className="flex items-center gap-2.5 text-slate-400">
+                  <Check className="w-4 h-4 text-slate-500 shrink-0" />
+                  <span>{lang === 'ar' ? 'مفتاح توقيع تجريبي مشترك' : 'Shared test keystore signing'}</span>
                 </li>
                 <li className="flex items-center gap-2.5 text-slate-500">
                   <X className="w-4 h-4 text-slate-600 shrink-0" />
-                  <span>{lang === 'ar' ? 'بدون إعلانات AdMob (تطبيق بدون إعلانات)' : 'No AdMob monetization (Clean App)'}</span>
+                  <span>{lang === 'ar' ? 'شاشة Splash تحمل علامة Appifya' : 'Splash screen with Appifya watermark'}</span>
+                </li>
+                <li className="flex items-center gap-2.5 text-slate-500">
+                  <X className="w-4 h-4 text-slate-600 shrink-0" />
+                  <span>{lang === 'ar' ? 'بدون إعلانات AdMob' : 'No AdMob monetization'}</span>
+                </li>
+                <li className="flex items-center gap-2.5 text-slate-500">
+                  <X className="w-4 h-4 text-slate-600 shrink-0" />
+                  <span>{lang === 'ar' ? 'بدون حزمة المتجر الرسمية (AAB)' : 'No Google Play AAB bundle'}</span>
                 </li>
               </ul>
             </div>
@@ -1706,76 +1720,221 @@ export default function HomePage() {
               href="#builder"
               className="mt-8 w-full py-3.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-bold text-white transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>{lang === 'ar' ? 'ابدأ مجاناً الآن' : 'Start for Free'}</span>
+              <span>{lang === 'ar' ? 'ابدأ التجربة مجاناً' : 'Try for Free Now'}</span>
               <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
             </a>
           </div>
 
-          {/* Plan 2: Pro Studio ($19/mo - Most Popular) */}
-          <div className="glass-card rounded-3xl p-8 border-2 border-indigo-500 relative flex flex-col justify-between shadow-2xl shadow-indigo-500/25 bg-gradient-to-b from-indigo-950/40 via-slate-900/80 to-slate-900/90">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 text-[10px] font-extrabold text-white tracking-widest uppercase shadow-md shadow-indigo-500/30">
-              {lang === 'ar' ? 'الأكثر طلباً (الربح من التطبيق)' : 'Most Popular (Monetized)'}
+          {/* Plan 2: Standard Pro ($29 One-time - Most Popular) */}
+          <div className="glass-card rounded-3xl p-7 border-2 border-indigo-500 relative flex flex-col justify-between shadow-2xl shadow-indigo-500/25 bg-gradient-to-b from-indigo-950/40 via-slate-900/80 to-slate-900/90">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 text-[10px] font-extrabold text-white tracking-widest uppercase shadow-md shadow-indigo-500/30 whitespace-nowrap">
+              {lang === 'ar' ? 'الأكثر طلباً (تطبيق متكامل للأبد)' : 'Most Popular · Lifetime App'}
             </div>
             <div className="space-y-4">
               <div className="inline-block px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold uppercase tracking-wider">
-                {lang === 'ar' ? 'تفعيل إعلانات AdMob' : 'AdMob Integration'}
+                {lang === 'ar' ? 'أصحاب المتاجر والمواقع' : 'Site & Store Owners'}
               </div>
-              <h3 className="text-xl font-bold text-white">{lang === 'ar' ? 'استوديو برو (Pro Studio)' : 'Pro Studio Plan'}</h3>
+              <h3 className="text-xl font-bold text-white">{lang === 'ar' ? 'الاحترافية (Standard Pro)' : 'Standard Pro Plan'}</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
                 {lang === 'ar'
-                  ? 'للمطورين وأصحاب المتاجر لتحقيق أرباح حقيقية وإطلاق تطبيقاتهم رسمياً على Google Play مع إعلاناتك الخاصة.'
-                  : 'Integrate AdMob ads, own 100% of your earnings, and get store-ready Google Play AAB binaries.'}
+                  ? 'ترخيص مدى الحياة لتطبيق واحد جاهز للنشر على Google Play مع دمج إعلانات AdMob وأرباح 100% لك.'
+                  : 'Lifetime single-app license with store-ready Google Play AAB + APK and full AdMob monetization.'}
               </p>
               <div className="pt-2">
-                <span className="text-4xl font-extrabold text-white">$19</span>
-                <span className="text-indigo-300 text-sm font-semibold">{lang === 'ar' ? ' / شهرياً عبر PayPal' : ' / month via PayPal'}</span>
+                <span className="text-4xl font-extrabold text-white">$29</span>
+                <span className="text-indigo-300 text-xs font-semibold ms-1">
+                  / {lang === 'ar' ? 'تدفع مرة واحدة للأبد' : 'one-time lifetime'}
+                </span>
               </div>
-              <ul className="space-y-3 pt-4 text-xs text-slate-200">
+              <ul className="space-y-3 pt-4 text-xs text-slate-200 border-t border-slate-800/80">
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-4 h-4 text-indigo-400 shrink-0" />
-                  <span className="font-semibold text-white">{lang === 'ar' ? 'جميع ميزات الخطة المجانية بالكامل' : 'All Free Plan features included'}</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <Check className="w-4 h-4 text-indigo-400 shrink-0" />
-                  <span className="font-semibold text-white">
-                    {lang === 'ar' ? 'تفعيل إعلانات Google AdMob (البنر والشاشات البينية)' : 'Google AdMob Banner & Interstitial ad units'}
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="font-bold text-white">
+                    {lang === 'ar' ? 'حزمة APK + AAB جاهزة لمتجر Google Play' : 'Store-ready Google Play AAB + APK'}
                   </span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span className="text-emerald-300 font-bold">
-                    {lang === 'ar' ? '100% من أرباح الإعلانات لك في حسابك' : '100% ad revenue stays directly yours'}
+                  <span className="font-bold text-emerald-300">
+                    {lang === 'ar' ? 'دمج AdMob كامل وأرباح 100% لك للأبد' : 'AdMob embedded forever · 100% your earnings'}
                   </span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-indigo-400 shrink-0" />
-                  <span>{lang === 'ar' ? 'توليد ملفات متجر Play الرسمية (AAB + APK)' : 'Google Play release bundle (AAB + APK)'}</span>
+                  <span>{lang === 'ar' ? 'شاشة Splash مخصصة بهوية وشعار تطبيقك' : 'Custom Splash Screen with your branding'}</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-indigo-400 shrink-0" />
-                  <span>{lang === 'ar' ? 'توقيع Keystore خاص بتطبيقك (Release Keystore)' : 'Custom release keystore signing'}</span>
+                  <span className="font-semibold text-white">
+                    {lang === 'ar' ? '3 محاولات بناء مجانية للتحديث والتعديل' : '3 Rebuilds included for updates'}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-indigo-400 shrink-0" />
+                  <span>{lang === 'ar' ? 'توليد وتنزيل مفتاح Keystore خاص وآمن' : 'Dedicated secure Keystore download'}</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-indigo-400 shrink-0" />
                   <span>{lang === 'ar' ? 'دعم الإشعارات الفورية غير المحدودة (FCM)' : 'Unlimited Push Notifications (FCM)'}</span>
                 </li>
+              </ul>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setUpgradeDefaultPlan('standard');
+                setShowUpgradeModal(true);
+              }}
+              className="mt-8 w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-xs font-extrabold text-white shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] text-center flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <DollarSign className="w-4 h-4" />
+              <span>{lang === 'ar' ? 'شراء باقة Standard Pro بـ 29$' : 'Get Standard Pro ($29 One-Time)'}</span>
+            </button>
+          </div>
+
+          {/* Plan 3: Agency Pack ($99 - Best Value) */}
+          <div className="glass-card rounded-3xl p-7 border-2 border-emerald-500/80 relative flex flex-col justify-between shadow-2xl shadow-emerald-500/20 bg-gradient-to-b from-emerald-950/30 via-slate-900/80 to-slate-900/90">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 text-[10px] font-extrabold text-white tracking-widest uppercase shadow-md shadow-emerald-500/30 whitespace-nowrap">
+              {lang === 'ar' ? 'وفر 30% · للمطورين والوكالات' : 'Save 30% · For Agencies & Freelancers'}
+            </div>
+            <div className="space-y-4">
+              <div className="inline-block px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase tracking-wider">
+                {lang === 'ar' ? 'حزمة الوكالات (Agency Pack)' : 'Agency / Bulk Pack'}
+              </div>
+              <h3 className="text-xl font-bold text-white">{lang === 'ar' ? '5 تطبيقات (~$20/تطبيق)' : '5 Apps (~$20/app)'}</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {lang === 'ar'
+                  ? 'مصممة خصيصاً لمطوري الويب وفريلانسرز Upwork وخمسات لإعادة بيع التطبيقات لعملائهم بهامش ربح كبير.'
+                  : 'Tailored for agencies and freelancers to monetize and resell mobile apps to clients with high margins.'}
+              </p>
+              <div className="pt-2">
+                <span className="text-4xl font-extrabold text-white">$99</span>
+                <span className="text-emerald-300 text-xs font-semibold ms-1">
+                  / {lang === 'ar' ? '5 تطبيقات مدى الحياة' : '5 apps lifetime'}
+                </span>
+              </div>
+              <ul className="space-y-3 pt-4 text-xs text-slate-200 border-t border-slate-800/80">
                 <li className="flex items-center gap-2.5">
-                  <Check className="w-4 h-4 text-indigo-400 shrink-0" />
-                  <span>{lang === 'ar' ? 'بناء وتصدير غير محدود لجميع تطبيقاتك' : 'Unlimited builds for all your apps'}</span>
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="font-bold text-white">
+                    {lang === 'ar' ? 'حزم AAB + APK كاملة لـ 5 تطبيقات مختلفة' : 'Full AAB + APK bundles for 5 apps'}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="font-bold text-emerald-300">
+                    {lang === 'ar' ? 'دمج AdMob كامل ومستقل لكل تطبيق للأبد' : 'Full AdMob integration per app forever'}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="text-emerald-200 font-semibold">
+                    {lang === 'ar' ? 'شاشات Splash بدون أي علامة (White-label)' : '100% White-label custom splash screens'}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{lang === 'ar' ? '3 محاولات بناء لكل تطبيق (15 بناء إجمالاً)' : '3 rebuilds per app (15 builds total)'}</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{lang === 'ar' ? 'إدارة وتنزيل مفاتيح Keystore منفصلة لكل عميل' : 'Independent Keystores per client'}</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{lang === 'ar' ? 'رصيد دائم صالح للاستخدام في أي وقت' : 'Never-expiring credits (use anytime)'}</span>
                 </li>
               </ul>
             </div>
-            <Link
-              href="/admob"
-              className="mt-8 w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-xs font-extrabold text-white shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] text-center flex items-center justify-center gap-2"
+            <button
+              type="button"
+              onClick={() => {
+                setUpgradeDefaultPlan('agency');
+                setShowUpgradeModal(true);
+              }}
+              className="mt-8 w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-xs font-extrabold text-white shadow-lg shadow-emerald-600/30 transition-all hover:scale-[1.02] text-center flex items-center justify-center gap-2 cursor-pointer"
             >
-              <DollarSign className="w-4 h-4" />
-              <span>{lang === 'ar' ? 'ترقية وتفعيل AdMob بـ 19$' : 'Upgrade to Pro Studio ($19/mo)'}</span>
-            </Link>
+              <Briefcase className="w-4 h-4" />
+              <span>{lang === 'ar' ? 'شراء حزمة الوكالات بـ 99$' : 'Get Agency Pack ($99 One-Time)'}</span>
+            </button>
           </div>
 
         </div>
+
+        {/* ── Order Bumps / Recommended Add-ons Section ── */}
+        <div className="max-w-4xl mx-auto mt-12 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-7">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-4">
+            <div>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-300" />
+                <span>{lang === 'ar' ? 'خدمات إضافية مساعدة (Add-ons)' : 'Recommended Professional Add-ons'}</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {lang === 'ar'
+                  ? 'يمكنك إضافتها مباشرة أثناء تأكيد الطلب لتوفير الوقت والجهد التقني.'
+                  : 'Add them seamlessly during checkout to save engineering time and hassle.'}
+              </p>
+            </div>
+            <span className="text-[11px] font-mono text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full shrink-0">
+              {lang === 'ar' ? 'ترقيات فورية سريعة' : 'Instant Order Bumps'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Addon 1 */}
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white">
+                  {lang === 'ar' ? 'تجهيز AdMob بالكامل' : 'AdMob Setup Service'}
+                </span>
+                <span className="font-mono text-xs font-extrabold text-amber-300">$15</span>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                {lang === 'ar'
+                  ? 'استخراج وربط App ID والـ Ad Units نيابة عنك لحسابك بدون أي عناء.'
+                  : 'Our engineers extract and link all your ad units directly to your app.'}
+              </p>
+            </div>
+
+            {/* Addon 2 */}
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white">
+                  {lang === 'ar' ? 'إعداد assetlinks.json' : 'AssetLinks Verification'}
+                </span>
+                <span className="font-mono text-xs font-extrabold text-amber-300">$9</span>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                {lang === 'ar'
+                  ? 'إخفاء شريط المتصفح وجعل التطبيق يعمل بشاشة كاملة 100% بنقرة واحدة.'
+                  : 'Remove browser URL bar for complete fullscreen native immersion.'}
+              </p>
+            </div>
+
+            {/* Addon 3 */}
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white">
+                  {lang === 'ar' ? 'باقة +3 محاولات إعادة بناء' : '+3 Rebuilds Pack'}
+                </span>
+                <span className="font-mono text-xs font-extrabold text-amber-300">$9</span>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                {lang === 'ar'
+                  ? 'إعادة توليد وتحديث التطبيق في أي وقت إذا قمت بتغيير روابطك أو أيقوناتك.'
+                  : 'Re-trigger builds anytime you update your app URL, name, or icons.'}
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
+
+      {/* Plan Upgrade & Checkout Modal */}
+      <PlanUpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        defaultPlan={upgradeDefaultPlan}
+      />
 
       {/* ── Customer Stories Showcase (Median-style) ── */}
       <CustomerStoriesShowcase />
