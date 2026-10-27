@@ -159,13 +159,13 @@ export function activateUserSubscription(
  */
 export function getAppBuildInfo(userId: string, appId: string) {
   const sub = getUserSubscription(userId);
-  const maxBuilds = sub.isActive ? 3 : 1; // 3 builds for paid plans, 1 build for free trial
+  const planBaseMax = sub.isActive ? 3 : 1; // 3 builds for paid plans, strictly 1 build for free trial
 
   if (typeof window === 'undefined' || !appId) {
     return {
       buildsUsed: 0,
-      maxBuilds,
-      buildsRemaining: maxBuilds,
+      maxBuilds: planBaseMax,
+      buildsRemaining: planBaseMax,
       canBuild: true,
       plan: sub.plan,
       isPaid: sub.isActive,
@@ -174,12 +174,23 @@ export function getAppBuildInfo(userId: string, appId: string) {
 
   try {
     const raw = localStorage.getItem(`${BUILDS_KEY_PREFIX}${appId}`);
-    const record: AppBuildRecord = raw ? JSON.parse(raw) : { buildsUsed: 0, maxBuilds, hasAdmob: false, hasKeystore: false };
-    const effectiveMax = record.maxBuilds || maxBuilds;
-    const remaining = Math.max(0, effectiveMax - (record.buildsUsed || 0));
+    const record: AppBuildRecord = raw ? JSON.parse(raw) : { buildsUsed: 0, maxBuilds: planBaseMax, hasAdmob: false, hasKeystore: false };
+    
+    // Strict enforcement: For free users, maximum is strictly 1 build for trial
+    // Overwrite legacy records where maxBuilds was erroneously set to 3 for free users
+    let effectiveMax = planBaseMax;
+    if (sub.isActive) {
+      effectiveMax = Math.max(3, record.maxBuilds || 3);
+    } else {
+      // If free user bought extra add-on pack (+3 rebuilds = $9), add that count
+      effectiveMax = record.maxBuilds && record.maxBuilds > 3 ? record.maxBuilds - 2 : 1;
+    }
+
+    const used = record.buildsUsed || 0;
+    const remaining = Math.max(0, effectiveMax - used);
 
     return {
-      buildsUsed: record.buildsUsed || 0,
+      buildsUsed: used,
       maxBuilds: effectiveMax,
       buildsRemaining: remaining,
       canBuild: remaining > 0,
@@ -189,8 +200,8 @@ export function getAppBuildInfo(userId: string, appId: string) {
   } catch {
     return {
       buildsUsed: 0,
-      maxBuilds,
-      buildsRemaining: maxBuilds,
+      maxBuilds: planBaseMax,
+      buildsRemaining: planBaseMax,
       canBuild: true,
       plan: sub.plan,
       isPaid: sub.isActive,
@@ -199,21 +210,41 @@ export function getAppBuildInfo(userId: string, appId: string) {
 }
 
 /**
- * Increment the build usage counter upon a successful build
+ * Increment the build usage counter upon a build trigger or completion
  */
-export function recordSuccessfulBuild(appId: string, hasAdmob = false) {
+export function recordSuccessfulBuild(appId: string, hasAdmob = false, isPaid = false) {
   if (typeof window === 'undefined' || !appId) return;
 
   try {
+    const defaultMax = isPaid ? 3 : 1;
     const raw = localStorage.getItem(`${BUILDS_KEY_PREFIX}${appId}`);
-    const record: AppBuildRecord = raw ? JSON.parse(raw) : { buildsUsed: 0, maxBuilds: 3, hasAdmob: false, hasKeystore: true };
+    const record: AppBuildRecord = raw ? JSON.parse(raw) : { buildsUsed: 0, maxBuilds: defaultMax, hasAdmob: false, hasKeystore: true };
     record.buildsUsed = (record.buildsUsed || 0) + 1;
+    record.maxBuilds = isPaid ? Math.max(3, record.maxBuilds || 3) : 1;
     record.lastBuiltAt = new Date().toISOString();
     record.hasAdmob = hasAdmob;
     record.hasKeystore = true;
     localStorage.setItem(`${BUILDS_KEY_PREFIX}${appId}`, JSON.stringify(record));
   } catch (err) {
     console.error('Failed to record build:', err);
+  }
+}
+
+/**
+ * Sync server-reported build count from GitHub releases to client storage
+ */
+export function syncAppBuildCount(appId: string, serverCount: number, isPaid = false) {
+  if (typeof window === 'undefined' || !appId) return;
+
+  try {
+    const defaultMax = isPaid ? 3 : 1;
+    const raw = localStorage.getItem(`${BUILDS_KEY_PREFIX}${appId}`);
+    const record: AppBuildRecord = raw ? JSON.parse(raw) : { buildsUsed: 0, maxBuilds: defaultMax, hasAdmob: false, hasKeystore: true };
+    record.buildsUsed = Math.max(record.buildsUsed || 0, serverCount);
+    record.maxBuilds = isPaid ? Math.max(3, record.maxBuilds || 3) : 1;
+    localStorage.setItem(`${BUILDS_KEY_PREFIX}${appId}`, JSON.stringify(record));
+  } catch (err) {
+    console.error('Failed to sync build count:', err);
   }
 }
 

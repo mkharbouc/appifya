@@ -81,7 +81,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 2. Stream binary directly from GitHub API using authenticated Bearer token
+    // 2. Fetch binary from GitHub Releases Assets API
+    // When Accept: application/octet-stream is sent, GitHub API returns 302 Found
+    // with a Location header pointing to AWS S3 pre-signed CDN download URL.
     const assetRes = await fetch(
       `https://api.github.com/repos/${config.owner}/${targetRepo}/releases/assets/${targetAsset.id}`,
       {
@@ -90,8 +92,15 @@ export async function GET(req: NextRequest) {
           Authorization: `Bearer ${config.token}`,
           'User-Agent': 'Appifya',
         },
+        redirect: 'manual',
       },
     );
+
+    // If redirected to pre-signed AWS S3 URL, redirect user directly for blazing-fast mobile download
+    const redirectUrl = assetRes.headers.get('location');
+    if (redirectUrl) {
+      return NextResponse.redirect(redirectUrl, { status: 302 });
+    }
 
     if (!assetRes.ok) {
       return NextResponse.redirect(targetAsset.browser_download_url);
@@ -101,9 +110,12 @@ export async function GET(req: NextRequest) {
       ? 'application/vnd.android.package-archive'
       : 'application/octet-stream';
 
+    const safeAsciiName = targetAsset.name.replace(/[^\x20-\x7E]/g, '_');
+    const encodedName = encodeURIComponent(targetAsset.name);
+
     const headers = new Headers();
     headers.set('Content-Type', contentType);
-    headers.set('Content-Disposition', `attachment; filename="${targetAsset.name}"`);
+    headers.set('Content-Disposition', `attachment; filename="${safeAsciiName}"; filename*=UTF-8''${encodedName}`);
     if (targetAsset.size) {
       headers.set('Content-Length', String(targetAsset.size));
     }

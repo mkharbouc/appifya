@@ -88,6 +88,50 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'APK builder is not configured' }, { status: 503 });
     }
 
+    // Server-side strict build limit enforcement against GitHub releases
+    const planTier = typeof body.planTier === 'string' ? body.planTier : 'free';
+    const isPaidUser = isProBuild || planTier === 'standard' || planTier === 'agency' || planTier === 'admob_pro';
+    const maxAllowedBuilds = isPaidUser ? 3 : 1; // Free trial allows strictly 1 build
+
+    try {
+      const quotaCheckRes = await fetch(
+        `https://api.github.com/repos/${config.owner}/${targetRepo}/releases?per_page=50`,
+        { headers: githubHeaders(config.token), cache: 'no-store' }
+      );
+      if (quotaCheckRes.ok) {
+        const allReleases = (await quotaCheckRes.json()) as Array<{ tag_name: string }>;
+        const existingBuildsCount = allReleases.filter((item) =>
+          item.tag_name.startsWith(`build-${appId}-`)
+        ).length;
+
+        if (existingBuildsCount >= maxAllowedBuilds) {
+          if (!isPaidUser) {
+            return NextResponse.json(
+              {
+                error: 'لقد استنفدت عملية البناء التجريبية المجانية المتاحة لهذا التطبيق (1 من 1). يرجى ترقية الباقة لـ 29$ لفتح 3 محاولات بناء، ملف المتجر الرسمي AAB، وإعلانات AdMob مدى الحياة.',
+                limitReached: true,
+                maxBuilds: 1,
+                buildsUsed: existingBuildsCount,
+              },
+              { status: 403 }
+            );
+          } else {
+            return NextResponse.json(
+              {
+                error: `لقد استنفدت محاولات البناء المتاحة لهذا التطبيق (${maxAllowedBuilds} محاولات). يمكنك إضافة +3 محاولات إعادة بناء إضافية بـ 9$.`,
+                limitReached: true,
+                maxBuilds: maxAllowedBuilds,
+                buildsUsed: existingBuildsCount,
+              },
+              { status: 403 }
+            );
+          }
+        }
+      }
+    } catch (quotaErr) {
+      console.warn('Quota check network issue, proceeding:', quotaErr);
+    }
+
     // GitHub repository_dispatch limits client_payload to a maximum of 10 keys
     const response = await fetch(
       `https://api.github.com/repos/${config.owner}/${targetRepo}/dispatches`,
@@ -175,6 +219,7 @@ export async function GET(req: NextRequest) {
         downloadUrl: apk ? `/api/download-apk?appId=${appId}` : undefined,
         rawDownloadUrl: apk?.browser_download_url,
         releaseUrl: release.html_url,
+        buildsCount: matchingReleases.length,
       });
     }
 

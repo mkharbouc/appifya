@@ -14,6 +14,7 @@ import {
   getFileRetentionStatus,
   getAppBuildInfo,
   recordSuccessfulBuild,
+  syncAppBuildCount,
   addAppBuildCredits,
   PAYPAL_EMAIL,
   PAYPAL_DIRECT_PAY_URL,
@@ -165,6 +166,7 @@ export default function DashboardPage() {
     isPro?: boolean;
   } | null>(null);
   const [buildElapsedSec, setBuildElapsedSec] = useState<number>(0);
+  const [buildVersion, setBuildVersion] = useState<number>(0);
   const [runnerHealth, setRunnerHealth] = useState<{ status: string; message: string } | null>(null);
 
   useEffect(() => {
@@ -343,6 +345,10 @@ export default function DashboardPage() {
           if (!response.ok) return;
 
           const result = await response.json();
+          if (result.buildsCount) {
+            syncAppBuildCount(app.$id, result.buildsCount, subscription.isActive);
+            setBuildVersion((v) => v + 1);
+          }
           if (result.status === 'completed') {
             setBuilds((current) => ({
               ...current,
@@ -388,12 +394,21 @@ export default function DashboardPage() {
 
     const buildInfo = getAppBuildInfo(user?.$id || '', app.$id);
     if (!buildInfo.canBuild) {
-      alert(
-        lang === 'ar'
-          ? `لقد استنفدت محاولات البناء المتاحة لهذا التطبيق (${buildInfo.maxBuilds} محاولات). يمكنك إضافة +3 محاولات إعادة بناء إضافية بـ 9$.`
-          : `You have reached the build limit for this app (${buildInfo.maxBuilds} builds). You can add +3 extra rebuilds for $9.`
-      );
+      if (!subscription.isActive) {
+        alert(
+          lang === 'ar'
+            ? 'لقد استنفدت عملية البناء التجريبية المجانية (1/1). يرجى الترقية إلى الباقة الاحترافية ($29) لفتح 3 محاولات بناء، ملف المتجر الرسمي AAB، وإعلانات AdMob مدى الحياة.'
+            : 'You have used your free trial build (1/1). Upgrade to Standard Pro ($29) for 3 rebuilds, Store AAB bundle and AdMob.'
+        );
+      } else {
+        alert(
+          lang === 'ar'
+            ? `لقد استنفدت محاولات البناء المتاحة لهذا التطبيق (${buildInfo.maxBuilds} محاولات). يمكنك إضافة +3 محاولات إعادة بناء إضافية بـ 9$.`
+            : `You have reached the build limit for this app (${buildInfo.maxBuilds} builds). You can add +3 extra rebuilds for $9.`
+        );
+      }
       setSelectedUpgradeAppId(app.$id);
+      setUpgradeDefaultPlan('standard');
       setShowPayModal(true);
       return;
     }
@@ -426,7 +441,17 @@ export default function DashboardPage() {
         markBuildStarted(app.$id);
         setBuilds((current) => ({ ...current, [app.$id]: { status: 'building' } }));
         setBuildNoticeAppId(app.$id);
+        // Immediately record build attempt and update UI state
+        recordSuccessfulBuild(app.$id, Boolean(app.admob_app_id), subscription.isActive);
+        setBuildVersion((v) => v + 1);
       } else {
+        if (data.limitReached) {
+          recordSuccessfulBuild(app.$id, Boolean(app.admob_app_id), subscription.isActive);
+          setBuildVersion((v) => v + 1);
+          setSelectedUpgradeAppId(app.$id);
+          setUpgradeDefaultPlan('standard');
+          setShowPayModal(true);
+        }
         alert(data.error || (lang === 'ar' ? 'فشل إرسال طلب البناء، يرجى المحاولة مرة أخرى.' : 'Build request failed, please try again.'));
       }
     } catch (err) {
@@ -450,6 +475,10 @@ export default function DashboardPage() {
           const response = await fetch(statusUrl(appId), { cache: 'no-store' });
           if (!response.ok) return;
           const result = await response.json();
+          if (result.buildsCount) {
+            syncAppBuildCount(appId, result.buildsCount, subscription.isActive);
+            setBuildVersion((v) => v + 1);
+          }
           const startedAt = getBuildStartedAt(appId);
           const isStale = result.status === 'building'
             && Boolean(startedAt && Date.now() - startedAt > BUILD_TIMEOUT_MS);
@@ -470,7 +499,8 @@ export default function DashboardPage() {
             const isPro = subscription.isActive || hasAdmob;
 
             // Record successful build in quota tracker
-            recordSuccessfulBuild(appId, hasAdmob);
+            recordSuccessfulBuild(appId, hasAdmob, subscription.isActive);
+            setBuildVersion((v) => v + 1);
 
             setCelebrationApp({
               id: appId,
@@ -901,6 +931,26 @@ export default function DashboardPage() {
                 </div>
               )}
 
+              {/* Mobile Installation Tip in Modal */}
+              <div className="p-3.5 rounded-2xl bg-slate-950/90 border border-amber-500/20 text-right text-xs text-slate-300 space-y-1.5" dir={isRtl ? 'rtl' : 'ltr'}>
+                <div className="flex items-center gap-2 font-bold text-amber-400">
+                  <Smartphone className="h-4 w-4 shrink-0 text-amber-400" />
+                  <span>{lang === 'ar' ? 'طريقة تثبيت التطبيق على الهاتف بدون مشاكل:' : 'How to install the APK on your phone:'}</span>
+                </div>
+                <div className="text-[11px] text-slate-400 leading-relaxed space-y-1">
+                  <p>
+                    {lang === 'ar'
+                      ? '• الخيار الأسهل: افتح موقع appifya.app من متصفح هاتفك وحمّل الملف مباشرة لتثبيته بضغطة واحدة.'
+                      : '• Easiest: Open appifya.app on your mobile browser and download directly to install.'}
+                  </p>
+                  <p>
+                    {lang === 'ar'
+                      ? '• في حال أرسلته لنفسك عبر واتساب: لا تفتحه من داخل محادثة واتساب، بل افتح تطبيق "مدير الملفات / Files" في هاتفك واضغط على الملف هناك ليظهر مثبت أندرويد الرسمي فوراً.'
+                      : '• If sent via WhatsApp: Open the file from your phone\'s "Files" / "Downloads" app (not from WhatsApp chat) so Android opens the native installer.'}
+                  </p>
+                </div>
+              </div>
+
               <div className="flex items-center justify-center gap-4 text-xs">
                 <button
                   type="button"
@@ -1295,6 +1345,7 @@ export default function DashboardPage() {
                   {/* Status badges & Retention countdown */}
                   {(() => {
                     const buildInfo = getAppBuildInfo(user?.$id || '', app.$id);
+                    const isFreeTier = !subscription.isActive;
                     return (
                       <div className="space-y-1.5 mb-4 text-[11px]">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -1312,11 +1363,29 @@ export default function DashboardPage() {
                               ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'
                               : 'bg-red-500/10 text-red-300 border-red-500/20'
                           }`}>
-                            {lang === 'ar'
-                              ? `البناء المتبقي: ${buildInfo.buildsRemaining} من ${buildInfo.maxBuilds}`
-                              : `Builds: ${buildInfo.buildsRemaining}/${buildInfo.maxBuilds} left`}
+                            {isFreeTier
+                              ? (buildInfo.buildsRemaining > 0
+                                  ? (lang === 'ar' ? 'التجربة: 1 من 1 متاحة' : 'Trial: 1/1 available')
+                                  : (lang === 'ar' ? 'استنفدت التجربة (0 من 1)' : 'Trial Used (0/1)'))
+                              : (lang === 'ar'
+                                  ? `البناء المتبقي: ${buildInfo.buildsRemaining} من ${buildInfo.maxBuilds}`
+                                  : `Builds: ${buildInfo.buildsRemaining}/${buildInfo.maxBuilds} left`)}
                           </span>
-                          {buildInfo.buildsRemaining === 0 && (
+                          {isFreeTier && buildInfo.buildsRemaining === 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedUpgradeAppId(app.$id);
+                                setUpgradeDefaultPlan('standard');
+                                setShowPayModal(true);
+                              }}
+                              className="px-2.5 py-0.5 rounded-md bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border border-amber-500/40 font-bold hover:bg-amber-500/30 cursor-pointer text-[10px] flex items-center gap-1 shadow-sm"
+                            >
+                              <Sparkles className="h-3 w-3 text-amber-300" />
+                              <span>{lang === 'ar' ? 'ترقية لـ 29$ (3 محاولات + AAB)' : 'Upgrade $29 (3 Builds + AAB)'}</span>
+                            </button>
+                          )}
+                          {!isFreeTier && buildInfo.buildsRemaining === 0 && (
                             <button
                               type="button"
                               onClick={() => {
@@ -1366,20 +1435,50 @@ export default function DashboardPage() {
                     </Link>
 
                     {/* Button 1: Free APK Build */}
-                    <button
-                      type="button"
-                      onClick={() => handleTriggerBuild(app, false)}
-                      disabled={buildingAppId === app.$id}
-                      className="flex-1 min-w-[120px] flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
-                      title={lang === 'ar' ? 'بناء ملف APK مجاني ومباشر (بدون إعلانات)' : 'Build Free APK (Clean)'}
-                    >
-                      {buildingAppId === app.$id ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-400" />
-                      ) : (
-                        <Play className="h-3.5 w-3.5 fill-current text-indigo-400" />
-                      )}
-                      <span>{buildingAppId === app.$id ? getTxt('buildStarting') : (lang === 'ar' ? 'بناء APK (مجاني)' : 'Free APK')}</span>
-                    </button>
+                    {(() => {
+                      const appBuildInfo = getAppBuildInfo(user?.$id || '', app.$id);
+                      const isFreeTier = !subscription.isActive;
+                      const isFreeExhausted = isFreeTier && appBuildInfo.buildsRemaining <= 0;
+
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isFreeExhausted) {
+                              setSelectedUpgradeAppId(app.$id);
+                              setUpgradeDefaultPlan('standard');
+                              setShowPayModal(true);
+                              return;
+                            }
+                            handleTriggerBuild(app, false);
+                          }}
+                          disabled={buildingAppId === app.$id || isFreeExhausted}
+                          className={`flex-1 min-w-[120px] flex items-center justify-center gap-1.5 px-3 py-2 border text-xs font-semibold rounded-xl transition-all ${
+                            isFreeExhausted
+                              ? 'bg-slate-900/60 border-slate-800 text-slate-500 cursor-not-allowed opacity-60'
+                              : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-white cursor-pointer'
+                          }`}
+                          title={
+                            isFreeExhausted
+                              ? (lang === 'ar' ? 'استنفدت المحاولة المجانية (1/1) - قم بالترقية لمتابعة البناء' : 'Free build limit reached (1/1)')
+                              : (lang === 'ar' ? 'بناء ملف APK تجريبي مجاني' : 'Build Free APK (Clean)')
+                          }
+                        >
+                          {buildingAppId === app.$id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-400" />
+                          ) : (
+                            <Play className="h-3.5 w-3.5 fill-current text-indigo-400" />
+                          )}
+                          <span>
+                            {buildingAppId === app.$id
+                              ? getTxt('buildStarting')
+                              : isFreeExhausted
+                                ? (lang === 'ar' ? 'استنفدت التجربة (0/1)' : 'Trial Used (0/1)')
+                                : (lang === 'ar' ? 'بناء APK (تجريبي)' : 'Free APK')}
+                          </span>
+                        </button>
+                      );
+                    })()}
 
                     {/* Button 2: Pro Studio Store Bundle (AAB + AdMob) -> triggers PayPal modal if unsubscribed */}
                     <button
@@ -1512,6 +1611,19 @@ export default function DashboardPage() {
                           <span>{lang === 'ar' ? 'تنزيل مفتاح Keystore' : 'Download Keystore'}</span>
                         </a>
                       )}
+
+                      {/* Mobile Installation Helper */}
+                      <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-[11px] text-slate-300 space-y-1">
+                        <div className="flex items-center gap-1.5 font-bold text-amber-400">
+                          <Smartphone className="h-3.5 w-3.5 shrink-0 text-amber-400" />
+                          <span>{lang === 'ar' ? 'تنبيه مهم للتثبيت على الهاتف:' : 'Phone Installation Notice:'}</span>
+                        </div>
+                        <p className="text-slate-400 text-[10px] leading-relaxed">
+                          {lang === 'ar'
+                            ? 'إذا قمت بنقل الملف لهاتفك عبر واتساب أو كابل، يرجى فتحه من تطبيق "مدير الملفات / Files" الأصلي وليس من داخل واتساب ليظهر لك خيار التثبيت كتطبيق. أو قم بتحميله مباشرة من متصفح الهاتف.'
+                            : 'If transferred via WhatsApp, open the file from your phone\'s native "Files" or "Downloads" app (not inside WhatsApp) for Android to show the install button.'}
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
