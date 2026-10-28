@@ -31,6 +31,7 @@ import {
 
 export default function ApkAuditorClient() {
   const { lang } = useLanguage();
+  const lKey: 'ar' | 'en' | 'fr' = lang === 'ar' ? 'ar' : lang === 'fr' ? 'fr' : 'en';
   const isRtl = lang === 'ar';
 
   const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
@@ -523,7 +524,7 @@ ${auditResult.remediationSnippet}
                       <div>
                         <h4 className="text-sm font-bold text-white">{sdk.name}</h4>
                         <span className="text-[10px] text-indigo-400 font-mono block mt-0.5">
-                          {sdk.categoryLabel[lang] || sdk.categoryLabel.en} · {detectedVia}
+                          {sdk.categoryLabel[lKey] || sdk.categoryLabel.en} · {detectedVia}
                         </span>
                       </div>
                       <span
@@ -539,7 +540,7 @@ ${auditResult.remediationSnippet}
 
                     <div className="space-y-1.5 text-xs">
                       <p className="text-[11px] text-slate-300 leading-relaxed">
-                        {sdk.complianceNotes[lang] || sdk.complianceNotes.en}
+                        {sdk.complianceNotes[lKey] || sdk.complianceNotes.en}
                       </p>
 
                       <div className="pt-2 border-t border-slate-900 flex flex-wrap items-center gap-1 text-[10px]">
@@ -731,12 +732,12 @@ ${auditResult.remediationSnippet}
                             </span>
 
                             <span className="text-[11px] text-slate-400 font-semibold">
-                              {p.info.category[lang] || p.info.category.en}
+                              {p.info.category[lKey] || p.info.category.en}
                             </span>
                           </div>
 
                           <h4 className="text-sm font-black text-white font-mono break-all">{p.name}</h4>
-                          <p className="text-xs text-slate-300">{p.info.title[lang] || p.info.title.en}</p>
+                          <p className="text-xs text-slate-300">{p.info.title[lKey] || p.info.title.en}</p>
                         </div>
 
                         <ChevronDown
@@ -751,7 +752,7 @@ ${auditResult.remediationSnippet}
                         <div className="px-4 pb-5 sm:px-5 space-y-4 border-t border-slate-800/80 pt-4 text-xs">
                           <div>
                             <span className="text-slate-400 font-semibold block mb-1">{t('ماذا يفعل هذا الإذن؟', 'Permission Purpose:', 'Rôle de la permission :')}</span>
-                            <p className="text-slate-300 leading-relaxed">{p.info.description[lang] || p.info.description.en}</p>
+                            <p className="text-slate-300 leading-relaxed">{p.info.description[lKey] || p.info.description.en}</p>
                           </div>
 
                           <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
@@ -760,7 +761,7 @@ ${auditResult.remediationSnippet}
                               <span>{t('سياسة متجر Google Play 2026:', 'Google Play 2026 Enforcement:', 'Règlementation Google Play 2026 :')}</span>
                             </span>
                             <p className="text-slate-300 leading-relaxed text-[11px]">
-                              {p.info.playPolicyNotice[lang] || p.info.playPolicyNotice.en}
+                              {p.info.playPolicyNotice[lKey] || p.info.playPolicyNotice.en}
                             </p>
                           </div>
 
@@ -781,7 +782,7 @@ ${auditResult.remediationSnippet}
                               <span>{t('نصيحة المعالجة والحل:', 'Remediation Advice:', 'Conseil de remédiation :')}</span>
                             </span>
                             <p className="text-slate-200 leading-relaxed text-[11px]">
-                              {p.info.remediationAdvice[lang] || p.info.remediationAdvice.en}
+                              {p.info.remediationAdvice[lKey] || p.info.remediationAdvice.en}
                             </p>
                           </div>
 

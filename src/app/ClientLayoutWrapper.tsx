@@ -1,15 +1,16 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, Suspense } from "react";
+import React, { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LanguageProvider, useLanguage, type Language } from "./lib/i18n";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { AVAILABLE_LANGUAGES, LanguageFlag } from "@/components/LanguageFlags";
 import {
   Globe, Sparkles, LayoutDashboard, LogOut, User, Moon, Sun,
   FileCode, ChevronDown, ImageIcon, Gauge, QrCode, Home, Info, BookOpen,
   DollarSign, Mail, ShieldCheck, FileText, PanelLeftClose, PanelLeftOpen, Wrench, X, Smartphone, KeyRound,
-  ShieldAlert, BellRing, Cpu, Users,
+  ShieldAlert, BellRing, Cpu, Users, Check,
 } from "lucide-react";
 
 // ─── Logo ──────────────────────────────────────────────────────────────────────
@@ -27,45 +28,46 @@ function AppifyaLogoIcon({ small = false }: { small?: boolean }) {
 // ─── Nav item definitions ──────────────────────────────────────────────────────
 
 type NavItem =
-  | { kind: 'link'; href: string; labelKey: string; labelAr: string; labelFr: string; labelEn: string; icon: React.ReactNode }
-  | { kind: 'group'; labelKey: string; labelAr: string; labelFr: string; labelEn: string; icon: React.ReactNode; children: NavChild[] };
+  | { kind: 'link'; href: string; labelKey: string; labelAr: string; labelFr: string; labelEn: string; labelEs?: string; icon: React.ReactNode }
+  | { kind: 'group'; labelKey: string; labelAr: string; labelFr: string; labelEn: string; labelEs?: string; icon: React.ReactNode; children: NavChild[] };
 
-type NavChild = { href: string; labelAr: string; labelFr: string; labelEn: string; icon: React.ReactNode; descAr: string; descFr: string; descEn: string };
+type NavChild = { href: string; labelAr: string; labelFr: string; labelEn: string; labelEs?: string; icon: React.ReactNode; descAr: string; descFr: string; descEn: string; descEs?: string };
 
 const NAV_ITEMS: NavItem[] = [
-  { kind: 'link', href: '/', labelKey: 'home', labelAr: 'الرئيسية', labelFr: 'Accueil', labelEn: 'Home', icon: <Home className="h-4 w-4" /> },
-  { kind: 'link', href: '/about', labelKey: 'navAbout', labelAr: 'من نحن', labelFr: 'À propos', labelEn: 'About', icon: <Info className="h-4 w-4" /> },
-  { kind: 'link', href: '/guide', labelKey: 'guide', labelAr: 'دليل التثبيت', labelFr: 'Guide', labelEn: 'Install Guide', icon: <BookOpen className="h-4 w-4" /> },
-  { kind: 'link', href: '/admob', labelKey: 'admob', labelAr: 'إعداد AdMob', labelFr: 'Config. AdMob', labelEn: 'AdMob Setup', icon: <DollarSign className="h-4 w-4" /> },
+  { kind: 'link', href: '/', labelKey: 'home', labelAr: 'الرئيسية', labelFr: 'Accueil', labelEn: 'Home', labelEs: 'Inicio', icon: <Home className="h-4 w-4" /> },
+  { kind: 'link', href: '/about', labelKey: 'navAbout', labelAr: 'من نحن', labelFr: 'À propos', labelEn: 'About', labelEs: 'Sobre nosotros', icon: <Info className="h-4 w-4" /> },
+  { kind: 'link', href: '/guide', labelKey: 'guide', labelAr: 'دليل التثبيت', labelFr: 'Guide', labelEn: 'Install Guide', labelEs: 'Guía de instalación', icon: <BookOpen className="h-4 w-4" /> },
+  { kind: 'link', href: '/admob', labelKey: 'admob', labelAr: 'إعداد AdMob', labelFr: 'Config. AdMob', labelEn: 'AdMob Setup', labelEs: 'Configurar AdMob', icon: <DollarSign className="h-4 w-4" /> },
   {
     kind: 'group',
     labelKey: 'tools',
     labelAr: 'أدوات',
     labelFr: 'Outils',
     labelEn: 'Tools',
+    labelEs: 'Herramientas',
     icon: <Wrench className="h-4 w-4" />,
     children: [
-      { href: '/tools/native-bridge-simulator', labelAr: 'محاكي واجهات الجهاز (Bridge)', labelFr: 'Simulateur Native Bridge', labelEn: 'Native Bridge Simulator', icon: <Cpu className="h-3.5 w-3.5 text-violet-400" />, descAr: 'مختبر ميزات أندرويد الحية وكود آمن', descFr: 'APIs matérielles & code sécurisé', descEn: 'Live hardware APIs & safe code' },
-      { href: '/tools/play-testers-generator', labelAr: 'مولد روابط 20 مختبراً Play Store', labelFr: 'Générateur 20 Testeurs Play Store', labelEn: 'Play 20 Testers Link Generator', icon: <Users className="h-3.5 w-3.5 text-violet-400" />, descAr: 'روابط Opt-in ونماذج دعوة وحل خطأ App not available', descFr: 'Liens Opt-in, invitations et correction d\'erreurs', descEn: 'Opt-in URLs, invitation templates & error inspector' },
-      { href: '/tools/push-notification-tester', labelAr: 'مختبر الإشعارات (Push Tester)', labelFr: 'Testeur Push Notifications', labelEn: 'Push Notification Tester', icon: <BellRing className="h-3.5 w-3.5 text-amber-400" />, descAr: 'صانع حمولة FCM & Web Push مع معاينة حية', descFr: 'Payloads FCM & Web Push avec prévisualisation', descEn: 'FCM & Web Push payload builder with live preview' },
-      { href: '/tools/apk-permissions-auditor', labelAr: 'فاحص أذونات APK & SDKs', labelFr: 'Auditeur Permissions APK & SDK', labelEn: 'APK & SDK Auditor', icon: <ShieldAlert className="h-3.5 w-3.5 text-rose-400" />, descAr: 'فحص أذونات ومكاتب APK/AAB لـ Google Play', descFr: 'Audit permissions et SDKs APK/AAB', descEn: 'Audit APK/AAB permissions & SDKs' },
-      { href: '/tools/play-data-safety', labelAr: 'سلامة البيانات Google Play', labelFr: 'Sécurité des données Play', labelEn: 'Play Data Safety', icon: <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />, descAr: 'استبيان سلامة البيانات وسياسة الخصوصية', descFr: 'Sécurité des données & politique de confidentialité', descEn: 'Data Safety questionnaire & privacy policy' },
-      { href: '/tools/app-mockup-framer', labelAr: 'استوديو لقطات شاشات المتاجر (Studio)', labelFr: 'Screenshot Studio', labelEn: 'App Screenshot Studio', icon: <Smartphone className="h-3.5 w-3.5 text-violet-400" />, descAr: 'لقطات شاشات المتاجر بإطارات الأجهزة و3D', descFr: 'Captures de store avec cadres 3D', descEn: 'Store screenshots with 3D device frames' },
-      { href: '/tools/assetlinks-generator', labelAr: 'مولد Asset Links (TWA)', labelFr: 'Générateur Asset Links', labelEn: 'Asset Links Generator', icon: <KeyRound className="h-3.5 w-3.5 text-cyan-400" />, descAr: 'ملف assetlinks.json لروابط التطبيق', descFr: 'assetlinks.json pour App Links & TWA', descEn: 'assetlinks.json for App Links & TWA' },
-      { href: '/tools/app-banner-generator', labelAr: 'شريط التطبيق الذكي (Smart Banner)', labelFr: 'Générateur Smart App Banner', labelEn: 'Smart App Banner Generator', icon: <Smartphone className="h-3.5 w-3.5 text-emerald-400" />, descAr: 'كود شريط Google Play لموقعك', descFr: 'Bannière Google Play pour votre site', descEn: 'Google Play banner code for your site' },
-      { href: '/tools/manifest-generator', labelAr: 'مولد Manifest', labelFr: 'Générateur Manifest', labelEn: 'Manifest Generator', icon: <FileCode className="h-3.5 w-3.5 text-indigo-400" />, descAr: 'أنشئ manifest.json لتطبيقك', descFr: 'Créer un fichier manifest.json', descEn: 'Build your PWA manifest.json' },
-      { href: '/tools/icon-generator', labelAr: 'مولد أيقونات التطبيق', labelFr: 'Générateur d\'icônes', labelEn: 'Icon Generator', icon: <ImageIcon className="h-3.5 w-3.5 text-purple-400" />, descAr: 'جميع أحجام PWA من صورة واحدة', descFr: 'Toutes les tailles PWA en un clic', descEn: 'All PWA sizes from one image' },
-      { href: '/tools/qr-generator', labelAr: 'مولد رمز QR للتطبيق', labelFr: 'Générateur de QR Code', labelEn: 'App QR Code Generator', icon: <QrCode className="h-3.5 w-3.5 text-cyan-400" />, descAr: 'امسح لتثبيت التطبيق فوراً', descFr: 'Scannez pour installer l\'app', descEn: 'Scan to install & launch app' },
-      { href: '/tools/pwa-checker', labelAr: 'فاحص جاهزية PWA', labelFr: 'Vérificateur PWA', labelEn: 'PWA Checker', icon: <Gauge className="h-3.5 w-3.5 text-emerald-400" />, descAr: 'اختبر موقعك في ثوانٍ', descFr: 'Testez votre site en quelques secondes', descEn: 'Test your site in seconds' },
-      { href: '/tools', labelAr: 'جميع الأدوات', labelFr: 'Tous les outils', labelEn: 'All Tools', icon: <Wrench className="h-3.5 w-3.5 text-slate-400" />, descAr: 'تصفح كل الأدوات المتاحة', descFr: 'Parcourir tous les outils disponibles', descEn: 'Browse every available tool' },
+      { href: '/tools/native-bridge-simulator', labelAr: 'محاكي واجهات الجهاز (Bridge)', labelFr: 'Simulateur Native Bridge', labelEn: 'Native Bridge Simulator', labelEs: 'Simulador Native Bridge', icon: <Cpu className="h-3.5 w-3.5 text-violet-400" />, descAr: 'مختبر ميزات أندرويد الحية وكود آمن', descFr: 'APIs matérielles & code sécurisé', descEn: 'Live hardware APIs & safe code', descEs: 'APIs de hardware en vivo y código seguro' },
+      { href: '/tools/play-testers-generator', labelAr: 'مولد روابط 20 مختبراً Play Store', labelFr: 'Générateur 20 Testeurs Play Store', labelEn: 'Play 20 Testers Link Generator', labelEs: 'Generador de 20 Testers Play Store', icon: <Users className="h-3.5 w-3.5 text-violet-400" />, descAr: 'روابط Opt-in ونماذج دعوة وحل خطأ App not available', descFr: 'Liens Opt-in, invitations et correction d\'erreurs', descEn: 'Opt-in URLs, invitation templates & error inspector', descEs: 'Enlaces opt-in, plantillas y solución de errores' },
+      { href: '/tools/push-notification-tester', labelAr: 'مختبر الإشعارات (Push Tester)', labelFr: 'Testeur Push Notifications', labelEn: 'Push Notification Tester', labelEs: 'Probador de Notificaciones Push', icon: <BellRing className="h-3.5 w-3.5 text-amber-400" />, descAr: 'صانع حمولة FCM & Web Push مع معاينة حية', descFr: 'Payloads FCM & Web Push avec prévisualisation', descEn: 'FCM & Web Push payload builder with live preview', descEs: 'Constructor de payloads FCM y Web Push con vista previa' },
+      { href: '/tools/apk-permissions-auditor', labelAr: 'فاحص أذونات APK & SDKs', labelFr: 'Auditeur Permissions APK & SDK', labelEn: 'APK & SDK Auditor', labelEs: 'Auditor de Permisos APK y SDKs', icon: <ShieldAlert className="h-3.5 w-3.5 text-rose-400" />, descAr: 'فحص أذونات ومكاتب APK/AAB لـ Google Play', descFr: 'Audit permissions et SDKs APK/AAB', descEn: 'Audit APK/AAB permissions & SDKs', descEs: 'Auditoría de permisos y SDKs APK/AAB para Google Play' },
+      { href: '/tools/play-data-safety', labelAr: 'سلامة البيانات Google Play', labelFr: 'Sécurité des données Play', labelEn: 'Play Data Safety', labelEs: 'Seguridad de Datos de Play Store', icon: <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />, descAr: 'استبيان سلامة البيانات وسياسة الخصوصية', descFr: 'Sécurité des données & politique de confidentialité', descEn: 'Data Safety questionnaire & privacy policy', descEs: 'Cuestionario de seguridad y política de privacidad' },
+      { href: '/tools/app-mockup-framer', labelAr: 'استوديو لقطات شاشات المتاجر (Studio)', labelFr: 'Screenshot Studio', labelEn: 'App Screenshot Studio', labelEs: 'Estudio de Capturas de Pantalla', icon: <Smartphone className="h-3.5 w-3.5 text-violet-400" />, descAr: 'لقطات شاشات المتاجر بإطارات الأجهزة و3D', descFr: 'Captures de store avec cadres 3D', descEn: 'Store screenshots with 3D device frames', descEs: 'Capturas para tiendas con marcos de dispositivos y 3D' },
+      { href: '/tools/assetlinks-generator', labelAr: 'مولد Asset Links (TWA)', labelFr: 'Générateur Asset Links', labelEn: 'Asset Links Generator', labelEs: 'Generador de Asset Links (TWA)', icon: <KeyRound className="h-3.5 w-3.5 text-cyan-400" />, descAr: 'ملف assetlinks.json لروابط التطبيق', descFr: 'assetlinks.json pour App Links & TWA', descEn: 'assetlinks.json for App Links & TWA', descEs: 'Archivo assetlinks.json para App Links y TWA' },
+      { href: '/tools/app-banner-generator', labelAr: 'شريط التطبيق الذكي (Smart Banner)', labelFr: 'Générateur Smart App Banner', labelEn: 'Smart App Banner Generator', labelEs: 'Generador de Smart App Banner', icon: <Smartphone className="h-3.5 w-3.5 text-emerald-400" />, descAr: 'كود شريط Google Play لموقعك', descFr: 'Bannière Google Play pour votre site', descEn: 'Google Play banner code for your site', descEs: 'Código de banner de Google Play para tu web' },
+      { href: '/tools/manifest-generator', labelAr: 'مولد Manifest', labelFr: 'Générateur Manifest', labelEn: 'Manifest Generator', labelEs: 'Generador de Manifest', icon: <FileCode className="h-3.5 w-3.5 text-indigo-400" />, descAr: 'أنشئ manifest.json لتطبيقك', descFr: 'Créer un fichier manifest.json', descEn: 'Build your PWA manifest.json', descEs: 'Crea tu archivo manifest.json para tu PWA' },
+      { href: '/tools/icon-generator', labelAr: 'مولد أيقونات التطبيق', labelFr: 'Générateur d\'icônes', labelEn: 'Icon Generator', labelEs: 'Generador de Iconos', icon: <ImageIcon className="h-3.5 w-3.5 text-purple-400" />, descAr: 'جميع أحجام PWA من صورة واحدة', descFr: 'Toutes les tailles PWA en un clic', descEn: 'All PWA sizes from one image', descEs: 'Todos los tamaños de iconos PWA en un clic' },
+      { href: '/tools/qr-generator', labelAr: 'مولد رمز QR للتطبيق', labelFr: 'Générateur de QR Code', labelEn: 'App QR Code Generator', labelEs: 'Generador de Códigos QR', icon: <QrCode className="h-3.5 w-3.5 text-cyan-400" />, descAr: 'امسح لتثبيت التطبيق فوراً', descFr: 'Scannez pour installer l\'app', descEn: 'Scan to install & launch app', descEs: 'Escanea para instalar y abrir la app al instante' },
+      { href: '/tools/pwa-checker', labelAr: 'فاحص جاهزية PWA', labelFr: 'Vérificateur PWA', labelEn: 'PWA Checker', labelEs: 'Verificador de PWA', icon: <Gauge className="h-3.5 w-3.5 text-emerald-400" />, descAr: 'اختبر موقعك في ثوانٍ', descFr: 'Testez votre site en quelques secondes', descEn: 'Test your site in seconds', descEs: 'Prueba la compatibilidad PWA de tu web en segundos' },
+      { href: '/tools', labelAr: 'جميع الأدوات', labelFr: 'Tous les outils', labelEn: 'All Tools', labelEs: 'Todas las herramientas', icon: <Wrench className="h-3.5 w-3.5 text-slate-400" />, descAr: 'تصفح كل الأدوات المتاحة', descFr: 'Parcourir tous les outils disponibles', descEn: 'Browse every available tool', descEs: 'Explora todas las herramientas para desarrolladores' },
     ],
   },
-  { kind: 'link', href: '/contact', labelKey: 'navContact', labelAr: 'تواصل معنا', labelFr: 'Contact', labelEn: 'Contact', icon: <Mail className="h-4 w-4" /> },
+  { kind: 'link', href: '/contact', labelKey: 'navContact', labelAr: 'تواصل معنا', labelFr: 'Contact', labelEn: 'Contact', labelEs: 'Contacto', icon: <Mail className="h-4 w-4" /> },
 ];
 
 const FOOTER_LINKS = [
-  { href: '/privacy', labelAr: 'سياسة الخصوصية', labelFr: 'Confidentialité', labelEn: 'Privacy', icon: <ShieldCheck className="h-3.5 w-3.5" /> },
-  { href: '/terms', labelAr: 'شروط الخدمة', labelFr: 'Conditions', labelEn: 'Terms', icon: <FileText className="h-3.5 w-3.5" /> },
+  { href: '/privacy', labelAr: 'سياسة الخصوصية', labelFr: 'Confidentialité', labelEn: 'Privacy', labelEs: 'Privacidad', icon: <ShieldCheck className="h-3.5 w-3.5" /> },
+  { href: '/terms', labelAr: 'شروط الخدمة', labelFr: 'Conditions', labelEn: 'Terms', labelEs: 'Términos', icon: <FileText className="h-3.5 w-3.5" /> },
 ];
 
 // ─── Sidebar ───────────────────────────────────────────────────────────────────
@@ -80,7 +82,24 @@ function SidebarNav({ onClose }: { onClose?: () => void }) {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [expanded, setExpanded] = useState(true);
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const langMenuRef = useRef<HTMLDivElement | null>(null);
   const isMobileDrawer = !!onClose;
+
+  // Close language menu on outside click
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (langMenuRef.current && !langMenuRef.current.contains(event.target as Node)) {
+        setLangMenuOpen(false);
+      }
+    };
+    if (langMenuOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [langMenuOpen]);
 
   // Restore sidebar state from localStorage and sync CSS variable
   useEffect(() => {
@@ -131,8 +150,8 @@ function SidebarNav({ onClose }: { onClose?: () => void }) {
     } catch { /* ignore */ }
   }, [theme]);
 
-  const labelOf = (item: { labelAr: string; labelFr: string; labelEn: string }) =>
-    lang === 'ar' ? item.labelAr : lang === 'fr' ? item.labelFr : item.labelEn;
+  const labelOf = (item: { labelAr: string; labelFr: string; labelEn: string; labelEs?: string }) =>
+    lang === 'ar' ? item.labelAr : lang === 'es' ? (item.labelEs || item.labelEn) : lang === 'fr' ? item.labelFr : item.labelEn;
 
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : href === '/tools' ? pathname === '/tools' : pathname.startsWith(href);
@@ -310,25 +329,107 @@ function SidebarNav({ onClose }: { onClose?: () => void }) {
           )}
         </button>
 
-        {/* Language selector */}
-        {(expanded || isMobileDrawer) && (
-          <div className="sidebar-nav-link flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-slate-400">
-            <Globe className="h-4 w-4 shrink-0 text-indigo-400" />
-            <select
-              value={lang}
-              onChange={(e) => setLang(e.target.value as Language)}
-              className="sidebar-lang-select flex-1 bg-transparent border-0 text-sm text-slate-200 focus:outline-none cursor-pointer min-w-0"
+        {/* Modern Interactive Language Selector with Flag Icons */}
+        {(expanded || isMobileDrawer) ? (
+          <div className="relative" ref={langMenuRef}>
+            <button
+              type="button"
+              onClick={() => setLangMenuOpen((prev) => !prev)}
+              className="sidebar-nav-link w-full flex items-center justify-between gap-2.5 rounded-xl px-2.5 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/60 border border-slate-800/60 hover:border-slate-700/80 transition-all cursor-pointer"
+              aria-label={lang === 'ar' ? 'تغيير لغة الموقع' : lang === 'es' ? 'Cambiar idioma' : lang === 'fr' ? 'Changer de langue' : 'Change language'}
+              aria-expanded={langMenuOpen}
             >
-              <option value="ar" className="bg-slate-900 text-white">العربية</option>
-              <option value="en" className="bg-slate-900 text-white">English</option>
-              <option value="fr" className="bg-slate-900 text-white">Français</option>
-            </select>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <LanguageFlag lang={lang} className="w-5 h-3.5" />
+                <span className="truncate text-xs font-medium text-slate-200">
+                  {AVAILABLE_LANGUAGES.find((l) => l.id === lang)?.nativeLabel || 'العربية'}
+                </span>
+              </div>
+              <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${langMenuOpen ? 'rotate-180 text-indigo-400' : ''}`} />
+            </button>
+
+            {/* Dropdown Menu */}
+            {langMenuOpen && (
+              <div className="absolute bottom-full mb-1.5 inset-x-0 z-50 rounded-xl border border-slate-700/90 bg-slate-900/95 backdrop-blur-xl p-1.5 shadow-2xl shadow-black/80 space-y-1">
+                <div className="px-2 py-1 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+                  {lang === 'ar' ? 'اختر لغة المنصة' : lang === 'es' ? 'Seleccionar idioma' : lang === 'fr' ? 'Sélectionner la langue' : 'Select Language'}
+                </div>
+                {AVAILABLE_LANGUAGES.map((item) => {
+                  const isSelected = item.id === lang;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        setLang(item.id);
+                        setLangMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-indigo-600/25 text-white font-semibold border border-indigo-500/40 shadow-xs'
+                          : 'text-slate-300 hover:bg-slate-800/80 hover:text-white border border-transparent'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <LanguageFlag lang={item.id} className="w-5 h-3.5" />
+                        <span>{item.nativeLabel}</span>
+                        <span className="text-[10px] text-slate-400">({item.code.toUpperCase()})</span>
+                      </div>
+                      {isSelected && (
+                        <Check className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        )}
-        {/* Language icon only when collapsed */}
-        {!expanded && !isMobileDrawer && (
-          <div className="sidebar-nav-link flex justify-center rounded-xl px-2.5 py-2 text-slate-400" title="Language">
-            <Globe className="h-4 w-4 text-indigo-400" />
+        ) : (
+          /* Collapsed Sidebar: Centered Flag Icon with Popover */
+          <div className="relative flex justify-center" ref={langMenuRef}>
+            <button
+              type="button"
+              onClick={() => setLangMenuOpen((prev) => !prev)}
+              className="sidebar-nav-link flex items-center justify-center rounded-xl p-2 text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+              title={AVAILABLE_LANGUAGES.find((l) => l.id === lang)?.nativeLabel || 'Language'}
+              aria-label="Language selector"
+            >
+              <LanguageFlag lang={lang} className="w-5 h-3.5" />
+            </button>
+
+            {langMenuOpen && (
+              <div className="absolute bottom-0 start-full ms-2 w-48 z-50 rounded-xl border border-slate-700/90 bg-slate-900/95 backdrop-blur-xl p-1.5 shadow-2xl shadow-black/80 space-y-1">
+                <div className="px-2 py-1 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+                  Language
+                </div>
+                {AVAILABLE_LANGUAGES.map((item) => {
+                  const isSelected = item.id === lang;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        setLang(item.id);
+                        setLangMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-indigo-600/25 text-white font-semibold border border-indigo-500/40 shadow-xs'
+                          : 'text-slate-300 hover:bg-slate-800/80 hover:text-white border border-transparent'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <LanguageFlag lang={item.id} className="w-5 h-3.5" />
+                        <span>{item.nativeLabel}</span>
+                      </div>
+                      {isSelected && (
+                        <Check className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -434,41 +535,41 @@ function SiteFooter() {
 
   const footerColumns = [
     {
-      title: lang === 'ar' ? 'المنتجات والأدوات' : lang === 'fr' ? 'Produits & Outils' : 'Product & Tools',
+      title: lang === 'ar' ? 'المنتجات والأدوات' : lang === 'es' ? 'Productos y Herramientas' : lang === 'fr' ? 'Produits & Outils' : 'Product & Tools',
       links: [
-        { href: '/tools/manifest-generator', label: lang === 'ar' ? 'مولد Manifest' : lang === 'fr' ? 'Générateur Manifest' : 'Manifest Generator' },
-        { href: '/tools/icon-generator', label: lang === 'ar' ? 'مولد الأيقونات' : lang === 'fr' ? 'Générateur d\'icônes' : 'Icon Generator' },
-        { href: '/tools/qr-generator', label: lang === 'ar' ? 'مولد رمز QR' : lang === 'fr' ? 'Générateur QR' : 'QR Code Generator' },
-        { href: '/tools/app-mockup-framer', label: lang === 'ar' ? 'استوديو لقطات شاشات المتاجر' : lang === 'fr' ? 'Screenshot Studio' : 'App Screenshot Studio' },
+        { href: '/tools/manifest-generator', label: lang === 'ar' ? 'مولد Manifest' : lang === 'es' ? 'Generador Manifest' : lang === 'fr' ? 'Générateur Manifest' : 'Manifest Generator' },
+        { href: '/tools/icon-generator', label: lang === 'ar' ? 'مولد الأيقونات' : lang === 'es' ? 'Generador de Iconos' : lang === 'fr' ? 'Générateur d\'icônes' : 'Icon Generator' },
+        { href: '/tools/qr-generator', label: lang === 'ar' ? 'مولد رمز QR' : lang === 'es' ? 'Generador de Códigos QR' : lang === 'fr' ? 'Générateur QR' : 'QR Code Generator' },
+        { href: '/tools/app-mockup-framer', label: lang === 'ar' ? 'استوديو لقطات شاشات المتاجر' : lang === 'es' ? 'Estudio de Capturas' : lang === 'fr' ? 'Screenshot Studio' : 'App Screenshot Studio' },
       ],
     },
     {
-      title: lang === 'ar' ? 'المطورين والتدقيق' : lang === 'fr' ? 'Développeurs & Audit' : 'Developer & Audit',
+      title: lang === 'ar' ? 'المطورين والتدقيق' : lang === 'es' ? 'Desarrollo y Auditoría' : lang === 'fr' ? 'Développeurs & Audit' : 'Developer & Audit',
       links: [
-        { href: '/tools/play-testers-generator', label: lang === 'ar' ? 'روابط 20 مختبراً Play Store' : lang === 'fr' ? '20 Testeurs Play Store' : 'Play 20 Testers Generator' },
-        { href: '/tools/push-notification-tester', label: lang === 'ar' ? 'مختبر الإشعارات' : lang === 'fr' ? 'Testeur Push Notifications' : 'Push Notification Tester' },
-        { href: '/tools/apk-permissions-auditor', label: lang === 'ar' ? 'فاحص أذونات APK & SDKs' : lang === 'fr' ? 'Auditeur Permissions APK' : 'APK & SDK Auditor' },
-        { href: '/tools/play-data-safety', label: lang === 'ar' ? 'سلامة البيانات Google Play' : lang === 'fr' ? 'Sécurité des données' : 'Play Data Safety' },
-        { href: '/tools/assetlinks-generator', label: lang === 'ar' ? 'مولد Asset Links (TWA)' : lang === 'fr' ? 'Générateur Asset Links' : 'Asset Links Generator' },
-        { href: '/tools/pwa-checker', label: lang === 'ar' ? 'فاحص جاهزية PWA' : lang === 'fr' ? 'Vérificateur PWA' : 'PWA Checker' },
+        { href: '/tools/play-testers-generator', label: lang === 'ar' ? 'روابط 20 مختبراً Play Store' : lang === 'es' ? '20 Testers Play Store' : lang === 'fr' ? '20 Testeurs Play Store' : 'Play 20 Testers Generator' },
+        { href: '/tools/push-notification-tester', label: lang === 'ar' ? 'مختبر الإشعارات' : lang === 'es' ? 'Probador de Notificaciones' : lang === 'fr' ? 'Testeur Push Notifications' : 'Push Notification Tester' },
+        { href: '/tools/apk-permissions-auditor', label: lang === 'ar' ? 'فاحص أذونات APK & SDKs' : lang === 'es' ? 'Auditor de Permisos APK' : lang === 'fr' ? 'Auditeur Permissions APK' : 'APK & SDK Auditor' },
+        { href: '/tools/play-data-safety', label: lang === 'ar' ? 'سلامة البيانات Google Play' : lang === 'es' ? 'Seguridad de Datos Play' : lang === 'fr' ? 'Sécurité des données' : 'Play Data Safety' },
+        { href: '/tools/assetlinks-generator', label: lang === 'ar' ? 'مولد Asset Links (TWA)' : lang === 'es' ? 'Generador Asset Links' : lang === 'fr' ? 'Générateur Asset Links' : 'Asset Links Generator' },
+        { href: '/tools/pwa-checker', label: lang === 'ar' ? 'فاحص جاهزية PWA' : lang === 'es' ? 'Verificador PWA' : lang === 'fr' ? 'Vérificateur PWA' : 'PWA Checker' },
       ],
     },
     {
-      title: lang === 'ar' ? 'المصادر والأدلة' : lang === 'fr' ? 'Ressources & Guides' : 'Resources & Guides',
+      title: lang === 'ar' ? 'المصادر والأدلة' : lang === 'es' ? 'Recursos y Guías' : lang === 'fr' ? 'Ressources & Guides' : 'Resources & Guides',
       links: [
-        { href: '/guide', label: lang === 'ar' ? 'دليل التثبيت' : lang === 'fr' ? 'Guide d\'installation' : 'Install Guide' },
-        { href: '/admob', label: lang === 'ar' ? 'إعداد AdMob' : lang === 'fr' ? 'Config. AdMob' : 'AdMob Setup' },
-        { href: '/tools/app-banner-generator', label: lang === 'ar' ? 'شريط التطبيق الذكي' : lang === 'fr' ? 'Smart App Banner' : 'Smart App Banner' },
-        { href: '/tools', label: lang === 'ar' ? 'جميع الأدوات' : lang === 'fr' ? 'Tous les outils' : 'All Developer Tools' },
+        { href: '/guide', label: lang === 'ar' ? 'دليل التثبيت' : lang === 'es' ? 'Guía de Instalación' : lang === 'fr' ? 'Guide d\'installation' : 'Install Guide' },
+        { href: '/admob', label: lang === 'ar' ? 'إعداد AdMob' : lang === 'es' ? 'Configuración AdMob' : lang === 'fr' ? 'Config. AdMob' : 'AdMob Setup' },
+        { href: '/tools/app-banner-generator', label: lang === 'ar' ? 'شريط التطبيق الذكي' : lang === 'es' ? 'Smart App Banner' : lang === 'fr' ? 'Smart App Banner' : 'Smart App Banner' },
+        { href: '/tools', label: lang === 'ar' ? 'جميع الأدوات' : lang === 'es' ? 'Todas las Herramientas' : lang === 'fr' ? 'Tous les outils' : 'All Developer Tools' },
       ],
     },
     {
-      title: lang === 'ar' ? 'الشركة والقانونية' : lang === 'fr' ? 'Entreprise & Légal' : 'Company & Legal',
+      title: lang === 'ar' ? 'الشركة والقانونية' : lang === 'es' ? 'Empresa y Legal' : lang === 'fr' ? 'Entreprise & Légal' : 'Company & Legal',
       links: [
         { href: '/about', label: t('navAbout') },
         { href: '/contact', label: t('navContact') },
-        { href: '/privacy', label: lang === 'ar' ? 'سياسة الخصوصية' : lang === 'fr' ? 'Confidentialité' : 'Privacy Policy' },
-        { href: '/terms', label: lang === 'ar' ? 'شروط الخدمة' : lang === 'fr' ? 'Conditions' : 'Terms of Service' },
+        { href: '/privacy', label: lang === 'ar' ? 'سياسة الخصوصية' : lang === 'es' ? 'Política de Privacidad' : lang === 'fr' ? 'Confidentialité' : 'Privacy Policy' },
+        { href: '/terms', label: lang === 'ar' ? 'شروط الخدمة' : lang === 'es' ? 'Términos del Servicio' : lang === 'fr' ? 'Conditions' : 'Terms of Service' },
       ],
     },
   ];
@@ -516,14 +617,14 @@ function SiteFooter() {
                 className="h-4 pointer-events-none shrink-0"
               />
               <span className="text-[11px] text-slate-300 group-hover:text-white transition-colors truncate">
-                {lang === 'ar' ? 'أداة الأتمتة على GitHub Marketplace' : lang === 'fr' ? 'Action CI/CD sur GitHub Marketplace' : 'CI/CD Action on GitHub Marketplace'}
+                {lang === 'ar' ? 'أداة الأتمتة على GitHub Marketplace' : lang === 'es' ? 'Acción CI/CD en GitHub Marketplace' : lang === 'fr' ? 'Action CI/CD sur GitHub Marketplace' : 'CI/CD Action on GitHub Marketplace'}
               </span>
             </a>
           </div>
 
           {/* Copyright */}
           <p className="text-[11px] text-slate-500">
-            © 2026 Appifya. {lang === 'ar' ? 'جميع الحقوق محفوظة.' : lang === 'fr' ? 'Tous droits réservés.' : 'All rights reserved.'}
+            © 2026 Appifya. {lang === 'ar' ? 'جميع الحقوق محفوظة.' : lang === 'es' ? 'Todos los derechos reservados.' : lang === 'fr' ? 'Tous droits réservés.' : 'All rights reserved.'}
           </p>
         </div>
       </div>

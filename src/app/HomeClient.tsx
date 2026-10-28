@@ -6,7 +6,7 @@ import Link from 'next/link';
 import CustomerStoriesShowcase from './CustomerStoriesShowcase';
 import PlanUpgradeModal from '@/components/PlanUpgradeModal';
 import { useAuth } from '@/context/AuthContext';
-import { useLanguage } from './lib/i18n';
+import { useLanguage, type Language } from './lib/i18n';
 import { databases, storage } from '@/lib/appwrite';
 import { BUCKET_ID, DB_ID, TABLE_ID, getErrorMessage, normalizePublicUrl } from '@/lib/app-config';
 import { ID, Permission, Role } from 'appwrite';
@@ -52,7 +52,7 @@ import {
   Briefcase,
 } from 'lucide-react';
 
-const faqSchema = (lang: 'ar' | 'en' | 'fr') => ({
+const faqSchema = (lang: Language) => ({
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
   mainEntity: [
@@ -91,7 +91,7 @@ const faqSchema = (lang: 'ar' | 'en' | 'fr') => ({
   ],
 });
 
-const howToSchema = (lang: 'ar' | 'en' | 'fr') => ({
+const howToSchema = (lang: Language) => ({
   '@context': 'https://schema.org',
   '@type': 'HowTo',
   name: lang === 'ar' ? 'كيف تحول موقعك أو متجرك إلى تطبيق PWA أصلي' : lang === 'fr' ? 'Comment transformer votre site en application mobile native' : 'How to convert any website into a native mobile app',

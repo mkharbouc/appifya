@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import NativeBridgeClient from './NativeBridgeClient';
 
 export const metadata: Metadata = {
-  title: 'Native-Bridge Simulator (JS-to-Android Hardware API Tester)',
+  title: 'Native-Bridge Simulator & API Tester',
   description:
     'Test Android & PWA hardware APIs: Haptics, Screen Wake Lock, Native Share, and Orientation with live device simulation & safe zero-crash code.',
   keywords: [

@@ -151,24 +151,29 @@ const SAMPLE_SCREENSHOTS = [
 const LOCAL_STORAGE_KEY = 'appifya_screenshot_studio_project_v2';
 
 // ─── Default Localized Slide Generators ───
-export function getDefaultLocalizedSlides(targetLang: 'ar' | 'en' | 'fr'): Slide[] {
+export function getDefaultLocalizedSlides(targetLang: 'ar' | 'en' | 'fr' | 'es'): Slide[] {
   const isAr = targetLang === 'ar';
   const isFr = targetLang === 'fr';
+  const isEs = targetLang === 'es';
 
   return [
     {
       id: 'slide-1',
       headline: isAr
         ? 'اكتشف وتسوّق بكل سهولة'
+        : isEs
+        ? 'Descubre y Compra Fácilmente'
         : isFr
         ? 'Découvrez et Achetez Facilement'
         : 'Discover & Shop Seamlessly',
       subtitle: isAr
         ? 'أكثر من 50 ألف منتج مع عروض حصرية وتوصيل فوري لباب بيتك'
+        : isEs
+        ? 'Miles de artículos con ofertas exclusivas y entrega rápida'
         : isFr
         ? 'Des milliers d’articles avec offres exclusives et livraison rapide'
         : 'Browse thousands of curated items with instant doorstep delivery',
-      badge: isAr ? '★ تقييم 4.9 للمتجر' : isFr ? '★ NOTÉ 4.9 ÉTOILES' : '★ 4.9 TOP RATED APP',
+      badge: isAr ? '★ تقييم 4.9 للمتجر' : isEs ? '★ CALIFICACIÓN 4.9' : isFr ? '★ NOTÉ 4.9 ÉTOILES' : '★ 4.9 TOP RATED APP',
       showBadge: true,
       imageSrc: SAMPLE_SCREENSHOTS[0],
       templateStyle: 'gradient',
@@ -193,15 +198,19 @@ export function getDefaultLocalizedSlides(targetLang: 'ar' | 'en' | 'fr'): Slide
       id: 'slide-2',
       headline: isAr
         ? 'لوحة تحكم وتحليلات مالية ذكية'
+        : isEs
+        ? 'Panel de Control y Analíticas'
         : isFr
         ? 'Tableau de Bord & Analyses'
         : 'Smart Analytics & Insights',
       subtitle: isAr
         ? 'تتبع طلباتك ومصاريفك أولاً بأول بدقة وأمان مصرفي مشفر'
+        : isEs
+        ? 'Rastrea tus finanzas y métricas con seguridad bancaria'
         : isFr
         ? 'Suivez vos finances et vos métriques en temps réel en toute sécurité'
         : 'Real-time financial tracking and growth performance metrics',
-      badge: isAr ? 'أمان بنكي مشفر' : isFr ? 'SÉCURITÉ BANCAIRE' : 'BANK-GRADE SECURITY',
+      badge: isAr ? 'أمان بنكي مشفر' : isEs ? 'SEGURIDAD BANCARIA' : isFr ? 'SÉCURITÉ BANCAIRE' : 'BANK-GRADE SECURITY',
       showBadge: true,
       imageSrc: SAMPLE_SCREENSHOTS[1],
       templateStyle: 'gradient',
@@ -226,15 +235,19 @@ export function getDefaultLocalizedSlides(targetLang: 'ar' | 'en' | 'fr'): Slide
       id: 'slide-3',
       headline: isAr
         ? 'توصيل فائق السرعة مع تتبع حي'
+        : isEs
+        ? 'Seguimiento de Pedidos en Vivo'
         : isFr
         ? 'Suivi de Commande en Direct'
         : 'Ultra Fast Order Tracking',
       subtitle: isAr
         ? 'متابعة مباشرة عبر الخريطة مع إشعارات لحظية حتى باب منزلك'
+        : isEs
+        ? 'Ubicación GPS en tiempo real y notificaciones instantáneas'
         : isFr
         ? 'Localisation GPS en temps réel et notifications instantanées chez vous'
         : 'Live GPS location with instant courier notifications straight to your door',
-      badge: isAr ? 'سرعة فائقة 20 دقيقة' : isFr ? 'LIVRAISON EN 20 MIN' : 'LIGHTNING FAST',
+      badge: isAr ? 'سرعة فائقة 20 دقيقة' : isEs ? 'ENTREGA EN 20 MIN' : isFr ? 'LIVRAISON EN 20 MIN' : 'LIGHTNING FAST',
       showBadge: true,
       imageSrc: SAMPLE_SCREENSHOTS[2],
       templateStyle: 'gradient',
@@ -274,6 +287,9 @@ const DEFAULT_KNOWN_HEADLINES = [
   'Tableau de Bord & Analyses Intelligentes',
   'Suivi de Commande en Direct',
   'Livraison Ultra-Rapide avec Suivi GPS',
+  'Descubre y Compra Fácilmente',
+  'Panel de Control y Analíticas',
+  'Seguimiento de Pedidos en Vivo',
 ];
 
 export default function AppMockupFramerClient() {

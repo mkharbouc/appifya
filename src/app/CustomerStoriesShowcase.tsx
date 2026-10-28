@@ -233,6 +233,7 @@ const STORIES: Story[] = [
 
 export default function CustomerStoriesShowcase() {
   const { lang } = useLanguage();
+  const lKey: 'ar' | 'en' | 'fr' = lang === 'ar' ? 'ar' : lang === 'fr' ? 'fr' : 'en';
   const isRtl = lang === 'ar';
   const [activeIndex, setActiveIndex] = useState(0);
   const [modalStory, setModalStory] = useState<Story | null>(null);
@@ -353,10 +354,10 @@ export default function CustomerStoriesShowcase() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="stories-category-badge inline-block rounded-md px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider mb-2 border">
-                {activeStory.category[lang]}
+                {activeStory.category[lKey]}
               </div>
               <div className="stories-metric-text text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight drop-shadow-sm">
-                {activeStory.metric[lang]}
+                {activeStory.metric[lKey]}
               </div>
             </div>
 
@@ -384,12 +385,12 @@ export default function CustomerStoriesShowcase() {
           {/* Center Story Content & Quote */}
           <div className="max-w-2xl my-6 sm:my-8 space-y-5">
             <p className="stories-summary-text text-xs sm:text-sm leading-relaxed">
-              {activeStory.summary[lang]}
+              {activeStory.summary[lKey]}
             </p>
 
             <blockquote className="border-s-2 border-indigo-500 ps-4 sm:ps-5 my-4">
               <p className="stories-quote-text text-sm sm:text-lg font-medium italic leading-relaxed">
-                “{activeStory.quote[lang]}”
+                “{activeStory.quote[lKey]}”
               </p>
             </blockquote>
 
@@ -397,15 +398,15 @@ export default function CustomerStoriesShowcase() {
             <div className="flex items-center gap-3.5 pt-2">
               <img
                 src={activeStory.author.avatar}
-                alt={activeStory.author.name[lang]}
+                alt={activeStory.author.name[lKey]}
                 className="h-11 w-11 sm:h-12 sm:w-12 rounded-full object-cover ring-2 ring-indigo-500/40 border border-white/20 shadow-md"
               />
               <div>
                 <div className="stories-author-name text-sm font-bold">
-                  {activeStory.author.name[lang]}
+                  {activeStory.author.name[lKey]}
                 </div>
                 <div className="stories-author-role text-xs">
-                  {activeStory.author.role[lang]}
+                  {activeStory.author.role[lKey]}
                 </div>
               </div>
             </div>
@@ -498,7 +499,7 @@ export default function CustomerStoriesShowcase() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <span className="stories-category-badge inline-block rounded-md px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider border">
-                  {modalStory.category[lang]}
+                  {modalStory.category[lKey]}
                 </span>
                 <h3 className="text-2xl font-black text-white mt-2">
                   {modalStory.brand}
@@ -522,7 +523,7 @@ export default function CustomerStoriesShowcase() {
                     {stat.value}
                   </div>
                   <div className="text-[11px] text-slate-400 mt-1">
-                    {stat.label[lang]}
+                    {stat.label[lKey]}
                   </div>
                 </div>
               ))}
@@ -531,20 +532,20 @@ export default function CustomerStoriesShowcase() {
             {/* Quote block */}
             <div className="stories-modal-quote-box rounded-2xl border border-indigo-500/20 bg-indigo-950/20 p-4">
               <p className="text-xs sm:text-sm italic leading-relaxed text-slate-200">
-                “{modalStory.quote[lang]}”
+                “{modalStory.quote[lKey]}”
               </p>
               <div className="mt-3 flex items-center gap-3">
                 <img
                   src={modalStory.author.avatar}
-                  alt={modalStory.author.name[lang]}
+                  alt={modalStory.author.name[lKey]}
                   className="h-9 w-9 rounded-full object-cover ring-1 ring-indigo-500/40"
                 />
                 <div>
                   <div className="text-xs font-bold text-white">
-                    {modalStory.author.name[lang]}
+                    {modalStory.author.name[lKey]}
                   </div>
                   <div className="text-[10px] text-slate-400">
-                    {modalStory.author.role[lang]}
+                    {modalStory.author.role[lKey]}
                   </div>
                 </div>
               </div>
@@ -563,7 +564,7 @@ export default function CustomerStoriesShowcase() {
                 {modalStory.highlights.map((item, idx) => (
                   <li key={idx} className="flex items-start gap-2.5 text-xs text-slate-300 leading-relaxed">
                     <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>{item[lang]}</span>
+                    <span>{item[lKey]}</span>
                   </li>
                 ))}
               </ul>

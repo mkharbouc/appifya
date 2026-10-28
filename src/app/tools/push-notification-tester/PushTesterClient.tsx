@@ -270,7 +270,7 @@ export default function PushTesterClient() {
                 : 'bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:border-indigo-500/50 hover:bg-slate-850'
             }`}
           >
-            {item.label[lang] || item.label.en}
+            {item.label[supportedLang] || item.label.en}
           </button>
         ))}
       </div>

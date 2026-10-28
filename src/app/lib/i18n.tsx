@@ -1,8 +1,8 @@
-﻿'use client';
+'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type Language = 'ar' | 'en' | 'fr';
+export type Language = 'ar' | 'en' | 'fr' | 'es';
 
 interface Translations {
   [key: string]: {
@@ -76,6 +76,28 @@ export const translations: Translations = {
     navPricing: "Tarifs",
     installBtn: "Installer l'application",
     exportBtn: "Exporter l’application",
+  },
+  es: {
+    heroTitle: "Convierte tu tienda o landing page en una",
+    heroTitleHighlight: "App Móvil PWA Rápida",
+    heroSub: "Crea una Progressive Web App de alto rendimiento con monetización de anuncios, personalización nativa y sincronización segura en Appwrite.",
+    storeUrlLabel: "URL de la tienda o landing page",
+    appNameLabel: "Nombre de la aplicación",
+    themeColorLabel: "Color principal",
+    iconLabel: "Icono de la aplicación",
+    platformLabel: "Plataforma móvil objetivo",
+    platformBoth: "Ambas (Recomendado)",
+    platformAndroid: "Solo Android",
+    platformIos: "Solo iOS",
+    monetizationTitle: "Configuración de Monetización y Anuncios",
+    noAds: "Sin anuncios",
+    customCode: "Código personalizado",
+    generateBtn: "Generar y Publicar PWA Ahora",
+    navAbout: "Sobre nosotros",
+    navContact: "Contacto",
+    navPricing: "Precios",
+    installBtn: "Instalar app en tu dispositivo",
+    exportBtn: "Exportar aplicación",
   }
 };
 
@@ -94,7 +116,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem('app_lang') as Language;
-    if (saved && ['ar', 'en', 'fr'].includes(saved)) {
+    if (saved && ['ar', 'en', 'fr', 'es'].includes(saved)) {
       // Hydrate the language preference after the browser becomes available.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setLangState(saved);
@@ -108,6 +130,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
     if (browserLang.startsWith('ar')) detected = 'ar';
     else if (browserLang.startsWith('fr')) detected = 'fr';
+    else if (browserLang.startsWith('es')) detected = 'es';
     else detected = 'en';
 
     setLangState(detected);

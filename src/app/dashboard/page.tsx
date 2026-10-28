@@ -109,6 +109,7 @@ const formatTimer = (totalSeconds: number) => {
 export default function DashboardPage() {
   const { user, loading: authLoading, openAuthModal, sendVerificationEmail, refreshUser, logout } = useAuth();
   const { lang } = useLanguage();
+  const lKey: 'ar' | 'en' | 'fr' = lang === 'ar' ? 'ar' : lang === 'fr' ? 'fr' : 'en';
   const [apps, setApps] = useState<AppDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [buildingAppId, setBuildingAppId] = useState<string | null>(null);
@@ -644,7 +645,7 @@ export default function DashboardPage() {
     },
   };
 
-  const getTxt = (key: keyof typeof labels) => labels[key][lang] || labels[key]['en'];
+  const getTxt = (key: keyof typeof labels) => labels[key][lKey] || labels[key]['en'];
 
   if (authLoading) {
     return (
@@ -883,7 +884,7 @@ export default function DashboardPage() {
 
                 <div className="flex items-center justify-between text-[11px] text-slate-400">
                   <span className="text-indigo-300 font-bold truncate max-w-[280px]">
-                    {activeStep.title[lang] || activeStep.title.en}
+                    {activeStep.title[lKey] || activeStep.title.en}
                   </span>
                   <span className="text-slate-500 font-mono">
                     {lang === 'ar' ? `المرحلة ${pipeline.stepIndex + 1} من 5` : `Step ${pipeline.stepIndex + 1} of 5`}
@@ -925,10 +926,10 @@ export default function DashboardPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className={`text-xs font-bold leading-tight ${isCurrent ? 'text-white' : isDone ? 'text-slate-300' : 'text-slate-500'}`}>
-                          {s.title[lang] || s.title.en}
+                          {s.title[lKey] || s.title.en}
                         </div>
                         <p className={`text-[11px] leading-snug mt-0.5 truncate ${isCurrent ? 'text-indigo-200' : 'text-slate-500'}`}>
-                          {s.detail[lang] || s.detail.en}
+                          {s.detail[lKey] || s.detail.en}
                         </p>
                       </div>
                     </div>

@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import PlayTestersClient from './PlayTestersClient';
 
 export const metadata: Metadata = {
-  title: 'Google Play 20 Testers Link Generator & Inspector',
+  title: 'Google Play 20 Testers Link Generator',
   description:
-    'Free tool for Google Play 20 closed testers requirement. Generate web opt-in & Android download links, invitation templates, and diagnose "App not available" errors.',
+    'Free Google Play 20 closed testers tool. Generate web opt-in and direct download links, tester invite templates, and fix "App not available" errors.',
   keywords: [
     'google play 20 testers',
     'google play 14 days 20 testers',

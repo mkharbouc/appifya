@@ -42,19 +42,22 @@ export async function POST(req: NextRequest) {
     // Detect Visitor Language (from body or Accept-Language header)
     const acceptLang = req.headers.get('accept-language')?.toLowerCase() || '';
     const rawLang = (typeof lang === 'string' ? lang.toLowerCase() : '');
-    const effectiveLang: 'ar' | 'fr' | 'en' =
-      rawLang === 'fr' || rawLang === 'en' || rawLang === 'ar'
+    const effectiveLang: 'ar' | 'fr' | 'en' | 'es' =
+      rawLang === 'fr' || rawLang === 'en' || rawLang === 'ar' || rawLang === 'es'
         ? rawLang
         : acceptLang.startsWith('fr')
         ? 'fr'
         : acceptLang.startsWith('ar')
         ? 'ar'
+        : acceptLang.startsWith('es')
+        ? 'es'
         : 'en';
 
     const localeMap = {
       ar: 'ar-EG',
       fr: 'fr-FR',
       en: 'en-US',
+      es: 'es-ES',
     };
 
     let formattedDate: string;
@@ -113,6 +116,21 @@ export async function POST(req: NextRequest) {
         replyButtonText: `Reply Directly to Sender`,
         replySubject: `Re: Your inquiry on Appifya`,
         footerText: `This message was automatically submitted via the Contact page on Appifya.`,
+      },
+      es: {
+        dir: 'ltr',
+        langName: 'Español (Spanish)',
+        subject: `📬 Nuevo mensaje de contacto: ${cleanName} (${cleanEmail})`,
+        headerTitle: `Nuevo mensaje de un visitante en Appifya`,
+        headerSubtitle: `Formulario de contacto oficial - ${destinationEmail}`,
+        labelSenderName: `Nombre del remitente`,
+        labelSenderEmail: `Correo electrónico`,
+        labelDate: `Fecha y hora de envío`,
+        labelSiteLanguage: `Idioma del sitio / navegador`,
+        labelMessage: `Mensaje y consulta`,
+        replyButtonText: `Responder directamente`,
+        replySubject: `Respuesta a su consulta en Appifya`,
+        footerText: `Este mensaje fue enviado automáticamente a través del formulario de contacto de Appifya.`,
       },
     }[effectiveLang];
 
