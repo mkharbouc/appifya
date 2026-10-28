@@ -148,7 +148,7 @@ const SAMPLE_SCREENSHOTS = [
   `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="2340" viewBox="0 0 1080 2340" fill="%230f172a"><rect width="1080" height="2340" fill="%2318181b"/><circle cx="540" cy="460" r="160" fill="%23f43f5e"/><text x="540" y="740" fill="%23ffffff" font-family="sans-serif" font-size="64" font-weight="bold" text-anchor="middle">Order Confirmed!</text><text x="540" y="830" fill="%23a1a1aa" font-family="sans-serif" font-size="40" text-anchor="middle">Estimated delivery: 25-35 mins</text><rect x="80" y="980" width="920" height="640" rx="36" fill="%2327272a"/><circle cx="180" cy="1100" r="40" fill="%2310b981"/><line x1="180" y1="1140" x2="180" y2="1480" stroke="%233f3f46" stroke-width="12"/><text x="260" y="1115" fill="%23ffffff" font-family="sans-serif" font-size="42" font-weight="bold">Restaurant Preparing</text><text x="260" y="1170" fill="%23a1a1aa" font-family="sans-serif" font-size="32">Fresh organic ingredients</text><circle cx="180" cy="1320" r="40" fill="%2310b981"/><text x="260" y="1335" fill="%23ffffff" font-family="sans-serif" font-size="42" font-weight="bold">Courier on the way</text><text x="260" y="1390" fill="%23a1a1aa" font-family="sans-serif" font-size="32">Live GPS tracking active</text></svg>`,
 ];
 
-const LOCAL_STORAGE_KEY = 'appifya_screenshot_studio_project_v1';
+const LOCAL_STORAGE_KEY = 'appifya_screenshot_studio_project_v2';
 
 // ─── Default Localized Slide Generators ───
 export function getDefaultLocalizedSlides(targetLang: 'ar' | 'en' | 'fr'): Slide[] {
@@ -262,14 +262,18 @@ const DEFAULT_KNOWN_HEADLINES = [
   'اكتشف وتسوّق بسهولة',
   'اكتشف وتسوّق بسهولة وسرعة',
   'اكتشف وتسوّق بكل سهولة',
-  'Discover & Shop Seamlessly',
-  'Découvrez et Achetez Facilement',
+  'لوحة تحكم وتحليلات ذكية',
   'لوحة تحكم وتحليلات مالية ذكية',
-  'Smart Analytics & Insights',
-  'Tableau de Bord & Analyses',
+  'توصيل سريع حتى باب بيتك',
   'توصيل فائق السرعة مع تتبع حي',
+  'Discover & Shop Seamlessly',
+  'Smart Analytics & Insights',
   'Ultra Fast Order Tracking',
+  'Découvrez et Achetez Facilement',
+  'Tableau de Bord & Analyses',
+  'Tableau de Bord & Analyses Intelligentes',
   'Suivi de Commande en Direct',
+  'Livraison Ultra-Rapide avec Suivi GPS',
 ];
 
 export default function AppMockupFramerClient() {
@@ -320,10 +324,26 @@ export default function AppMockupFramerClient() {
 
   // Check if slides are using default placeholders
   const areSlidesDefault = useCallback((currentSlides: Slide[]) => {
-    return (
-      currentSlides.length <= 3 &&
-      currentSlides.every((s) => DEFAULT_KNOWN_HEADLINES.includes(s.headline))
-    );
+    if (!currentSlides || currentSlides.length === 0) return true;
+    return currentSlides.every((s) => {
+      const h = (s.headline || '').trim();
+      return (
+        DEFAULT_KNOWN_HEADLINES.includes(h) ||
+        h.includes('اكتشف') ||
+        h.includes('لوحة تحكم') ||
+        h.includes('توصيل') ||
+        h.includes('ميزة') ||
+        h.includes('Discover') ||
+        h.includes('Analytics') ||
+        h.includes('Tracking') ||
+        h.includes('Feature') ||
+        h.includes('Découvrez') ||
+        h.includes('Tableau') ||
+        h.includes('Livraison') ||
+        h.includes('Suivi') ||
+        h.includes('Fonctionnalité')
+      );
+    });
   }, []);
 
   // Adapt default placeholder slides when user's language changes

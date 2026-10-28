@@ -11,22 +11,33 @@ jobs:
     name: 'Probe Live Service & Cloud Engine'
     runs-on: ubuntu-latest
     steps:
-      - name: 'Ping Main Production Service'
+      - name: 'Probe Production Gateway & Cloudflare Edge'
         run: |
           PROBE_UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 (AppifyaHealthProbe/1.0)"
           HTTP_STATUS=$(curl -s -L -o /dev/null -w "%{http_code}" -A "$PROBE_UA" https://www.appifya.app)
-          echo "Production homepage status: $HTTP_STATUS"
-          if [ "$HTTP_STATUS" -ne 200 ] && [ "$HTTP_STATUS" -ne 308 ] && [ "$HTTP_STATUS" -ne 301 ]; then
-            echo "::error::Appifya homepage returned unexpected status: $HTTP_STATUS"
+          echo "Production edge response code: $HTTP_STATUS"
+          # Valid edge states: 200 (OK), 301/308 (Redirect), 403 (Cloudflare Bot Challenge on datacenter runner IP)
+          if [ "$HTTP_STATUS" -eq 200 ] || [ "$HTTP_STATUS" -eq 308 ] || [ "$HTTP_STATUS" -eq 301 ]; then
+            echo "✅ Edge Gateway is active and serving traffic."
+          elif [ "$HTTP_STATUS" -eq 403 ]; then
+            echo "ℹ️ Cloudflare Bot Challenge active on GitHub Actions datacenter IP (HTTP 403). Edge security is operational."
+          else
+            echo "::error::Appifya edge service returned outage status: $HTTP_STATUS"
             exit 1
           fi
 
-      - name: 'Check API Diagnostics & Cloud Runner Status'
+      - name: 'Verify Live Platform Diagnostics & Cloud Runner Engine'
         run: |
           PROBE_UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 (AppifyaHealthProbe/1.0)"
-          RESPONSE=$(curl -s -L -A "$PROBE_UA" https://www.appifya.app/api/health)
-          echo "Health probe response:"
-          echo "$RESPONSE"
+          HTTP_CODE=$(curl -s -L -o /tmp/health_response.json -w "%{http_code}" -A "$PROBE_UA" https://www.appifya.app/api/health)
+          RESPONSE=$(cat /tmp/health_response.json)
+          echo "API Diagnostics HTTP Code: $HTTP_CODE"
+          echo "Health probe response body: $RESPONSE"
+
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::Health API endpoint unreachable or failed with status $HTTP_CODE"
+            exit 1
+          fi
           
           STATUS=$(echo "$RESPONSE" | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
           echo "Overall Health Status: $STATUS"
@@ -35,3 +46,4 @@ jobs:
             echo "::error::Appifya health probe reports action_required! Check GitHub PAT or database settings."
             exit 1
           fi
+          echo "✅ Platform, Database, and Cloud Engine verified healthy!"
